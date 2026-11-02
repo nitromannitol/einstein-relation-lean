@@ -1,0 +1,105 @@
+name: CI
+
+permissions:
+  contents: read
+
+# Runs on GitHub-hosted runners (`ubuntu-24.04`: 4 vCPU, 16 GB RAM, 6 h per job). No `pull_request`
+# trigger: a fork's pull request would run with this repository's Actions cache in scope, and the cached
+# `.lake` trees are the artifacts that the comparator workflow trusts.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'paper/**'
+      - 'formalization.yaml'
+      - 'CITATION.cff'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and axiom audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 345
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Reclaim runner disk space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/.ghcup /usr/local/share/powershell \
+                      /usr/share/swift /usr/local/share/boost || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          df -h /
+
+      - name: Enlarge swap
+        shell: bash
+        run: |
+          sudo swapoff -a || true
+          swapdir=/mnt
+          [ -d "$swapdir" ] || swapdir="${RUNNER_TEMP:-/tmp}"
+          sudo rm -f "$swapdir/lean-swapfile"
+          sudo fallocate -l 16G "$swapdir/lean-swapfile"
+          sudo chmod 600 "$swapdir/lean-swapfile"
+          sudo mkswap "$swapdir/lean-swapfile"
+          sudo swapon "$swapdir/lean-swapfile"
+          free -h
+
+      # Installs the toolchain named in `lean-toolchain`, fetches every package in `lake-manifest.json`
+      # and downloads the Mathlib oleans.
+      - name: Set up Lean and fetch the Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-mathlib-cache: true
+
+      # Restore and save are split so that the save runs even when the build is cut off: a partial build
+      # banks its completed modules, dependencies included, and the next run resumes from them.
+      - name: Restore build artifacts
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .lake/build
+            .lake/packages/*/.lake/build
+            !.lake/packages/mathlib/.lake/build
+          key: lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
+
+      - name: Build the library
+        id: build
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 300m lake build 2>&1 | tee production-build.log
+          if grep -E '^error|declaration uses .sorry|sorryAx' production-build.log; then
+            echo "The library build must have no error and no incomplete proof."
+            exit 1
+          fi
+
+      # `EinsteinFullAudit/Axioms.lean` prints the axioms of the twenty-one numbered results; the check
+      # fails on any axiom outside the standard three and the literature inputs, on `sorryAx`, and on a
+      # missing, unexpected or repeated report.
+      - name: Axiom audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          lake env lean EinsteinFullAudit/Axioms.lean 2>&1 | tee axioms-audit.log
+          python3 scripts/check_axioms.py axioms-audit.log
+
+      - name: Save build artifacts
+        if: always() && steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .lake/build
+            .lake/packages/*/.lake/build
+            !.lake/packages/mathlib/.lake/build
+          key: lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}

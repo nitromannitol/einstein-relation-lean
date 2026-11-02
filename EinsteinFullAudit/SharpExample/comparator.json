@@ -1,0 +1,26 @@
+{
+  "challenge_module": "EinsteinFullAudit.SharpExample.Challenge",
+  "solution_module": "EinsteinFullAudit.SharpExample.Solution",
+  "theorem_names": [
+    "EinsteinFullAudit.SharpExample.sharp_example"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound",
+    "EinsteinFull.External.akm_averaged_corrector",
+    "EinsteinFull.External.akm_block_boundary",
+    "EinsteinFull.External.akm_block_change",
+    "EinsteinFull.External.akm_block_clt",
+    "EinsteinFull.External.akm_coarsened_coefficient_estimates",
+    "EinsteinFull.External.akm_localized_energy",
+    "EinsteinFull.External.akm_negative_sobolev",
+    "EinsteinFull.External.akm_sublinear_correctors",
+    "EinsteinFull.External.akm_white_noise_exists",
+    "EinsteinFull.External.bass_continuous_elliptic_well_posed",
+    "EinsteinFull.External.dfgw_invariance",
+    "EinsteinFull.External.gantert_regeneration_tail",
+    "EinsteinFull.External.gmp_velocity"
+  ],
+  "enable_nanoda": true
+}

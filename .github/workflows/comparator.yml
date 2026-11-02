@@ -1,0 +1,65 @@
+name: Comparator audit
+
+permissions:
+  contents: read
+
+# Checks the three comparator pairs of EinsteinFullAudit/ with the tools bundled with the pinned Lean
+# toolchain (`lake comparator`, NanoDa and con-ron), on the build artifacts banked by the CI workflow.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comparator:
+    name: Comparator pairs
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 345
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Reclaim runner disk space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/.ghcup /usr/local/share/powershell \
+                      /usr/share/swift /usr/local/share/boost || true
+          df -h /
+
+      - name: Install bubblewrap and raise the memory-map limit
+        shell: bash
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+          sudo sysctl -w vm.max_map_count=262144
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+      - name: Set up Lean and fetch the Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-mathlib-cache: true
+
+      - name: Restore build artifacts
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .lake/build
+            .lake/packages/*/.lake/build
+            !.lake/packages/mathlib/.lake/build
+          key: lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.event.workflow_run.head_sha || github.sha }}
+          restore-keys: |
+            lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
+
+      - name: Run the comparator pairs
+        shell: bash
+        run: ./scripts/run_comparators.sh --palomar

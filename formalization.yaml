@@ -1,0 +1,199 @@
+version: "v0.4"
+
+project:
+  name: "Uniform small-force expansion for reversible diffusions in a random environment"
+  description: >-
+    A Lean 4 formalization of the paper "Uniform small-force expansion for reversible diffusions in
+    a random environment" by Bou-Rabee and Xu: the uniform expansion of the velocity of a reversible
+    diffusion in a stationary, finite-range, uniformly elliptic and smooth random environment in the
+    applied force, through the critical order d + 1 (Theorem 1.1), the quantitative Einstein relation
+    (Theorem 1.2), its optimality (Proposition 7.1), and all the intermediate numbered results. Every
+    theorem holds for every environment law satisfying Assumptions 1.1 and 1.2. The proofs use
+    thirteen results from the literature, stated in Lean as named axioms with their sources.
+    Theorems 1.1 and 1.2 and Proposition 7.1 are independently checked by the comparator pairs under
+    EinsteinFullAudit/.
+  authors:
+    - "Ahmed Bou-Rabee"
+    - "Ruizhe Xu"
+  responsible_maintainers:
+    - "Ahmed Bou-Rabee"
+    - "Ruizhe Xu"
+  license: "Apache-2.0"
+
+classification:
+  arxiv: ["math.PR", "math.AP"]
+  msc2020: ["60K37", "60J60", "35B27"]
+
+sources:
+  - title: "Uniform small-force expansion for reversible diffusions in a random environment"
+    authors:
+      - "Ahmed Bou-Rabee"
+      - "Ruizhe Xu"
+    type: "paper"
+    relationship: "formalizes"
+    location: "paper/"
+    note: "arXiv:2605.26082. Its source, bibliography, figure and compiled PDF are included under paper/."
+    license: "authors' copyright; publication licence not yet chosen"
+    author_endorsement: "participated"
+  - title: "Quantitative Stochastic Homogenization and Large-Scale Regularity"
+    authors: ["Scott Armstrong", "Tuomo Kuusi", "Jean-Christophe Mourrat"]
+    type: "book"
+    relationship: "assumes"
+    note: "Grundlehren 352, Springer, 2019. Nine of its results are literature inputs (see README)."
+  - title: "Einstein relation for reversible diffusions in a random environment"
+    authors: ["Nina Gantert", "Pierre Mathieu", "Andrey Piatnitski"]
+    type: "paper"
+    relationship: "assumes"
+    note: "Comm. Pure Appl. Math. 65 (2012), 187-228. Lemma 5.8 and the law of large numbers are literature inputs."
+  - title: "An invariance principle for reversible Markov processes"
+    authors: ["Anna De Masi", "Pablo A. Ferrari", "Sheldon Goldstein", "W. David Wick"]
+    type: "paper"
+    relationship: "assumes"
+    note: "J. Stat. Phys. 55 (1989), 787-855. Theorem 2.2 is a literature input."
+  - title: "Diffusions and Elliptic Operators"
+    authors: ["Richard F. Bass"]
+    type: "book"
+    relationship: "assumes"
+    note: "Springer, 1997. Chapter VI, Theorem 4.3 (well-posedness of the martingale problem) is a literature input."
+
+related_formalizations:
+  - id: "https://github.com/nitromannitol/subdiffusive-process"
+    relationship: "builds-on"
+    note: "Reversible diffusions in random environments as Feller processes; a pinned git dependency."
+  - id: "https://github.com/scottnarmstrong/CoarseGraining"
+    relationship: "builds-on"
+    note: "The coarse-graining library of Armstrong and Kuusi; a pinned git dependency."
+  - id: "https://github.com/scottnarmstrong/MarkovProcess"
+    relationship: "builds-on"
+    note: "Continuous-time Markov processes; a pinned git dependency."
+  - id: "https://github.com/scottnarmstrong/EllipticRegularityLean"
+    relationship: "builds-on"
+    note: "Elliptic and parabolic regularity; a pinned git dependency."
+  - id: "https://github.com/scottnarmstrong/SuperdiffusionCLT"
+    relationship: "builds-on"
+    note: "Diffusions in random fields and the invariance principle; a pinned git dependency."
+
+status:
+  scope: >-
+    All twenty-one numbered results of the paper, each for every environment law satisfying
+    Assumptions 1.1 and 1.2. EinsteinFull/MainTheorems.lean lists them with their Lean declarations.
+  sorry_count: 0
+  sorry_count_scope: "EinsteinFull library and vendored EinsteinRelation library"
+  comparator_challenge_sorry_count: 3
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  literature_inputs: 13
+  literature_inputs_note: >-
+    Thirteen results cited from the literature (Armstrong, Kuusi and Mourrat 2019; Gantert,
+    Mathieu and Piatnitski 2012; De Masi, Ferrari, Goldstein and Wick 1989; Bass 1997) are named
+    axioms in EinsteinFull/External/ and EinsteinFull/Frozen/GantertRegenerationTail.lean, each
+    with its source in its docstring; the README lists them. The library declares one further input,
+    gmp_dirichlet_lower, which no numbered result uses.
+  main_results:
+    - declaration: "EinsteinFull.Frozen.uniform_small_force_expansion"
+      file: "EinsteinFull/Frozen/UniformSmallForceExpansion.lean"
+      sorry_count: 0
+      comparator_config: "EinsteinFullAudit/UniformSmallForceExpansion/comparator.json"
+      literature_dependencies: 12
+    - declaration: "EinsteinFull.Frozen.mobility_rate"
+      file: "EinsteinFull/Frozen/MobilityRate.lean"
+      sorry_count: 0
+      comparator_config: "EinsteinFullAudit/MobilityRate/comparator.json"
+      literature_dependencies: 12
+    - declaration: "EinsteinFull.Frozen.sharp_example"
+      file: "EinsteinFull/Frozen/SharpExample.lean"
+      sorry_count: 0
+      comparator_config: "EinsteinFullAudit/SharpExample/comparator.json"
+      literature_dependencies: 13
+
+automation:
+  methods:
+    - method: "agent"
+      models:
+        - "gpt-6.1-sol"
+        - "gpt-6-luna"
+        - "gpt-6-astra"
+        - "gpt-6-terra"
+      framework: "Codex CLI (OpenAI)"
+      tool_setup: >-
+        Proof campaigns and orchestration rounds, and the Lean statements of the results and of the
+        literature inputs (GPT-6.1 Sol, GPT-6 Luna, GPT-6 Terra). GPT-6 Astra, at maximum reasoning
+        effort, read-only and run separately from the development agents: refute-first reviews of the
+        frozen statements against the manuscript, audits of the literature inputs against the cited
+        sources, and one closure review of each sealed numbered result. Lean builds under
+        leanprover/lean4:v4.35.0-rc2 with Mathlib v4.35.0-rc2; the vendored EinsteinRelation library
+        was first developed under v4.26 and ported.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local Linux machines"
+      prompting_notes: >-
+        Human-directed work. Every statement was frozen before its proof was attempted, and proof
+        tasks forbade changing the frozen statements.
+    - method: "agent"
+      models:
+        - "claude-opus-5-5"
+        - "claude-sonnet-5-5"
+        - "claude-haiku-5-5"
+      framework: "Claude Code (Anthropic)"
+      tool_setup: >-
+        Claude Opus 5.5: orchestration, integration, statement reviews, canonical adoption gates and the
+        sealing of the numbered results. Claude Sonnet 5.5 and Claude Haiku 5.5: lemmas with fixed
+        statements. Same toolchain.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local Linux machines"
+      prompting_notes: "Human-directed work on frozen statements."
+    - method: "agent"
+      models:
+        - "leanstral"
+      framework: "Mistral Leanstral, driven by project scripts"
+      tool_setup: "Small auxiliary lemmas with fixed statements, in the vendored library."
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local Linux machine"
+      prompting_notes: "Fixed statements only."
+  spend_usd: "not tracked"
+  notes: >-
+    The Lean development was written by AI agents between 18 October and 2 November 2026, under the
+    direction of the authors. Every numbered result was stated in Lean and frozen before its proof.
+    Each proof step of the paper was then stated as its own Lean proposition and proved from the
+    propositions of the steps it uses; each numbered result is the composition of these steps. Every
+    proof is checked by the Lean kernel. The library contains no sorry; the three comparator challenge
+    files each contain exactly one intentional statement-level sorry, which the corresponding
+    Solution.lean proves. The development history and the review records are kept in a separate
+    private repository.
+
+fidelity:
+  divergences: >-
+    Every theorem is stated for an arbitrary environment law satisfying Assumption 1.1 (symmetric,
+    uniformly elliptic, Lipschitz coefficient a_0, bounded Lipschitz potential V, stationary and of
+    finite range r_0) and Assumption 1.2 (smooth fields with deterministic derivative bounds), with
+    d >= 2. The diffusion is specified by its martingale problem at the origin, for every real force;
+    no stochastic differential equation appears. The theorems quantify over every admissible family of
+    path laws, every velocity and every diffusivity with the defining properties, and do not assert
+    their existence. Norms are Euclidean. Real-valued definitions are total, so analytic conclusions
+    carry explicit integrability and measurability statements.
+
+review:
+  status: "agent-reviewed"
+  reviewers:
+    - "OpenAI GPT-6 Astra (maximum reasoning effort, read-only, run separately from the development agents): refute-first reviews of the frozen statements, audits of the literature inputs against the cited sources, and closure reviews of the sealed results"
+    - "Anthropic Claude Opus 5.5: statement reviews, adoption gates and the final seal checks"
+  notes: >-
+    Every proof is checked by the Lean kernel. Each statement was frozen before its proof was
+    attempted, and was accepted once it elaborated and a model that had not written it compared it
+    with the manuscript, trying to find a mismatch. Each literature input was checked against the
+    cited theorem or equation in the source by a model that had not written it; the inputs remain
+    assumptions. The authors fixed the scope and the policy for literature inputs; they did not review
+    every Lean statement themselves. The statements of Theorems 1.1 and 1.2 and Proposition 7.1, and
+    of the literature inputs they use, are also checked against self-contained challenge files by the
+    comparator. This is an agent review, not external peer review.
+
+acknowledgements: >-
+  Built on Lean 4, Mathlib, Lake, the libraries listed above and leanprover/comparator.
