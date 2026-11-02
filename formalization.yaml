@@ -1,9 +1,9 @@
 version: "v0.4"
 
 project:
-  name: "Uniform small-force expansion for reversible diffusions in a random environment"
+  name: "Quantitative Einstein relation for reversible diffusions in a random environment"
   description: >-
-    A Lean 4 formalization of the paper "Uniform small-force expansion for reversible diffusions in
+    A Lean 4 formalization of the paper "Quantitative Einstein relation for reversible diffusions in
     a random environment" by Bou-Rabee and Xu: the uniform expansion of the velocity of a reversible
     diffusion in a stationary, finite-range, uniformly elliptic and smooth random environment in the
     applied force, through the critical order d + 1 (Theorem 1.1), the quantitative Einstein relation
@@ -25,7 +25,7 @@ classification:
   msc2020: ["60K37", "60J60", "35B27"]
 
 sources:
-  - title: "Uniform small-force expansion for reversible diffusions in a random environment"
+  - title: "Quantitative Einstein relation for reversible diffusions in a random environment"
     authors:
       - "Ahmed Bou-Rabee"
       - "Ruizhe Xu"

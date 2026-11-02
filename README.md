@@ -1,9 +1,9 @@
-# Uniform small-force expansion for reversible diffusions in a random environment
+# Quantitative Einstein relation for reversible diffusions in a random environment
 
 A machine-checked **Lean 4** formalization of the paper
 
 > Ahmed Bou-Rabee and Ruizhe Xu,
-> *Uniform small-force expansion for reversible diffusions in a random environment*
+> *Quantitative Einstein relation for reversible diffusions in a random environment*
 > (arXiv:2605.26082).
 
 The paper's source, bibliography, figure and compiled PDF are included under

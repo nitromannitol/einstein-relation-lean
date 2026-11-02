@@ -1,10 +1,10 @@
 cff-version: 1.2.0
 message: "If you use this formalization, please cite it as below."
-title: "Uniform small-force expansion for reversible diffusions in a random environment: Lean formalization"
+title: "Quantitative Einstein relation for reversible diffusions in a random environment: Lean formalization"
 type: software
 repository-code: "https://github.com/nitromannitol/@REPO@"
 abstract: >-
-  A Lean 4 and Mathlib formalization of the paper "Uniform small-force expansion for reversible
+  A Lean 4 and Mathlib formalization of the paper "Quantitative Einstein relation for reversible
   diffusions in a random environment" by Ahmed Bou-Rabee and Ruizhe Xu. All twenty-one numbered
   results of the paper are stated and proved for every environment law satisfying Assumptions 1.1
   and 1.2, among them the uniform small-force expansion of the velocity through the critical order
@@ -27,7 +27,7 @@ keywords:
 license: Apache-2.0
 references:
   - type: article
-    title: "Uniform small-force expansion for reversible diffusions in a random environment"
+    title: "Quantitative Einstein relation for reversible diffusions in a random environment"
     authors:
       - family-names: Bou-Rabee
         given-names: Ahmed

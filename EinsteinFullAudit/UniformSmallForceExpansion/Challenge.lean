@@ -44,7 +44,7 @@ import EinsteinFullAudit.Vocabulary.EinsteinRelation.Environment.Smooth
 /-!
 # Theorem 1.1 (paper label `t:expansion`): Mathlib-only statement
 
-Theorem 1.1 of *Uniform small-force expansion for reversible diffusions in a random environment* (Ahmed Bou-Rabee and
+Theorem 1.1 of *Quantitative Einstein relation for reversible diffusions in a random environment* (Ahmed Bou-Rabee and
 Ruizhe Xu), stated with every definition that it uses. This file imports only Mathlib and the files under
 `Vocabulary/`, which restate the library definitions under their library names; the final theorem has the
 one intentional `sorry` of the challenge. `Solution.lean` proves the same theorem from the library, and the
