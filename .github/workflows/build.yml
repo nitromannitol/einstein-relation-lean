@@ -14,6 +14,10 @@ on:
       - 'paper/**'
       - 'formalization.yaml'
       - 'CITATION.cff'
+      # The first version in `first-version/` is a separate Lake project with its own workflows.
+      - 'first-version/**'
+      - '.github/workflows/first-version.yml'
+      - '.github/workflows/first-version-comparator.yml'
   workflow_dispatch:
 
 concurrency:

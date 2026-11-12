@@ -1,0 +1,203 @@
+name: First version comparator audit
+
+permissions:
+  contents: read
+
+# Independent statement check of Theorem 1.2 and Proposition 7.1 of the first version
+# (`first-version/`) with leanprover/comparator. The toolchain of this project (Lean v4.26.0)
+# does not bundle the comparator tools, so they are built from pinned sources: lean4export at
+# the tag that matches first-version/lean-toolchain, the comparator, NanoDa and landrun. The
+# library build is restored from the cache written by the First version CI workflow when one
+# exists, and rebuilt otherwise.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: first-version-comparator-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  COMPARATOR_REV: "32bd61da1d68fbaa310234964e9b820b03a0f82f"   # leanprover/comparator
+  LEAN4EXPORT_REV: "v4.26.0"                                    # MUST match first-version/lean-toolchain
+  NANODA_REV: "6ae1f0cd962f081f6c423454c5da729d841236a7"        # ammkrn/nanoda_lib
+  LANDRUN_REV: "811cfff"                                        # Zouuup/landrun (v0.1.18)
+
+defaults:
+  run:
+    working-directory: first-version
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1 — the source dependency, identical to the `deps` job of first-version.yml and
+  # sharing its cache key, so whichever workflow runs first pays for it.
+  # ---------------------------------------------------------------------------
+  deps:
+    name: Dependency oleans
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Reclaim runner disk space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/.ghcup /usr/local/share/powershell \
+                      /usr/share/swift /usr/local/share/boost || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          df -h /
+
+      - name: Set up Lean and fetch the Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-mathlib-cache: true
+          lake-package-directory: first-version
+
+      - name: Restore the dependency build cache
+        id: deps-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: first-version/.lake/packages/DeGiorgi/.lake/build
+          key: first-version-lake-deps-${{ hashFiles('first-version/lean-toolchain', 'first-version/lake-manifest.json') }}
+
+      - name: Build the dependency package
+        run: lake build @DeGiorgi
+
+      - name: Save the dependency build cache
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: first-version/.lake/packages/DeGiorgi/.lake/build
+          key: first-version-lake-deps-${{ hashFiles('first-version/lean-toolchain', 'first-version/lake-manifest.json') }}
+
+  comparator:
+    name: Comparator over both pairs
+    needs: deps
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Reclaim runner disk space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/.ghcup /usr/local/share/powershell \
+                      /usr/share/swift /usr/local/share/boost || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          df -h /
+
+      - name: Enlarge swap and raise the memory-mapping limit
+        shell: bash
+        run: |
+          sudo swapoff -a || true
+          swapdir=/mnt
+          [ -d "$swapdir" ] || swapdir="${RUNNER_TEMP:-/tmp}"
+          sudo rm -f "$swapdir/lean-swapfile"
+          sudo fallocate -l 16G "$swapdir/lean-swapfile"
+          sudo chmod 600 "$swapdir/lean-swapfile"
+          sudo mkswap "$swapdir/lean-swapfile"
+          sudo swapon "$swapdir/lean-swapfile"
+          # The exporter maps every module of the closure.
+          sudo sysctl -w vm.max_map_count=262144
+          free -h
+
+      - name: Set up Lean and fetch the Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-mathlib-cache: true
+          lake-package-directory: first-version
+
+      - name: Restore the dependency build cache
+        uses: actions/cache/restore@v4
+        with:
+          path: first-version/.lake/packages/DeGiorgi/.lake/build
+          key: first-version-lake-deps-${{ hashFiles('first-version/lean-toolchain', 'first-version/lake-manifest.json') }}
+
+      # Written by the First version CI workflow. On a miss the library is rebuilt by the comparator
+      # script below.
+      - name: Restore project build artifacts
+        uses: actions/cache/restore@v4
+        with:
+          path: first-version/.lake/build
+          key: first-version-lake-proj-${{ hashFiles('first-version/lean-toolchain', 'first-version/lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            first-version-lake-proj-${{ hashFiles('first-version/lean-toolchain', 'first-version/lake-manifest.json') }}-
+
+      - name: Restore verification tools
+        id: tools-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/tools
+          key: first-version-cmp-tools-${{ env.COMPARATOR_REV }}-${{ env.LEAN4EXPORT_REV }}-${{ env.NANODA_REV }}-${{ env.LANDRUN_REV }}
+
+      - name: Build comparator
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/tools
+          git clone https://github.com/leanprover/comparator ~/tools/comparator
+          git -C ~/tools/comparator checkout "$COMPARATOR_REV"
+          cd ~/tools/comparator && lake build
+
+      - name: Build lean4export (toolchain-matched)
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/leanprover/lean4export ~/tools/lean4export
+          git -C ~/tools/lean4export checkout "$LEAN4EXPORT_REV"
+          test "$(cat ~/tools/lean4export/lean-toolchain)" = "$(cat lean-toolchain)" \
+            || { echo "lean4export toolchain does not match project toolchain"; exit 1; }
+          cd ~/tools/lean4export && lake build
+
+      - name: Set up Go (for landrun)
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build landrun (static)
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/Zouuup/landrun ~/tools/landrun-src
+          git -C ~/tools/landrun-src checkout "$LANDRUN_REV"
+          mkdir -p ~/tools/bin
+          cd ~/tools/landrun-src && CGO_ENABLED=0 go build -o ~/tools/bin/landrun ./cmd/landrun
+
+      - name: Build nanoda
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        run: |
+          command -v rustup >/dev/null || {
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+              | sh -s -- -y --profile minimal --default-toolchain none
+            . "$HOME/.cargo/env"
+          }
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup toolchain install stable --profile minimal
+          git clone https://github.com/ammkrn/nanoda_lib ~/tools/nanoda_lib
+          git -C ~/tools/nanoda_lib checkout "$NANODA_REV"
+          cd ~/tools/nanoda_lib && PATH="$HOME/.cargo/bin:$PATH" cargo +stable build --release
+
+      - name: Save verification tools
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/tools
+          key: first-version-cmp-tools-${{ env.COMPARATOR_REV }}-${{ env.LEAN4EXPORT_REV }}-${{ env.NANODA_REV }}-${{ env.LANDRUN_REV }}
+
+      - name: Run both comparator pairs
+        shell: bash
+        run: ./scripts/run_comparators.sh
+
+      - name: Upload comparator logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparator-logs-${{ github.sha }}
+          path: first-version/.lake/comparator-logs/
+          if-no-files-found: warn
