@@ -1,0 +1,237 @@
+version: "v0.4"
+
+project:
+  name: "Quantitative Einstein relation for reversible diffusions in a random environment"
+  description: >-
+    A Lean 4 formalization of the paper "Quantitative Einstein relation for reversible
+    diffusions in a random environment" by Bou-Rabee and Xu: the optimal rate
+    |l_X(lambda)/lambda - Sigma_X e_1| <= C lambda in the Einstein relation for a reversible
+    diffusion in a stationary, finite-range, uniformly elliptic and Lipschitz random
+    environment (Theorem 1.2), examples attaining the rate (Proposition 7.1), and all the
+    intermediate numbered results (Lemma 3.1 to Proposition 6.1). Every theorem holds for
+    every environment law satisfying Assumption 1.1 (an EnvironmentLaw), conditionally on
+    thirty results from the literature, which are explicit Prop-valued hypotheses of the
+    theorems. The development builds on Mathlib and on the public DeGiorgi
+    library. Theorem 1.2 and Proposition 7.1 are independently checked by the comparator
+    pairs under EinsteinRelationAudit/.
+  authors:
+    - "Ahmed Bou-Rabee"
+    - "Ruizhe Xu"
+  responsible_maintainers:
+    - "Ahmed Bou-Rabee"
+    - "Ruizhe Xu"
+  license: "Apache-2.0"
+
+classification:
+  arxiv: ["math.PR", "math.AP"]
+  msc2020: ["60K37", "60J60", "35B27"]
+
+sources:
+  - title: "Quantitative Einstein relation for reversible diffusions in a random environment"
+    authors:
+      - "Ahmed Bou-Rabee"
+      - "Ruizhe Xu"
+    type: "paper"
+    relationship: "formalizes"
+    location: "paper/"
+    note: >-
+      The paper under formalization, a preprint. Its source, bibliography, figure and compiled
+      PDF are included under paper/; CORRESPONDENCE.md maps its numbered results, by LaTeX
+      label, to Lean declarations. The paper is an evolving project, and paper/ holds its
+      current version.
+    license: "authors' copyright; publication licence not yet chosen"
+    author_endorsement: "participated"
+  - title: "Quantitative Stochastic Homogenization and Large-Scale Regularity"
+    authors: ["Scott Armstrong", "Tuomo Kuusi", "Jean-Christophe Mourrat"]
+    type: "book"
+    relationship: "assumes"
+    note: "Grundlehren 352, Springer, 2019. Fourteen of its results are literature inputs (see README)."
+  - title: "Elliptic Partial Differential Equations of Second Order"
+    authors: ["David Gilbarg", "Neil S. Trudinger"]
+    type: "book"
+    relationship: "assumes"
+    note: >-
+      Classics in Mathematics, Springer, 2001. Theorem 8.32 and Corollary 8.36 are literature
+      inputs; (7.45) and Theorem 8.17 are proved in this repository from the DeGiorgi library.
+  - title: "Einstein relation for reversible diffusions in a random environment"
+    authors: ["Nina Gantert", "Pierre Mathieu", "Andrey Piatnitski"]
+    type: "paper"
+    relationship: "assumes"
+    note: "Comm. Pure Appl. Math. 65 (2012), 187-228. Thirteen of its results are literature inputs (see README)."
+  - title: "Dirichlet Forms and Symmetric Markov Processes"
+    authors: ["Masatoshi Fukushima", "Yoichi Oshima", "Masayoshi Takeda"]
+    type: "book"
+    relationship: "assumes"
+    note: "2nd edition, de Gruyter, 2011. Theorem 5.5.5 (Fukushima decomposition) is a literature input."
+
+related_formalizations:
+  - id: "https://github.com/nitromannitol/DeGiorgi"
+    relationship: "builds-on"
+    note: >-
+      DeGiorgi, a public Lean library of De Giorgi-Nash-Moser theory (branch v426-backport),
+      a git dependency pinned to commit 31fc3240a6af8a506c2c6e9b540b091525d5c451. It proves the
+      Poincare inequality on balls and the local boundedness of weak solutions used in Lemma 5.1.
+
+status:
+  scope: >-
+    Every numbered result of the paper except Conjecture 1.3: Theorem 1.2
+    (EinsteinRelation.mobility_rate), Lemma 3.1, Proposition 3.2, Lemmas 4.1-4.3, Lemmas 5.1
+    and 5.2, Propositions 5.3, 6.1 and 7.1 (EinsteinRelation.mobility_rate_sharp), each for every
+    environment law satisfying Assumption 1.1, with the literature inputs that its proof uses as
+    explicit hypotheses. CORRESPONDENCE.md maps the statements of the paper to Lean declarations.
+    Not formalized: Conjecture 1.3.
+  sorry_count: 0
+  sorry_count_scope: "EinsteinRelation library only"
+  comparator_challenge_sorry_count: 2
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  literature_inputs: 30
+  literature_inputs_note: >-
+    Thirty Prop-valued statements of results cited from the literature (AKM 2019, Gilbarg and
+    Trudinger 2001, Fukushima, Oshima and Takeda 2011, Gantert, Mathieu and Piatnitski 2012,
+    with De Masi, Ferrari, Goldstein and Wick 1989 and Shen 2003) are hypotheses of the
+    theorems. They are not axioms and are not proved here. The README lists each with its
+    source and the theorems that use it.
+  main_results:
+    - declaration: "EinsteinRelation.mobility_rate"
+      file: "EinsteinRelation/MainTheorems.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "EinsteinRelationAudit/MobilityRate/comparator.json"
+      literature_dependencies: 27
+    - declaration: "EinsteinRelation.mobility_rate_sharp"
+      file: "EinsteinRelation/MainTheorems.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "EinsteinRelationAudit/SharpExample/comparator.json"
+      literature_dependencies: 29
+
+automation:
+  methods:
+    - method: "agent"
+      models:
+        - "gpt-6.1-sol"
+        - "gpt-6-luna"
+        - "gpt-6-astra"
+      framework: "Codex CLI (OpenAI)"
+      tool_setup: >-
+        GPT-6.1 Sol: orchestration on 18-19 October 2026, and the main proof campaigns, among
+        them Lemma 3.1 and Proposition 3.2, Lemma 5.1, the continuity form of Lemma 5.2, and the
+        assembly of Proposition 5.3 and of the final chain. GPT-6 Luna: Lean statements of the
+        results and of the literature inputs, and refute-first reviews of the frozen statements.
+        GPT-6 Astra, at maximum reasoning effort and run separately from the development
+        agents: independent audits of the literature inputs against the cited sources and of
+        suspected errors in the paper. Lean builds under leanprover/lean4:v4.26.0 with Mathlib
+        v4.26.0.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local Linux machine"
+      prompting_notes: >-
+        Human-directed work. Every statement was frozen before its proof was attempted, and
+        proof tasks forbade changing the frozen statements.
+    - method: "agent"
+      models:
+        - "claude-opus-5-5"
+        - "claude-haiku-5-5"
+      framework: "Claude Code (Anthropic)"
+      tool_setup: >-
+        Claude Opus 5.5: orchestration from 19 October 2026, integration, statement reviews, the
+        final seal checks, and parts of the proofs, including the closed-graph argument that
+        gives the measurable choice of heat kernel used in Proposition 5.3. Claude Haiku 5.5:
+        routine lemmas with fixed statements, dispatched in batches. Same toolchain.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local Linux machine"
+      prompting_notes: >-
+        Human-directed work on frozen statements.
+    - method: "agent"
+      models:
+        - "leanstral"
+      framework: "Mistral Leanstral, driven by project scripts"
+      tool_setup: "Small auxiliary lemmas with fixed statements."
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local Linux machine"
+      prompting_notes: "Fixed statements only."
+  spend_usd: "not tracked"
+  notes: >-
+    The Lean development was written by AI agents between 18 and 21 October 2026, under the
+    direction of the authors. Timeline (2026, UTC): development started on 18 October at 15:00;
+    every numbered result in scope and every literature input was stated in Lean and frozen
+    before any proof work, the eleven results by 19 October at 14:25; the first frozen result
+    was proved on 19 October at 15:45; Lemmas 3.1, 4.1, 4.2 and 4.3 and Proposition 3.2 on
+    20 October; Lemma 5.1 on 21 October at 04:26; Lemma 5.2, Propositions 5.3, 6.1 and 7.1 and
+    Theorem 1.2 on 21 October at 08:46; public release on 21 October. Every proof is checked
+    by the Lean kernel. The library contains no sorry and no custom axiom; the two comparator
+    challenge files (EinsteinRelationAudit/*/Challenge.lean) each contain exactly one
+    intentional statement-level sorry, which the corresponding Solution.lean proves. The full
+    development history (about 2,700 commits), the review records and the audit reports are
+    kept in a separate private repository.
+
+fidelity:
+  divergences: >-
+    Every theorem is stated for an arbitrary EnvironmentLaw (Assumption 1.1: symmetric,
+    uniformly elliptic, Lipschitz coefficient a_0, bounded Lipschitz potential V, stationary
+    and of finite range r_0) with d >= 2, and takes the literature inputs that its proof uses as
+    hypotheses. The diffusion is the process of Gantert, Mathieu and Piatnitski (2012,
+    Section 7), described by its fixed-environment realizations (path law, Markov semigroup
+    with heat-kernel density, reversibility, closed form); no stochastic differential equation
+    appears. Theorem 1.2 and Proposition 7.1 quantify over every diffusion family, diffusivity
+    and velocity with the defining properties and do not assert their existence. Lemma 5.2
+    assumes almost surely continuous correctors, as the paper states. The
+    intermediate results make the order of quantifiers explicit (thresholds l_0 and p_0, then
+    a constant for every p >= p_0). Norms are Euclidean (Frobenius for matrices). Real-valued
+    definitions are total, so analytic conclusions carry explicit integrability and
+    measurability statements. Conjecture 1.3 is not formalized.
+
+review:
+  status: "agent-reviewed"
+  reviewers:
+    - "OpenAI GPT-6 Luna: refute-first reviews of the frozen statements against the manuscript"
+    - "Anthropic Claude Opus 5.5: statement reviews and the final seal checks"
+    - "OpenAI GPT-6 Astra (maximum reasoning effort, run separately from the development agents): audits of the literature inputs against the cited sources"
+  notes: >-
+    Every proof is checked by the Lean kernel; the published theorems depend only on propext,
+    Classical.choice and Quot.sound. Each statement was frozen before its proof was attempted,
+    and was accepted once it elaborated and a model that had not written it compared it with
+    the manuscript, trying to find a mismatch (refute-first review); the development
+    repository holds about 300 such review records. Each literature input was checked against
+    the cited theorem or equation in the source by a model that had not written it; the inputs
+    remain assumptions. The authors fixed the scope and the policy for literature inputs; they
+    did not review every Lean statement themselves. The statements of Theorem 1.2 and
+    Proposition 7.1 are also checked against self-contained challenge files by the comparator.
+    This is an agent review, not external peer review. Hosted build and comparator results are
+    recorded in the repository's GitHub Actions runs.
+
+alignment:
+  namespace: "EinsteinRelation"
+  statements:
+    - source: "Theorem 1.2 (t.main)"
+      lean: "EinsteinRelation.mobility_rate"
+      module: "EinsteinRelation.MainTheorems"
+      status: "proved, conditional on 27 literature inputs"
+      note: "Comparator surface: EinsteinRelationAudit/MobilityRate/."
+    - source: "Proposition 7.1 (sharp.example)"
+      lean: "EinsteinRelation.mobility_rate_sharp"
+      module: "EinsteinRelation.MainTheorems"
+      status: "proved, conditional on 29 literature inputs"
+      note: "Comparator surface: EinsteinRelationAudit/SharpExample/."
+    - source: "Lemma 3.1 to Proposition 6.1"
+      lean: "see CORRESPONDENCE.md"
+      module: "EinsteinRelation.MainTheorems"
+      status: "proved, conditional on the literature inputs listed for each"
+      note: "Nine theorems; CORRESPONDENCE.md lists each with its inputs."
+    - source: "Conjecture 1.3 (conj.expansion)"
+      lean: "none"
+      module: "none"
+      status: "not formalized"
+      note: "A conjecture of the paper; out of scope."
+
+acknowledgements: >-
+  Built on Lean 4, Mathlib, Lake, the DeGiorgi library and leanprover/comparator.

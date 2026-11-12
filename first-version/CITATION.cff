@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite it as below."
+title: "Quantitative Einstein relation for reversible diffusions in a random environment: Lean formalization"
+type: software
+repository-code: "https://github.com/nitromannitol/einstein-relation-lean"
+abstract: >-
+  A Lean 4 and Mathlib formalization of the paper "Quantitative Einstein relation for
+  reversible diffusions in a random environment" by Ahmed Bou-Rabee and Ruizhe Xu. Every
+  numbered result of the paper except Conjecture 1.3 is stated and proved, including the
+  main theorem (Theorem 1.2: the velocity divided by the force differs from the
+  diffusivity in the force direction by at most a constant times the force) and its
+  sharpness (Proposition 7.1). The proofs are conditional on thirty results from the
+  literature, which are explicit Prop-valued hypotheses of the theorems, not axioms. The
+  library contains no sorry and no custom axiom, and Theorem 1.2 and Proposition 7.1 each
+  have a Mathlib-only comparator challenge.
+authors:
+  - family-names: Bou-Rabee
+    given-names: Ahmed
+  - family-names: Xu
+    given-names: Ruizhe
+keywords:
+  - Lean
+  - mathlib
+  - formal verification
+  - Einstein relation
+  - random environment
+  - stochastic homogenization
+license: Apache-2.0
+references:
+  - type: article
+    title: "Quantitative Einstein relation for reversible diffusions in a random environment"
+    authors:
+      - family-names: Bou-Rabee
+        given-names: Ahmed
+      - family-names: Xu
+        given-names: Ruizhe
+    notes: "The paper formalized by this repository (preprint). Its source and PDF are in paper/."
+version: "v0.1"

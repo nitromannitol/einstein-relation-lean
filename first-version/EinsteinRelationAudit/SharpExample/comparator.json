@@ -1,0 +1,13 @@
+{
+  "challenge_module": "EinsteinRelationAudit.SharpExample.Challenge",
+  "solution_module": "EinsteinRelationAudit.SharpExample.Solution",
+  "theorem_names": [
+    "EinsteinRelationAudit.SharpExample.mobility_rate_sharp"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "enable_nanoda": true
+}

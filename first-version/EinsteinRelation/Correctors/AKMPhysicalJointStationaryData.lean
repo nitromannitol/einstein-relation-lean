@@ -1,0 +1,90 @@
+import EinsteinRelation.Correctors.AKMJointStationaryBallMoments
+import EinsteinRelation.Correctors.PhysicalLocalL2Moments
+
+/-!
+# Physical stationary local L² bounds
+
+Source: `paper/main.tex:718-723`, the `d > 2` case of
+`eq.corrector-unit-L2`. The scalar and tensor source representatives
+are chosen jointly. Their physical amplitudes are respectively `2r₀`
+and `r₀ / ellipticityScale L`; the latter is the amplitude whose
+derivative has the canonical centered-flux normalization.
+-/
+open MeasureTheory
+noncomputable section
+namespace EinsteinRelation.Correctors
+open External.AKM Environment.AKMTestIntegralSupport ReductionImageV3
+open NormalizedScalarPhysicalLawTransportSupport
+open NormalizedSpatialRepresentativeSupport
+
+/-- Source: `paper/main.tex:718-731,733-745`. The high-dimensional
+physical local moments retain the same canonical gradient and centered
+flux identities as their jointly chosen source representatives. -/
+theorem exists_physical_joint_stationary_local_L2_data
+    (h45 : ScalarStationaryEstimate) (h68 : FluxGradientEstimate)
+    (h614 : FluxStationaryEstimate)
+    (hP : External.GilbargTrudinger.BallPoincareEstimate)
+    (d : ℕ) [Fact (2 ≤ d)] (hd : 2 < d) (L r₀ p : ℝ)
+    (hL : 1 ≤ L) (hr₀ : 1 ≤ r₀) (hp : 2 ≤ p) :
+    ∃ C : ℝ, 0 < C ∧ ∀ (Q : EnvironmentLaw d L r₀) (i : Fin d),
+      ∃ ψ : Corrector (actualCoefficientLaw Q) (halfDirection i),
+        ∃ S : FluxCorrector (scaledAKMCorrector ψ 2),
+          Measurable (fun q : Coefficient d (AKMUpperEllipticity L) × Vec d =>
+            ψ.potential q.1 q.2) ∧
+          (∀ᵐ ω ∂physicalReferenceLaw Q, ∀ᵐ y ∂(volume : Measure (Vec d)),
+            (2 : ℝ) • (halfDirection i + ψ.grad
+              (project (r₀ := r₀) Q.ellipticity_parameter ω) y) =
+            (correctorUnitVector i + (canonicalCorrectorGradient Q i :
+              Lp (EuclideanSpace ℝ (Fin d)) 2 (reducedEnvironmentLaw Q))
+                (translate (r₀ • y) (reduce ω.1))).ofLp) ∧
+          (∀ᵐ ω ∂physicalReferenceLaw Q, ∀ᵐ y ∂(volume : Measure (Vec d)),
+            centeredFlux (scaledAKMCorrector ψ 2)
+              (project (r₀ := r₀) Q.ellipticity_parameter ω) y =
+              ellipticityScale L •
+                ((canonicalCorrectorFlux Q i
+                  (translate (r₀ • y) (reduce ω.1))).ofLp -
+                    (expectedCorrectorFlux Q i).ofLp)) ∧
+          ∀ z : Vec d,
+            (∫⁻ ω, ENNReal.ofReal ((Real.sqrt (∫ x in ball z 4,
+              |(2 * r₀) * ψ.potential
+                (project (r₀ := r₀) Q.ellipticity_parameter ω) (r₀⁻¹ • x)| ^ 2
+                ∂volume)) ^ p) ∂physicalReferenceLaw Q) ≤ ENNReal.ofReal C ∧
+            (∫⁻ ω, ENNReal.ofReal ((Real.sqrt (∫ x in ball z 4,
+              frobeniusNorm ((r₀ / ellipticityScale L) • S.potential
+                (project (r₀ := r₀) Q.ellipticity_parameter ω) (r₀⁻¹ • x)) ^ 2
+                ∂volume)) ^ p) ∂physicalReferenceLaw Q) ≤ ENNReal.ofReal C := by
+  obtain ⟨C₀, hC₀, hest⟩ := exists_joint_stationary_akm_ball_four_moments
+    h45 h68 h614 hP d hd L r₀ p hL hp
+  let A : ℝ := (Real.sqrt ((2 * r₀) ^ 2 * r₀ ^ d)) ^ p
+  let B : ℝ := (Real.sqrt ((r₀ / ellipticityScale L) ^ 2 * r₀ ^ d)) ^ p
+  have hA : 0 ≤ A := Real.rpow_nonneg (Real.sqrt_nonneg _) _
+  have hB : 0 ≤ B := Real.rpow_nonneg (Real.sqrt_nonneg _) _
+  refine ⟨(A + B + 1) * C₀, mul_pos (by linarith) hC₀, ?_⟩
+  intro Q i
+  obtain ⟨ψ, S, hm, _, hid, hsource, _, hbφ, hbS, _⟩ := hest Q i
+  have hu : ∀ᵐ a ∂actualCoefficientLaw Q, ∀ R : ℝ, 0 < R →
+      MemLp (ψ.potential a) 2 (volume.restrict (ball 0 R)) :=
+    ψ.locally_square_integrable.mono fun a ha R hR => (ha R hR).1
+  have hS : ∀ᵐ a ∂actualCoefficientLaw Q, ∀ R : ℝ, 0 < R → ∀ j k,
+      MemLp (fun x => S.potential a x j k) 2 (volume.restrict (ball 0 R)) :=
+    S.locally_square_integrable.mono fun a ha R hR j k => (ha R hR j k).1
+  refine ⟨ψ, S, hm, hid, hsource, ?_⟩
+  intro z
+  constructor
+  · have h := scalar_local_L2_moment_measurePreserving_inv_dilation
+      (measurePreserving_akmProject Q) ψ.potential hm hu r₀ (2 * r₀) 4 p hr₀
+      (by norm_num) (by linarith) (ENNReal.ofReal C₀) hbφ z
+    apply h.trans
+    rw [← ENNReal.ofReal_mul hA]
+    exact ENNReal.ofReal_le_ofReal
+      (mul_le_mul_of_nonneg_right (by linarith) hC₀.le)
+  · have h := flux_local_L2_moment_measurePreserving_inv_dilation
+      (measurePreserving_akmProject Q) S.potential S.measurable_potential hS
+      r₀ (r₀ / ellipticityScale L) 4 p hr₀ (by norm_num) (by linarith)
+      (ENNReal.ofReal C₀) hbS z
+    apply h.trans
+    rw [← ENNReal.ofReal_mul hB]
+    exact ENNReal.ofReal_le_ofReal
+      (mul_le_mul_of_nonneg_right (by linarith) hC₀.le)
+
+end EinsteinRelation.Correctors

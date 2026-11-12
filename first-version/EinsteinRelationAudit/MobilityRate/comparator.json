@@ -1,0 +1,13 @@
+{
+  "challenge_module": "EinsteinRelationAudit.MobilityRate.Challenge",
+  "solution_module": "EinsteinRelationAudit.MobilityRate.Solution",
+  "theorem_names": [
+    "EinsteinRelationAudit.MobilityRate.mobility_rate"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Classical.choice",
+    "Quot.sound"
+  ],
+  "enable_nanoda": true
+}
