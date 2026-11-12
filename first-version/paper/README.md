@@ -30,5 +30,5 @@ pdflatex -no-shell-escape main.tex
 The last run reports no warning and no undefined reference.
 
 **Rights.** The paper is by Ahmed Bou-Rabee and Ruizhe Xu. Its publication licence is not
-set by the repository's Apache-2.0 licence ([`LICENSE`](../LICENSE)), which is the licence of
+set by the repository's Apache-2.0 licence ([`LICENSE`](../../LICENSE)), which is the licence of
 the Lean development.

@@ -20,8 +20,8 @@ The development is built on [mathlib](https://github.com/leanprover-community/ma
 [DeGiorgi](https://github.com/nitromannitol/DeGiorgi), a Lean library of De Giorgi–Nash–Moser
 theory, which proves two results that would otherwise be literature inputs.
 
-[![CI](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/build.yml)
-[![Comparator audit](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/comparator.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/comparator.yml)
+[![First version CI](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/first-version.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/first-version.yml)
+[![First version comparator audit](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/first-version-comparator.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/first-version-comparator.yml)
 
 ## What is proved
 
@@ -249,7 +249,8 @@ from the library) are counted separately.
 
 ## Building
 
-Install [elan](https://github.com/leanprover/elan). The toolchain is pinned in
+Install [elan](https://github.com/leanprover/elan). This directory is a self-contained Lake
+project: run the commands below from `first-version/`. The toolchain is pinned in
 [`lean-toolchain`](lean-toolchain), and Lake fetches the dependencies.
 
 ```bash
@@ -297,14 +298,14 @@ on, and replays the proof with the Lean kernel and, if enabled, with NanoDa.
 The script expects the paths of the tools in the environment variables `COMPARATOR_BIN`,
 `COMPARATOR_LANDRUN`, `COMPARATOR_LEAN4EXPORT` and `COMPARATOR_NANODA`. The Lean v4.26.0
 toolchain does not bundle these tools; the
-[comparator workflow](.github/workflows/comparator.yml) builds them from pinned sources
+[comparator workflow](../.github/workflows/first-version-comparator.yml) builds them from pinned sources
 (lean4export at the tag `v4.26.0` that matches [`lean-toolchain`](lean-toolchain), the comparator,
 NanoDa and landrun) and runs the same checks on GitHub-hosted runners. The badge at the top of
 this file shows the result of its latest run.
 
-There are two continuous-integration workflows: **CI** builds the library and checks the axiom
-reports; **Comparator audit** checks both challenge/solution pairs. CI runs on pushes to `main`
-that change code or build configuration. Both workflows can be started manually from the
+There are two continuous-integration workflows: **First version CI** builds the library and checks
+the axiom reports; **First version comparator audit** checks both challenge/solution pairs. First
+version CI runs on pushes to `main` that change code or build configuration in `first-version/`. Both workflows can be started manually from the
 [Actions page](https://github.com/nitromannitol/einstein-relation-lean/actions). See
 [`CONTRIBUTING.md`](CONTRIBUTING.md) for build conventions.
 
@@ -326,7 +327,7 @@ EinsteinRelation/
 EinsteinRelationAudit/          the mathlib-only restatements (challenge and vocabulary) and solutions
 paper/                          the paper: source, bibliography, figure, PDF
 scripts/                        axiom check and comparator runner
-.github/workflows/              build and comparator workflows
+../.github/workflows/           build and comparator workflows (first-version*.yml)
 ```
 
 ## How this was built
@@ -384,6 +385,6 @@ formalization, use [`CITATION.cff`](CITATION.cff).
 
 ## License
 
-The Lean development is licensed under the Apache License 2.0; see [`LICENSE`](LICENSE).
+The Lean development is licensed under the Apache License 2.0; see [`LICENSE`](../LICENSE).
 The paper in [`paper/`](paper/) is included with its authors' permission; its publication
 licence is not set by this software licence.

@@ -5,6 +5,8 @@ pull requests are welcome.
 
 ## Building locally
 
+The first version is a self-contained Lake project; run the commands from `first-version/`.
+
 ```bash
 lake exe cache get   # prebuilt mathlib oleans
 lake build           # compile DeGiorgi and the library
@@ -74,6 +76,7 @@ failed kernel check is a failure. Logs are kept under `.lake/comparator-logs/`.
 
 ## Continuous integration
 
-`.github/workflows/build.yml` runs the source audit, builds the library, fails on an incomplete
-proof and runs the axiom audit. `.github/workflows/comparator.yml` builds the pinned comparator
-tools and runs both comparator pairs.
+The workflows are at the repository root. `.github/workflows/first-version.yml` runs the source
+audit, builds the library, fails on an incomplete proof and runs the axiom audit.
+`.github/workflows/first-version-comparator.yml` builds the pinned comparator tools and runs both
+comparator pairs.

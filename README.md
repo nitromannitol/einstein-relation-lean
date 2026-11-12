@@ -24,6 +24,20 @@ public libraries [MarkovProcess](https://github.com/scottnarmstrong/MarkovProces
 [![CI](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/build.yml)
 [![Comparator audit](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/comparator.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/comparator.yml)
 
+## Two versions of the paper
+
+The repository holds two formalizations, each a self-contained Lake project with its own toolchain
+and its own workflows.
+
+- **Current version** (this directory, Lean v4.35.0-rc2): the uniform small-force expansion of the
+  velocity through the critical order `d + 1` (Theorem 1.1), with every numbered result of the
+  paper, described in the rest of this file.
+- **First version** ([`first-version/`](first-version/), Lean v4.26.0): the formalization of the
+  first version of the paper, whose main result is the quantitative Einstein relation to first
+  order, `|ℓ_X(λ)/λ − Σ_X e₁| ≤ Cλ` (Theorem 1.2), together with its optimality; its manuscript,
+  statements and literature inputs are described in
+  [`first-version/README.md`](first-version/README.md).
+
 ## What is proved
 
 The paper studies a reversible diffusion `X` in a random environment `(a₀, V)` on `ℝᵈ`, `d ≥ 2`,
@@ -226,7 +240,8 @@ EinsteinFullAudit/              the axiom report and the mathlib-only comparator
                                 vocabulary
 paper/                          the paper: source, bibliography, figure, PDF
 scripts/                        axiom check and comparator runner
-.github/workflows/              build and comparator workflows
+.github/workflows/              build and comparator workflows of both versions
+first-version/                  the first version: a separate Lake project (Lean v4.26.0)
 ```
 
 ## How this was built
