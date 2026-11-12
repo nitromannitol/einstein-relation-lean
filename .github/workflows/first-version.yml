@@ -12,7 +12,7 @@ permissions:
 # comparator workflow trusts.
 on:
   push:
-    branches: [main, add-first-version]
+    branches: [main]
     paths:
       - 'first-version/**'
       - '!first-version/**/*.md'
