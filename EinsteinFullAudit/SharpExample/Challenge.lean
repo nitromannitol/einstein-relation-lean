@@ -67,7 +67,6 @@ checks that their statements agree with the library's.
 - `EinsteinFull.External.akm_localized_energy`
 - `EinsteinFull.External.akm_negative_sobolev`
 - `EinsteinFull.External.akm_sublinear_correctors`
-- `EinsteinFull.External.akm_white_noise_exists`
 - `EinsteinFull.External.bass_continuous_elliptic_well_posed`
 - `EinsteinFull.External.dfgw_invariance`
 - `EinsteinFull.External.gantert_regeneration_tail`

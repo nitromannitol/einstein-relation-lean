@@ -8,7 +8,7 @@ A machine-checked **Lean 4** formalization of the paper
 
 The paper's source, bibliography, figure and compiled PDF are included under
 [`paper/`](paper/). Every numbered result of the paper, twenty-one in all, is proved **for every
-random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from thirteen results of the
+random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from twelve results of the
 literature. These literature inputs are stated in Lean as named axioms, each with its source; they
 are listed in [Assumed literature inputs](#assumed-literature-inputs). The axiom report of every numbered
 result lists `propext`, `Classical.choice`, `Quot.sound` and inputs from that list, and nothing else; the
@@ -104,7 +104,7 @@ Each numbered result is stated, with its paper label and number, in its own file
    the paper, under both assumptions.
 2. **Axioms and incomplete proofs.** The library contains no `sorry`, no `admit` and no
    `native_decide`. Beyond `propext`, `Classical.choice` and `Quot.sound`, the axiom reports of the
-   numbered results contain only the thirteen literature inputs below. Each one states a result of the
+   numbered results contain only the twelve literature inputs below. Each one states a result of the
    cited literature in Lean and was checked against its source in an independent model review; the
    axiom report of each numbered result lists exactly the inputs that its proof uses.
 3. **The formal diffusion.** The diffusion is specified by its martingale problem: a family of
@@ -135,7 +135,6 @@ Each numbered result is stated, with its paper label and number, in its own file
 | `akm_localized_energy` | localized energy minimizers and their measurability | AKM, Section 4.4 and Theorem 4.6(iv) | 5 |
 | `akm_negative_sobolev` | negative Sobolev bound for the corrector gradient and flux | AKM, Theorem 4.24 | 7 |
 | `akm_sublinear_correctors` | sublinearity of the scalar and flux correctors above a minimal radius | AKM, Lemma 3.17, Lemma 6.1 and Proposition 6.2 | 13 |
-| `akm_white_noise_exists` | existence of scalar white noise | AKM, Proposition 5.14 | 1 |
 | `bass_continuous_elliptic_well_posed` | well-posedness of the martingale problem with continuous elliptic diffusion and bounded drift | Bass, Chapter VI, Theorem 4.3 | 18 |
 | `dfgw_invariance` | the invariance principle for reversible Markov processes | DFGW, Theorem 2.2 | 4 |
 | `gantert_regeneration_tail` | the no-return bound and exponential tail of the first regeneration time | GMP, Lemma 5.8 | 8 |
@@ -146,8 +145,10 @@ Regularity*, Grundlehren 352, Springer, 2019. GMP: N. Gantert, P. Mathieu and A.
 relation for reversible diffusions in a random environment*, Comm. Pure Appl. Math. 65 (2012), 187–228.
 DFGW: A. De Masi, P. A. Ferrari, S. Goldstein and W. D. Wick, *An invariance principle for reversible Markov
 processes*, J. Stat. Phys. 55 (1989), 787–855. Bass: R. F. Bass, *Diffusions and Elliptic Operators*,
-Springer, 1997. The library also declares `gmp_dirichlet_lower` (GMP, Lemma 5.3), which no numbered
-result uses.
+Springer, 1997. The library also declares `gmp_dirichlet_lower` (GMP, Lemma 5.3) and
+`akm_white_noise_exists` (AKM, Proposition 5.14), which no numbered result uses. The second, the
+existence of scalar white noise, is proved in `EinsteinFull/WhiteNoise/Existence.lean`
+(`EinsteinFull.WhiteNoise.akmWhiteNoiseExistence`), and Proposition 7.1 uses that theorem.
 
 The precise Lean statement of each input is in `EinsteinFull/External/` (and, for the regeneration
 tail, `EinsteinFull/Frozen/GantertRegenerationTail.lean`), with the pinpoint references in its

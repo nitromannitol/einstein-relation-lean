@@ -6,7 +6,6 @@ akm_coarsened_coefficient_estimates
 akm_localized_energy
 akm_negative_sobolev
 akm_sublinear_correctors
-akm_white_noise_exists
 bass_continuous_elliptic_well_posed
 dfgw_invariance
 gantert_regeneration_tail

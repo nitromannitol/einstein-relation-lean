@@ -4,8 +4,8 @@ import EinsteinFull.External.Draft.AKMWhiteNoiseExistence
 /-!
 Root reduction for Proposition 7.1 (`sharp.example`) from its single graph dependency
 `sharp.example#positive-coefficient`, given AKM white-noise existence (decision D4, 2026-10-29: source review
-PASS, approved by the author). The existence input is a hypothesis here. It becomes the admitted axiom
-`EinsteinFull.External.akm_white_noise_exists` after the canonical review receipt; the frozen vendor hole
+PASS, approved by the author). The existence input is a hypothesis here. It is discharged by
+`EinsteinFull.WhiteNoise.akmWhiteNoiseExistence` in `CLSharpExampleRoot`; the frozen vendor hole
 `EinsteinRelation.Frozen.whiteNoiseExists` is never used.
 -/
 

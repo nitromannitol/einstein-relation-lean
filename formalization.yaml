@@ -9,7 +9,7 @@ project:
     applied force, through the critical order d + 1 (Theorem 1.1), the quantitative Einstein relation
     (Theorem 1.2), its optimality (Proposition 7.1), and all the intermediate numbered results. Every
     theorem holds for every environment law satisfying Assumptions 1.1 and 1.2. The proofs use
-    thirteen results from the literature, stated in Lean as named axioms with their sources.
+    twelve results from the literature, stated in Lean as named axioms with their sources.
     Theorems 1.1 and 1.2 and Proposition 7.1 are independently checked by the comparator pairs under
     EinsteinFullAudit/.
   authors:
@@ -85,13 +85,15 @@ status:
     - "propext"
     - "Classical.choice"
     - "Quot.sound"
-  literature_inputs: 13
+  literature_inputs: 12
   literature_inputs_note: >-
-    Thirteen results cited from the literature (Armstrong, Kuusi and Mourrat 2019; Gantert,
+    Twelve results cited from the literature (Armstrong, Kuusi and Mourrat 2019; Gantert,
     Mathieu and Piatnitski 2012; De Masi, Ferrari, Goldstein and Wick 1989; Bass 1997) are named
     axioms in EinsteinFull/External/ and EinsteinFull/Frozen/GantertRegenerationTail.lean, each
-    with its source in its docstring; the README lists them. The library declares one further input,
-    gmp_dirichlet_lower, which no numbered result uses.
+    with its source in its docstring; the README lists them. The library declares two further
+    inputs, gmp_dirichlet_lower and akm_white_noise_exists, which no numbered result uses; the
+    second (Armstrong, Kuusi and Mourrat, Proposition 5.14, existence of scalar white noise) is
+    proved in EinsteinFull/WhiteNoise/Existence.lean.
   main_results:
     - declaration: "EinsteinFull.Frozen.uniform_small_force_expansion"
       file: "EinsteinFull/Frozen/UniformSmallForceExpansion.lean"
@@ -107,7 +109,7 @@ status:
       file: "EinsteinFull/Frozen/SharpExample.lean"
       sorry_count: 0
       comparator_config: "EinsteinFullAudit/SharpExample/comparator.json"
-      literature_dependencies: 13
+      literature_dependencies: 12
 
 automation:
   methods:
