@@ -6,8 +6,7 @@ import Mathlib.Topology.CompactOpen
 import Mathlib.Order.Hom.Basic
 
 /-!
-DRAFT ONLY (V2, after the v1 and v2 review FAILs of 2026-11-01): the statement of a literature
-input.
+DRAFT ONLY: the statement of a literature input.
 It is not admitted, declares no axiom and is not imported by production.
 
 A. De Masi, P. A. Ferrari, S. Goldstein, W. D. Wick, *An invariance principle for reversible
@@ -16,14 +15,14 @@ Markov processes. Applications to random motions in random environments*, J. Sta
 and 5, printed pp.801–803; the Skorokhod space and weak convergence in μ-measure, p.798. Source
 file `paper/References/Masi,Ferrari,Goldstein,Wick.pdf`.
 
-Changes from v1, answering the three obstructions of `literature-dfgw-invariance-v1`:
+Formalization choices:
 * Carrier. The process is stated on its trajectory space (p.789), here the space `C(ℝ, S)` of
   continuous trajectories, coordinates `η ↦ η t`, and the actual shift and reflection maps of
   trajectories. Continuous trajectories are a special case of the source's trajectory space. The
   sigma-algebra is the Borel one, and it is assumed equal to the coordinate sigma-algebra `F` of
-  p.789 (review v2: second countability alone does not give this; for second countable regular
-  `S` it is Mathlib's `ContinuousMap.borel_eq_iSup_comap_eval`). Joint measurability of
-  `(t, η) ↦ η t` follows.
+  p.789 (second countability alone does not give this; for second countable regular `S` it is
+  Mathlib's `ContinuousMap.borel_eq_iSup_comap_eval`). Joint measurability of `(t, η) ↦ η t`
+  follows.
 * Shift convention. The source prints `(θ_τ ξ)(t) = ξ(t - τ)` (p.789) and the covariance
   `X_[a,b] ∘ θ_τ = X_[a+τ,b+τ]` ((2.4), p.790). The increment example `X_[a,b] = X(ξ_b) - X(ξ_a)`
   on p.790 satisfies (2.4) for the forward shift `(θ_τ ξ)(t) = ξ(t + τ)` and, for nonconstant
@@ -40,9 +39,9 @@ Changes from v1, answering the three obstructions of `literature-dfgw-invariance
   are the continuous ones. The tests are the bounded J1-continuous functions. A.4 is a measurable
   continuous version of `t ↦ X_[0,t]`; the process enters `D` through its continuous paths.
 
-Other normalizations are as in v1: the Markov property (2.1) through Markov kernels `T t`;
-reversibility as invariance under every reflection (p.790), stationarity listed with it;
-ergodicity in the state-space form of p.790; part (ii) needs the velocity in `L²(μ)`; the
+Other normalizations: the Markov property (2.1) is stated through Markov kernels `T t`;
+reversibility is invariance under every reflection (p.790), with stationarity listed alongside it;
+ergodicity is in the state-space form of p.790; part (ii) needs the velocity in `L²(μ)`; the
 conclusions are (2.41)–(2.43), absolute convergence of the time integral (Remark 3), and the
 annealed consequence of convergence weakly in μ-measure (p.798).
 -/

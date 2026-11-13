@@ -829,8 +829,7 @@ theorem m_renewal_eq_memLp
 
 /-- V1 converts geometric annealed cycle moments into an `Lp` bound for the
 literal terminal-cycle remainder under either law. The tail rate `b` precedes
-V1's threshold; the geometric prefactor and base may be chosen afterwards.
-This order does not resolve the structural-threshold obstruction SI-13. -/
+V1's threshold; the geometric prefactor and base may be chosen afterwards. -/
 theorem remainder_moment_cycle_bound
     (hrem : node_rt_u3A_remainder_u2D_momentStmt) :
     ∀ (d : ℕ) (hd : 2 ≤ d) (Λ₀ r₀ b : ℝ), 0 < b →

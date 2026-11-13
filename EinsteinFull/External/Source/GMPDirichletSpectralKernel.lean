@@ -71,9 +71,8 @@ def IsSpectralDirichletFundamentalSolution {d : ℕ} (ρ : Vec d → ℝ)
           K t x y = ρ y * ∑' n, Real.exp (-spectrum.eigenvalue n * t) *
             spectrum.eigenfunction n x * spectrum.eigenfunction n y
 
-/-- The corrected carrier implies the exact weighted symmetry used in the
-source proof. In particular the asymmetric boundary entrance counterexample
-from the V1 review cannot satisfy it. -/
+/-- The spectral carrier implies the exact weighted symmetry
+`ρ x * K t x y = ρ y * K t y x` used in the source proof. -/
 theorem IsSpectralDirichletFundamentalSolution.weighted_symmetry
     {d : ℕ} {ρ : Vec d → ℝ} {α : Vec d → Mat d} {R : ℝ}
     {K : ℝ → Vec d → Vec d → ℝ} {G : ℝ → Vec d → Vec d → Vec d}

@@ -5,7 +5,6 @@ Smooth-scope (V3) Section 3 contracts.
 
 Each V3 contract is its V1 statement with the structural data `D` in place of `(Λ₀, r₀)` and the
 law restricted by `HasSmoothBounds D Q` (Assumption 1.2), as in the D1 smooth-scope contracts.
-The name V2 of `rt:remainder-moment` is taken by the SI-13 quantifier repair (`RemainderMomentV2`).
 -/
 
 open MeasureTheory

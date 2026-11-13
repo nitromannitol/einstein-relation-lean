@@ -33,7 +33,7 @@ theorem measurable_trajOf (hξ : ∀ t, Measurable (ξ t)) : Measurable (trajOf 
   ContinuousMap.measurable_iff_eval.2 hξ
 
 /-- For second countable regular `S` the Borel sigma-algebra of the trajectory space is the
-coordinate sigma-algebra (the hypothesis of `dfgwInvarianceStmtV2` added after review v2). -/
+coordinate sigma-algebra (the hypothesis of `dfgwInvarianceStmtV2`). -/
 theorem dfgwCoordSigma_univ_eq_borel :
     dfgwCoordSigma (S := S) Set.univ = dfgwTrajectoryMeasurableSpace (S := S) := by
   change _ = borel C(ℝ, S)

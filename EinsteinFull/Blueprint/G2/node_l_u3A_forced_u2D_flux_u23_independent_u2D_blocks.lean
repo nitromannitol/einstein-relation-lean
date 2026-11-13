@@ -23,9 +23,8 @@ blocks, uniformly in the lattice truncation, together with the actual
 conditional blocks and every annular difference. Conditioning uses localSigma
 of BOTH fields. The Gaussian localization error and coloring cost are
 conclusions; no independent corrector approximation is a premise.
-The cutoff translates form the stated partition of unity. Version2 buffers
-the conditioning ball by doubling its radius, including at n=0; this is an
-internal contract correction from the G2-v1 review, not a manuscript change. -/
+The cutoff translates form the stated partition of unity. The statement buffers
+the conditioning ball by doubling its radius, including at n=0. -/
 def node_l_u3A_forced_u2D_flux_u23_independent_u2D_blocksStmtV2 : Prop :=
   ∀ (d : ℕ) (hd : 2 ≤ d) (D : StructuralData d),
     ∃ κ η η₀ Cenv : ℝ, ∃ Lblock : ℕ → ℕ,

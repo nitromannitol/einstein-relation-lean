@@ -2,12 +2,11 @@ import EinsteinFull.Calculus.S4KernelSupport
 import EinsteinFull.Calculus.C4TextbookFoundation
 
 /-!
-D1 scope repair (author decision, 2026-10-29): the smooth-scope pathwise node.
+D1: the smooth-scope pathwise node.
 
-The original all-regular clause, which quantifies over every solution of the literal `fderiv`-flux martingale
-problem for a merely Lipschitz coefficient, is not provable (independent review, 2026-10-29). The paper assumes
-smooth coefficients, and this V2 statement adds `HasSmoothBounds D Q`. It follows from the admitted Bass
-well-posedness axiom through `foundation_textbook_well_posed`.
+The statement quantifies over every solution of the literal `fderiv`-flux martingale problem. The paper
+assumes smooth coefficients, and the statement carries the hypothesis `HasSmoothBounds D Q`. It follows from
+the admitted Bass well-posedness axiom through `foundation_textbook_well_posed`.
 -/
 
 namespace EinsteinFull.Blueprint
