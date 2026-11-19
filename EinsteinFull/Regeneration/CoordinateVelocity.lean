@@ -68,4 +68,16 @@ theorem quenched_coordinate_velocity_of_annealed {d : ℕ}
   rw [← hmap]
   exact (ae_map_iff measurable_fst.aemeasurable (measurableSet_coordinate_velocity i v)).mpr hω
 
+/-- Coordinatewise quenched convergence gives the vector-valued quenched velocity. -/
+theorem quenched_velocity_of_coordinates {d : ℕ}
+    (Q : Measure (FieldPair d)) (P : ProbabilityTheory.Kernel (FieldPair d) (Path d)) (v : Vec d)
+    (h : ∀ i : Fin d, ∀ᵐ ω ∂Q, ∀ᵐ γ ∂P ω, Tendsto
+      (fun t : ℝ≥0 => (t : ℝ)⁻¹ * γ t i) atTop (𝓝 (v i))) :
+    HasQuenchedVelocity Q P v := by
+  filter_upwards [ae_all_iff.mpr h] with ω hω
+  filter_upwards [ae_all_iff.mpr hω] with γ hγ
+  apply tendsto_pi_nhds.mpr
+  intro i
+  simpa only [Pi.smul_apply, smul_eq_mul] using hγ i
+
 end EinsteinFull.Regeneration
