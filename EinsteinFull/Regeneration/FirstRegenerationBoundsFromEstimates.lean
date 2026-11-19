@@ -22,11 +22,11 @@ theorem first_regeneration_bounds_of_estimates {d : ℕ} (hd : 2 ≤ d) {Λ₀ r
     (Q : EnvironmentLaw d Λ₀ r₀) (lam l δ : ℝ) (h₀ : 0 < lam) (h₁ : lam ≤ 1) (hl : 0 < l)
     (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
     (hK : EinsteinFull.IsRegenerationCoupling hd Q lam l δ h₀.le h₁ P K)
-    (κ s C D : ℝ) (hC : 0 < C) (hD : 0 < D) (hs : 0 ≤ s)
+    (κ s C D : ℝ) (hκ : 0 ≤ κ) (hC : 0 < C) (hD : 0 < D) (hs : 0 ≤ s)
     (hback : ∀ᵐ ω ∂Q.measure, P (0, ω) {γ |
       firstHittingBelow γ (Regeneration.Renewal.forceCoord hd) (-(l / lam)) ≠ ⊤} ≤
         ENNReal.ofReal (1 / 2 : ℝ))
-    (hhit : ∀ (T : ℝ≥0) (a : ℝ), ∀ᵐ ω ∂Q.measure,
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a → ∀ᵐ ω ∂Q.measure,
       P (0, ω) {γ | (T : ℝ≥0∞) ≤ firstHittingAbove γ (Regeneration.Renewal.forceCoord hd) a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a)))
     (hfinite : ∀ᵐ ωz ∂annealedCoupledLaw Q.measure K,
@@ -58,7 +58,7 @@ theorem first_regeneration_bounds_of_estimates {d : ℕ} (hd : 2 ≤ d) {Λ₀ r
     (Regeneration.Renewal.forceCoord hd) hhit
   have htail := first_regeneration_tail_of_hitting_and_endpoint Q.measure K hprob
     (Regeneration.Renewal.regenDelta lam) (EinsteinRelation.regenDelta_pos h₀)
-    lam l h₀ hl (Regeneration.Renewal.forceCoord hd) hsupport hfinite κ s C D hC hD hHit hEnd t.toNNReal
+    lam l h₀ hl (Regeneration.Renewal.forceCoord hd) hsupport hfinite κ s C D hκ hC hD hHit hEnd t.toNNReal
   simpa only [EinsteinFull.regenerationTime, Regeneration.regenerationTime_one,
     ENNReal.coe_nnreal_eq, Real.coe_toNNReal _ ht] using htail
 

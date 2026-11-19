@@ -21,7 +21,7 @@ theorem first_regeneration_finite_of_hitting_and_return {d : ℕ} (hd : 2 ≤ d)
     (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
     (hK : IsRegenerationCoupling hd Q lam l δ h0.le h1 P K)
     (κ C : ℝ) (hκ : 0 < κ)
-    (hhit : ∀ (T : ℝ≥0) (a : ℝ), ∀ᵐ ω ∂Q.measure,
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a → ∀ᵐ ω ∂Q.measure,
       P (0, ω) {γ | (T : ℝ≥0∞) ≤ firstHittingAbove γ (Renewal.forceCoord hd) a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a)))
     (η : ℝ) (hη : 0 < η) (hη1 : η ≤ 1)

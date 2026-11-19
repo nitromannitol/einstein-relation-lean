@@ -24,7 +24,7 @@ theorem first_regeneration_bounds_of_trial_moments {d : ℕ} (hd : 2 ≤ d)
     (hB : 0 < B) (hq : 0 ≤ q) (hq1 : q < 1)
     (hback : ∀ᵐ ω ∂Q.measure, ∀ x, ENNReal.ofReal (1 / 2 : ℝ) ≤
       P (x, ω) {γ | NoBacktracking (l / lam) γ (Renewal.forceCoord hd)})
-    (hhit : ∀ (T : ℝ≥0) (v : ℝ), ∀ᵐ ω ∂Q.measure,
+    (hhit : ∀ (T : ℝ≥0) (v : ℝ), 0 ≤ v → ∀ᵐ ω ∂Q.measure,
       P (0, ω) {γ | (T : ℝ≥0∞) ≤ firstHittingAbove γ (Renewal.forceCoord hd) v} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * v)))
     (htrial : ∀ n : ℕ,

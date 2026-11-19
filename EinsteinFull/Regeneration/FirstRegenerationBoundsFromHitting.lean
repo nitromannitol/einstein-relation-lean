@@ -25,7 +25,7 @@ theorem first_regeneration_bounds_of_hitting_and_moment {d : ℕ} (hd : 2 ≤ d)
     (κ s C D : ℝ) (hκ : 0 < κ) (hs : 0 < s) (hC : 0 < C) (hD : 0 < D)
     (hback : ∀ᵐ ω ∂Q.measure, ∀ x, ENNReal.ofReal (1 / 2 : ℝ) ≤
       P (x, ω) {γ | NoBacktracking (l / lam) γ (Renewal.forceCoord hd)})
-    (hhit : ∀ (T : ℝ≥0) (a : ℝ), ∀ᵐ ω ∂Q.measure,
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a → ∀ᵐ ω ∂Q.measure,
       P (0, ω) {γ | (T : ℝ≥0∞) ≤ firstHittingAbove γ (Renewal.forceCoord hd) a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a)))
     (hint : Integrable (fun q : FieldPair d × CoupledSample d =>
@@ -57,7 +57,7 @@ theorem first_regeneration_bounds_of_hitting_and_moment {d : ℕ} (hd : 2 ≤ d)
       (Renewal.forceCoord hd) hhit
     have ht' := first_regeneration_tail_of_hitting_and_endpoint Q.measure K hK.1
       (Renewal.regenDelta lam) (EinsteinRelation.regenDelta_pos h0) lam l h0 hl
-      (Renewal.forceCoord hd) hK.2.2.2.2.2.1 hfinite κ s C D hC hD hHit hEnd t.toNNReal
+      (Renewal.forceCoord hd) hK.2.2.2.2.2.1 hfinite κ s C D hκ.le hC hD hHit hEnd t.toNNReal
     simpa only [regenerationTime, Regeneration.regenerationTime_one,
       ENNReal.coe_nnreal_eq, Real.coe_toNNReal _ ht] using ht'
 

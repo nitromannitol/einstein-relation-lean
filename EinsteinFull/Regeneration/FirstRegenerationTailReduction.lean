@@ -51,8 +51,8 @@ theorem first_regeneration_tail_of_hitting_and_endpoint {d : ℕ}
     (i : Fin d) (hsupport : HasSuccessfulBridgeSupport Q Δ i (l / lam) K)
     (hfinite : ∀ᵐ ωz ∂annealedCoupledLaw Q K,
       firstRegenerationTime Δ lam (l / lam) ωz.2 i ≠ ⊤)
-    (κ s C D : ℝ) (hC : 0 < C) (hD : 0 < D)
-    (hhit : ∀ (T : ℝ≥0) (a : ℝ),
+    (κ s C D : ℝ) (hκ : 0 ≤ κ) (hC : 0 < C) (hD : 0 < D)
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a →
       annealedCoupledLaw Q K {ωz | (T : ℝ≥0∞) ≤ firstHittingAbove ωz.2.1 i a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a)))
     (hend : ∀ b : ℝ,
@@ -71,7 +71,8 @@ theorem first_regeneration_tail_of_hitting_and_endpoint {d : ℕ}
   have hR : 0 < l / lam := div_pos hl hlam
   have htail := first_regeneration_tail_le_hitting_add_endpoint
     Q K hK Δ hΔ lam (l / lam) hlam hR i hsupport hfinite T a
-  have hleft := hhit T a
+  have ha : 0 ≤ a := by dsimp [a]; positivity
+  have hleft := hhit T a ha
   have hright : annealedCoupledLaw Q K {ωz | a - 12 * (l / lam) ≤
       ωz.2.1 (firstRegenerationTime Δ lam (l / lam) ωz.2 i).toNNReal i - ωz.2.1 0 i} ≤
       ENNReal.ofReal (D * Real.exp (-s * (lam * (a - 12 * (l / lam))))) := by

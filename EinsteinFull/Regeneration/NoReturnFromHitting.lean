@@ -51,14 +51,14 @@ theorem annealed_forward_hitting_bound {d : ℕ}
     (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
     (hK : HasProbabilityLaws Q K) (hpath : HasPathMarginals Q K P)
     (lam κ C : ℝ) (i : Fin d)
-    (hhit : ∀ (T : ℝ≥0) (a : ℝ), ∀ᵐ ω ∂Q,
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a → ∀ᵐ ω ∂Q,
       P (0, ω) {γ | (T : ℝ≥0∞) ≤ firstHittingAbove γ i a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a))) :
-    ∀ (T : ℝ≥0) (a : ℝ),
+    ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a →
       annealedCoupledLaw Q K {ωz | (T : ℝ≥0∞) ≤ firstHittingAbove ωz.2.1 i a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a)) := by
-  intro T a
-  apply annealed_path_event_le_of_quenched Q P K hK hpath _ _ _ (hhit T a)
+  intro T a ha
+  apply annealed_path_event_le_of_quenched Q P K hK hpath _ _ _ (hhit T a ha)
   exact measurableSet_le measurable_const
     ((measurable_firstHittingAbove i).comp (measurable_const.prodMk measurable_id))
 

@@ -13,14 +13,14 @@ open scoped NNReal ENNReal Topology
 
 namespace EinsteinFull.Regeneration
 
-/-- An exponential forward-hitting bound implies almost-sure finite hitting at each level. -/
+/-- An exponential forward-hitting bound implies almost-sure finite hitting at each nonnegative level. -/
 theorem ae_firstHittingAbove_ne_top_of_bound {d : ℕ}
     (μ : Measure (FieldPair d × CoupledSample d)) (i : Fin d)
     (lam κ C : ℝ) (hlam : 0 < lam) (hκ : 0 < κ)
-    (hhit : ∀ (T : ℝ≥0) (a : ℝ),
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a →
       μ {ωz | (T : ℝ≥0∞) ≤ firstHittingAbove ωz.2.1 i a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a)))
-    (a : ℝ) :
+    (a : ℝ) (ha : 0 ≤ a) :
     ∀ᵐ ωz ∂μ, firstHittingAbove ωz.2.1 i a ≠ ⊤ := by
   have hrate : 0 < κ * lam ^ 2 := by positivity
   have harg : Tendsto (fun n : ℕ => -(κ * lam ^ 2) * (n : ℝ)) atTop atBot := by
@@ -44,7 +44,7 @@ theorem ae_firstHittingAbove_ne_top_of_bound {d : ℕ}
           change ((n : ℝ≥0) : ℝ≥0∞) ≤ firstHittingAbove x.2.1 i a
           rw [h]
           exact le_top)
-      _ ≤ _ := by simpa using hhit (n : ℝ≥0) a
+      _ ≤ _ := by simpa using hhit (n : ℝ≥0) a ha
   rw [ae_iff]
   simpa only [not_not] using hzero
 
@@ -52,13 +52,14 @@ theorem ae_firstHittingAbove_ne_top_of_bound {d : ℕ}
 theorem ae_shifted_passages_finite_of_forward_hitting_bound {d : ℕ}
     (μ : Measure (FieldPair d × CoupledSample d)) (i : Fin d)
     (lam κ C : ℝ) (hlam : 0 < lam) (hκ : 0 < κ)
-    (hhit : ∀ (T : ℝ≥0) (a : ℝ),
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), 0 ≤ a →
       μ {ωz | (T : ℝ≥0∞) ≤ firstHittingAbove ωz.2.1 i a} ≤
         ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a))) :
     ∀ᵐ ωz ∂μ, ∀ (Δ : ℝ≥0) (R : ℝ) (s : ℝ≥0) (a : ℝ) (n : ℕ),
       passageSequence Δ lam R a (pathTimeShift ωz.2.1 s) i n ≠ ⊤ := by
   have hall : ∀ᵐ ωz ∂μ, ∀ k : ℕ, firstHittingAbove ωz.2.1 i (k : ℝ) ≠ ⊤ := by
-    exact ae_all_iff.mpr (fun k => ae_firstHittingAbove_ne_top_of_bound μ i lam κ C hlam hκ hhit k)
+    exact ae_all_iff.mpr (fun k =>
+      ae_firstHittingAbove_ne_top_of_bound μ i lam κ C hlam hκ hhit k (Nat.cast_nonneg k))
   filter_upwards [hall] with ωz hωz Δ R s a n
   apply EinsteinFull.Blueprint.c2_s3_shifted_passages_finite_of_unbounded Δ lam R ωz.2.1 i _ s a n
   intro B
