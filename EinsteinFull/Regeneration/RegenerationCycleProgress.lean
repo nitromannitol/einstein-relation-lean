@@ -99,4 +99,30 @@ theorem ae_regeneration_cycle_displacement_gt {d : ℕ}
   filter_upwards [hsupp] with z hz
   exact fun hfin => regeneration_cycle_displacement_gt Δ hΔ lam R hlam hR z i hz k hfin
 
+/-- An integrable finite cycle has strictly positive expected displacement in the force
+coordinate. -/
+theorem regeneration_cycle_expected_displacement_pos {d : ℕ}
+    (Q : Measure (FieldPair d)) [IsProbabilityMeasure Q]
+    (K : CoupledQuenchedLaws d) (hK : HasProbabilityLaws Q K)
+    (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R : ℝ) (hlam : 0 < lam) (hR : 0 < R)
+    (i : Fin d) (hsupport : HasSuccessfulBridgeSupport Q Δ i R K) (k : ℕ)
+    (hfinite : ∀ᵐ ωz ∂annealedCoupledLaw Q K,
+      regenerationTime Δ lam R ωz.2 i (k + 1) ≠ ⊤)
+    (hint : Integrable (fun ωz : FieldPair d × CoupledSample d =>
+      ωz.2.1 (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal i -
+        ωz.2.1 (regenerationTime Δ lam R ωz.2 i k).toNNReal i) (annealedCoupledLaw Q K)) :
+    0 < ∫ ωz : FieldPair d × CoupledSample d,
+      (ωz.2.1 (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal i -
+        ωz.2.1 (regenerationTime Δ lam R ωz.2 i k).toNNReal i) ∂annealedCoupledLaw Q K := by
+  have : IsProbabilityMeasure (annealedCoupledLaw Q K) :=
+    annealedCoupledLaw_isProbabilityMeasure Q K hK
+  have hbound : ∀ᵐ ωz ∂annealedCoupledLaw Q K, R ≤
+      ωz.2.1 (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal i -
+        ωz.2.1 (regenerationTime Δ lam R ωz.2 i k).toNNReal i := by
+    filter_upwards [hfinite,
+      ae_regeneration_cycle_displacement_gt Q K hK Δ hΔ lam R hlam hR i hsupport] with ωz hf hp
+    exact (hp k hf).le
+  have h := integral_mono_ae (integrable_const R) hint hbound
+  simpa using lt_of_lt_of_le hR (by simpa using h)
+
 end EinsteinFull.Regeneration
