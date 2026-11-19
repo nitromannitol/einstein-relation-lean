@@ -56,6 +56,44 @@ theorem first_regeneration_maximum_le {d : ℕ}
   have h := first_regeneration_past_le_endpoint_add Δ hΔ lam R hlam hR z i hfin hbridge t ht.2
   linarith
 
+/-- The maximum estimate splits a late regeneration according to its endpoint and the
+forward hitting time. -/
+theorem first_regeneration_late_split_of_maximum {d : ℕ}
+    (Δ : ℝ≥0) (lam R : ℝ) (z : CoupledSample d) (i : Fin d)
+    (hfin : firstRegenerationTime Δ lam R z i ≠ ⊤)
+    (hmax : coordinateMaximum z.1 i (firstRegenerationTime Δ lam R z i).toNNReal ≤
+      z.1 (firstRegenerationTime Δ lam R z i).toNNReal i - z.1 0 i + 12 * R)
+    (T : ℝ≥0) (a : ℝ) (hT : (T : ℝ≥0∞) < firstRegenerationTime Δ lam R z i) :
+    (T : ℝ≥0∞) ≤ firstHittingAbove z.1 i a ∨
+      a - 12 * R ≤ z.1 (firstRegenerationTime Δ lam R z i).toNNReal i - z.1 0 i := by
+  by_cases hend : a - 12 * R ≤
+      z.1 (firstRegenerationTime Δ lam R z i).toNNReal i - z.1 0 i
+  · exact Or.inr hend
+  · left
+    apply le_of_not_gt
+    intro hhit
+    obtain ⟨s, hs, hcross⟩ := (firstHittingAbove_le_iff z.1 i a T).mp hhit.le
+    have htime : T ≤ (firstRegenerationTime Δ lam R z i).toNNReal := by
+      apply ENNReal.coe_le_coe.mp
+      simpa only [ENNReal.coe_toNNReal hfin] using hT.le
+    have h := displacement_le_coordinateMaximum z.1 i s _ (hs.2.trans htime)
+    linarith
+
+/-- A late first regeneration either follows a late crossing of the level `a`, or its endpoint
+is within `12R` of that level. This is the pathwise split used in GMP (5.27). -/
+theorem first_regeneration_late_split {d : ℕ}
+    (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R : ℝ) (hlam : 0 < lam) (hR : 0 < R)
+    (z : CoupledSample d) (i : Fin d)
+    (hfin : firstRegenerationTime Δ lam R z i ≠ ⊤)
+    (hbridge : ∀ n : ℕ, z.2 n = true → ∀ t : ℝ≥0,
+      (n : ℝ≥0) * Δ ≤ t → t ≤ ((n + 1 : ℕ) : ℝ≥0) * Δ →
+        z.1 t ∈ couplingRegion i R (z.1 ((n : ℝ≥0) * Δ)))
+    (T : ℝ≥0) (a : ℝ) (hT : (T : ℝ≥0∞) < firstRegenerationTime Δ lam R z i) :
+    (T : ℝ≥0∞) ≤ firstHittingAbove z.1 i a ∨
+      a - 12 * R ≤ z.1 (firstRegenerationTime Δ lam R z i).toNNReal i - z.1 0 i :=
+  first_regeneration_late_split_of_maximum Δ lam R z i hfin
+    (first_regeneration_maximum_le Δ hΔ lam R hlam hR z i hfin hbridge) T a hT
+
 /-- The maximum bound holds almost surely for the supplied annealed split coupling,
 conditional only on finiteness of its first regeneration time. -/
 theorem ae_first_regeneration_maximum_le {d : ℕ}
@@ -87,5 +125,23 @@ theorem ae_first_regeneration_maximum_le {d : ℕ}
   rw [Probability.probabilityPart_eq_of_isProbabilityMeasure (originCoupledLaw K) ω]
   filter_upwards [hsupp] with z hz
   exact fun hfin => first_regeneration_maximum_le Δ hΔ lam R hlam hR z i hfin hz
+
+/-- GMP's split of the first-regeneration tail into forward-hitting and endpoint events,
+under almost-sure finiteness of the first regeneration time. -/
+theorem first_regeneration_tail_le_hitting_add_endpoint {d : ℕ}
+    (Q : Measure (FieldPair d)) [IsProbabilityMeasure Q]
+    (K : CoupledQuenchedLaws d) (hK : HasProbabilityLaws Q K)
+    (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R : ℝ) (hlam : 0 < lam) (hR : 0 < R)
+    (i : Fin d) (hsupport : HasSuccessfulBridgeSupport Q Δ i R K)
+    (hfinite : ∀ᵐ ωz ∂annealedCoupledLaw Q K, firstRegenerationTime Δ lam R ωz.2 i ≠ ⊤)
+    (T : ℝ≥0) (a : ℝ) :
+    annealedCoupledLaw Q K {ωz | (T : ℝ≥0∞) < firstRegenerationTime Δ lam R ωz.2 i} ≤
+      annealedCoupledLaw Q K {ωz | (T : ℝ≥0∞) ≤ firstHittingAbove ωz.2.1 i a} +
+      annealedCoupledLaw Q K {ωz | a - 12 * R ≤
+        ωz.2.1 (firstRegenerationTime Δ lam R ωz.2 i).toNNReal i - ωz.2.1 0 i} := by
+  apply (measure_mono_ae ?_).trans (measure_union_le _ _)
+  filter_upwards [hfinite, ae_first_regeneration_maximum_le Q K hK Δ hΔ lam R hlam hR i hsupport]
+    with ωz hfin hmax hlate
+  exact first_regeneration_late_split_of_maximum Δ lam R ωz.2 i hfin (hmax hfin) T a hlate
 
 end EinsteinFull.Regeneration
