@@ -12,6 +12,13 @@ open scoped NNReal ENNReal Topology ProbabilityTheory Function
 
 namespace EinsteinFull.Regeneration
 
+/-- Each later-cycle duration is a measurable random variable. -/
+theorem measurable_laterDuration {d : ℕ} (Δ : ℝ≥0) (lam R : ℝ) (i : Fin d) (k : ℕ) :
+    Measurable (laterDuration Δ lam R i k) := by
+  have hτ (n : ℕ) := ((measurable_regenerationTime Δ lam R i n).comp
+    (measurable_snd : Measurable (Prod.snd : FieldPair d × CoupledSample d → _))).ennreal_toReal
+  exact (hτ (k + 2)).sub (hτ (k + 1))
+
 /-- Almost-sure finiteness of the regeneration times makes the later-cycle count diverge. -/
 theorem laterCount_tendsto_ae {d : ℕ} (Q : Measure (FieldPair d))
     (K : CoupledQuenchedLaws d) (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R : ℝ) (i : Fin d)
