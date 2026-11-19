@@ -193,4 +193,47 @@ theorem reward_rate_of_cycle_clock_ae {Ω : Type*} [MeasurableSpace Ω]
   simpa only [div_eq_mul_inv] using
     reward_rate_of_cycle_count_ae μ reward count position _ hr hir hdr hcount hrate hrem
 
+/-- A profile bracketed by the sums of its completed and next cycle rewards has the
+renewal reward rate. -/
+theorem bracketed_reward_rate_ae {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (reward : ℕ → Ω → ℝ) (count : Ω → ℝ → ℕ)
+    (profile : Ω → ℝ → ℝ) (ν : ℝ)
+    (hr : Integrable (reward 0) μ)
+    (hir : Pairwise ((· ⟂ᵢ[μ] ·) on reward))
+    (hdr : ∀ n, IdentDistrib (reward n) (reward 0) μ μ)
+    (hcount : ∀ᵐ ω ∂μ, Tendsto (count ω) atTop atTop)
+    (hrate : ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => (count ω t : ℝ) / t) atTop (𝓝 ν))
+    (hbracket : ∀ᵐ ω ∂μ, ∀ᶠ t in atTop,
+      (∑ i ∈ range (count ω t), reward i ω) ≤ profile ω t ∧
+        profile ω t ≤ ∑ i ∈ range (count ω t + 1), reward i ω) :
+    ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => profile ω t / t)
+      atTop (𝓝 ((∫ ω, reward 0 ω ∂μ) * ν)) := by
+  filter_upwards [strong_law_ae reward hr hir hdr, hcount, hrate, hbracket] with ω hs hc ht hb
+  have hs' : Tendsto (fun n : ℕ => (n : ℝ)⁻¹ * ∑ i ∈ range n, reward i ω)
+      atTop (𝓝 (∫ ω, reward 0 ω ∂μ)) := by
+    simpa only [smul_eq_mul] using hs
+  have hlow : Tendsto (fun t : ℝ => (∑ i ∈ range (count ω t), reward i ω) / t)
+      atTop (𝓝 ((∫ ω, reward 0 ω ∂μ) * ν)) := by
+    have h := (hs'.comp hc).mul ht
+    apply h.congr'
+    filter_upwards [hc.eventually (eventually_gt_atTop 0)] with t hn
+    have hn0 : (count ω t : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (ne_of_gt hn)
+    simp only [Function.comp_apply]
+    field_simp
+  have hfac : Tendsto (fun t : ℝ => ((count ω t : ℝ) + 1) / t) atTop (𝓝 ν) := by
+    simpa only [add_div, one_div, add_zero] using ht.add tendsto_inv_atTop_zero
+  have hhigh : Tendsto (fun t : ℝ => (∑ i ∈ range (count ω t + 1), reward i ω) / t)
+      atTop (𝓝 ((∫ ω, reward 0 ω ∂μ) * ν)) := by
+    have h := (hs'.comp ((tendsto_add_atTop_nat 1).comp hc)).mul hfac
+    apply h.congr'
+    filter_upwards with t
+    have hn0 : (count ω t : ℝ) + 1 ≠ 0 := by positivity
+    simp only [Function.comp_apply, Nat.cast_add, Nat.cast_one]
+    field_simp
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' hlow hhigh
+  · filter_upwards [hb, eventually_ge_atTop (0 : ℝ)] with t h ht0
+    exact div_le_div_of_nonneg_right h.1 ht0
+  · filter_upwards [hb, eventually_ge_atTop (0 : ℝ)] with t h ht0
+    exact div_le_div_of_nonneg_right h.2 ht0
+
 end EinsteinFull.Regeneration
