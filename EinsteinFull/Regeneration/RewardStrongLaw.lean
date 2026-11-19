@@ -13,6 +13,39 @@ open scoped Topology ProbabilityTheory Function
 
 namespace EinsteinFull.Regeneration
 
+/-- Inverting an asymptotically linear cycle clock gives the reciprocal cycle rate. -/
+theorem cycle_count_rate_of_clock (clock : ℕ → ℝ) (count : ℝ → ℕ) (m : ℝ)
+    (hm : 0 < m)
+    (hclock : Tendsto (fun n : ℕ => clock n / (n : ℝ)) atTop (𝓝 m))
+    (hcount : Tendsto count atTop atTop)
+    (hbracket : ∀ᶠ t in atTop, clock (count t) ≤ t ∧ t ≤ clock (count t + 1)) :
+    Tendsto (fun t : ℝ => (count t : ℝ) / t) atTop (𝓝 m⁻¹) := by
+  have hlow := hclock.comp hcount
+  have hcast : Tendsto (fun t : ℝ => (count t : ℝ)) atTop atTop :=
+    tendsto_natCast_atTop_atTop.comp hcount
+  have hinv : Tendsto (fun t : ℝ => (count t : ℝ)⁻¹) atTop (𝓝 0) :=
+    tendsto_inv_atTop_zero.comp hcast
+  have hsucc := hclock.comp ((tendsto_add_atTop_nat 1).comp hcount)
+  have hu : Tendsto (fun t : ℝ => clock (count t + 1) / (count t : ℝ)) atTop (𝓝 m) := by
+    have h := hsucc.mul ((tendsto_const_nhds :
+      Tendsto (fun _ : ℝ => (1 : ℝ)) atTop (𝓝 1)).add hinv)
+    have h' : Tendsto (fun t : ℝ =>
+        (clock (count t + 1) / ((count t : ℝ) + 1)) *
+          (1 + (count t : ℝ)⁻¹)) atTop (𝓝 m) := by
+      simpa only [Function.comp_apply, Nat.cast_add, Nat.cast_one, add_zero, mul_one] using h
+    apply h'.congr'
+    filter_upwards [hcount.eventually (eventually_gt_atTop 0)] with t ht
+    have hn : (count t : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (ne_of_gt ht)
+    have hn' : (count t : ℝ) + 1 ≠ 0 := by positivity
+    field_simp
+  have hmiddle : Tendsto (fun t : ℝ => t / (count t : ℝ)) atTop (𝓝 m) := by
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le' hlow hu
+    · filter_upwards [hbracket, hcount.eventually (eventually_gt_atTop 0)] with t hb ht
+      exact div_le_div_of_nonneg_right hb.1 (by positivity)
+    · filter_upwards [hbracket, hcount.eventually (eventually_gt_atTop 0)] with t hb ht
+      exact div_le_div_of_nonneg_right hb.2 (by positivity)
+  convert hmiddle.inv₀ (ne_of_gt hm) using 1; simp [div_eq_mul_inv, mul_comm]
+
 /-- The ratio of cumulative rewards to cumulative durations tends almost surely to the ratio
 of their means when each sequence is pairwise independent and identically distributed. -/
 theorem reward_sum_div_duration_sum_tendsto_ae {Ω : Type*} [MeasurableSpace Ω]
