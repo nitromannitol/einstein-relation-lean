@@ -125,4 +125,35 @@ theorem reward_rate_of_cycle_count_ae {Ω : Type*} [MeasurableSpace Ω]
   have ht0' : t ≠ 0 := ne_of_gt ht0
   field_simp; ring
 
+/-- A renewal reward law in continuous time, given the clock bracket and a sublinear
+incomplete-cycle remainder. -/
+theorem reward_rate_of_cycle_clock_ae {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (reward duration : ℕ → Ω → ℝ) (count : Ω → ℝ → ℕ)
+    (position : Ω → ℝ → ℝ)
+    (hr : Integrable (reward 0) μ) (ht : Integrable (duration 0) μ)
+    (hir : Pairwise ((· ⟂ᵢ[μ] ·) on reward))
+    (hit : Pairwise ((· ⟂ᵢ[μ] ·) on duration))
+    (hdr : ∀ n, IdentDistrib (reward n) (reward 0) μ μ)
+    (hdt : ∀ n, IdentDistrib (duration n) (duration 0) μ μ)
+    (hmean : 0 < ∫ ω, duration 0 ω ∂μ)
+    (hcount : ∀ᵐ ω ∂μ, Tendsto (count ω) atTop atTop)
+    (hbracket : ∀ᵐ ω ∂μ, ∀ᶠ t in atTop,
+      (∑ i ∈ range (count ω t), duration i ω) ≤ t ∧
+        t ≤ ∑ i ∈ range (count ω t + 1), duration i ω)
+    (hrem : ∀ᵐ ω ∂μ, Tendsto
+      (fun t : ℝ => (position ω t - ∑ i ∈ range (count ω t), reward i ω) / t)
+      atTop (𝓝 0)) :
+    ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => position ω t / t)
+      atTop (𝓝 ((∫ ω, reward 0 ω ∂μ) / ∫ ω, duration 0 ω ∂μ)) := by
+  have hrate : ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => (count ω t : ℝ) / t) atTop
+      (𝓝 (∫ ω, duration 0 ω ∂μ)⁻¹) := by
+    filter_upwards [strong_law_ae duration ht hit hdt, hcount, hbracket] with ω hs hc hb
+    have hclock : Tendsto (fun n : ℕ => (∑ i ∈ range n, duration i ω) / (n : ℝ))
+        atTop (𝓝 (∫ ω, duration 0 ω ∂μ)) := by
+      simpa only [smul_eq_mul, div_eq_mul_inv, mul_comm] using hs
+    exact cycle_count_rate_of_clock (fun n => ∑ i ∈ range n, duration i ω)
+      (count ω) _ hmean hclock hc hb
+  simpa only [div_eq_mul_inv] using
+    reward_rate_of_cycle_count_ae μ reward count position _ hr hir hdr hcount hrate hrem
+
 end EinsteinFull.Regeneration
