@@ -32,7 +32,6 @@ theorem physical_quenched_velocity_of_cycle_laws {d : ℕ}
     (hit : Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterDuration Δ lam R i))
     (hdt : ∀ n, IdentDistrib (laterDuration Δ lam R i n) (laterDuration Δ lam R i 0)
       (annealedCoupledLaw Q K) (annealedCoupledLaw Q K))
-    (hr : ∀ j, Integrable (laterCoordinateReward Δ lam R i j 0) (annealedCoupledLaw Q K))
     (hir : ∀ j, Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterCoordinateReward Δ lam R i j))
     (hdr : ∀ j n, IdentDistrib (laterCoordinateReward Δ lam R i j n) (laterCoordinateReward Δ lam R i j 0)
       (annealedCoupledLaw Q K) (annealedCoupledLaw Q K))
@@ -45,7 +44,7 @@ theorem physical_quenched_velocity_of_cycle_laws {d : ℕ}
       (laterProfileReward Δ lam R i physicalClockProfile 0) (annealedCoupledLaw Q K) (annealedCoupledLaw Q K)) :
     ∃ v : Vec d, HasQuenchedVelocity Q PX v ∧ 0 < v i := by
   obtain ⟨v, hv, hvpos⟩ := quenched_velocity_of_later_cycle_laws Q P K hK hpath
-    Δ hΔ lam R hlam hR i hsupport hfinite ht hit hdt hr hir hdr hm him hdm
+    Δ hΔ lam R hlam hR i hsupport hfinite ht hit hdt hir hdr hm him hdm
   have hregJoint : ∀ᵐ ωz ∂annealedCoupledLaw Q K, IsRegular L ωz.1 :=
     Measure.ae_compProd_of_ae_fst (Probability.probabilityPart (originCoupledLaw K))
       (Sharpness.measurableSet_isRegular_fieldPair L) hreg

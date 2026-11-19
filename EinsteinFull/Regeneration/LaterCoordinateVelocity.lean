@@ -86,6 +86,43 @@ theorem later_coordinate_remainder_le_maximum {d : ℕ}
   dsimp only [laterCoordinatePosition, laterCoordinateMaximum]
   convert hmax using 1; congr 1; ring
 
+/-- The later-cycle coordinate reward is measurable. -/
+theorem measurable_laterCoordinateReward {d : ℕ} (Δ : ℝ≥0) (lam R : ℝ)
+    (i j : Fin d) (k : ℕ) : Measurable (laterCoordinateReward Δ lam R i j k) := by
+  have hτ (n : ℕ) := ((measurable_regenerationTime Δ lam R i n).comp
+    (measurable_snd : Measurable (Prod.snd : FieldPair d × CoupledSample d → _))).ennreal_toNNReal
+  have hx (n : ℕ) := measurable_path_eval.comp ((hτ n).prodMk measurable_snd.fst)
+  exact ((measurable_pi_apply j).comp (hx (k + 2))).sub ((measurable_pi_apply j).comp (hx (k + 1)))
+
+/-- The absolute coordinate reward of a finite cycle is bounded by that cycle's maximum. -/
+theorem later_coordinate_reward_le_maximum {d : ℕ} (Δ : ℝ≥0) (lam R : ℝ)
+    (i j : Fin d) (k : ℕ) (ωz : FieldPair d × CoupledSample d)
+    (hfin : regenerationTime Δ lam R ωz.2 i (k + 2) ≠ ⊤) :
+    |laterCoordinateReward Δ lam R i j k ωz| ≤ laterCoordinateMaximum Δ lam R i j k ωz := by
+  have htime : (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal ≤
+      (regenerationTime Δ lam R ωz.2 i (k + 2)).toNNReal := by
+    have h := regeneration_cycle_duration_ge Δ lam R ωz.2 i (k + 1) (by simpa [Nat.add_assoc] using hfin)
+    apply NNReal.coe_le_coe.mp
+    simp only [ENNReal.coe_toNNReal_eq_toReal] at h ⊢
+    have hΔ : 0 ≤ (Δ : ℝ) := Δ.property
+    linarith
+  exact displacement_le_interval_maximum ωz.2.1 j
+    (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal
+    (regenerationTime Δ lam R ωz.2 i (k + 2)).toNNReal
+    (regenerationTime Δ lam R ωz.2 i (k + 2)).toNNReal htime le_rfl
+
+/-- Integrability of the later-cycle maximum implies integrability of its coordinate reward. -/
+theorem integrable_laterCoordinateReward_of_maximum {d : ℕ}
+    (Q : Measure (FieldPair d)) (K : CoupledQuenchedLaws d) (Δ : ℝ≥0) (lam R : ℝ)
+    (i j : Fin d) (k : ℕ)
+    (hfinite : ∀ᵐ ωz ∂annealedCoupledLaw Q K, regenerationTime Δ lam R ωz.2 i (k + 2) ≠ ⊤)
+    (hm : Integrable (laterCoordinateMaximum Δ lam R i j k) (annealedCoupledLaw Q K)) :
+    Integrable (laterCoordinateReward Δ lam R i j k) (annealedCoupledLaw Q K) := by
+  apply hm.mono (measurable_laterCoordinateReward Δ lam R i j k).aestronglyMeasurable
+  filter_upwards [hfinite] with ωz hfin
+  simp only [Real.norm_eq_abs]
+  exact (later_coordinate_reward_le_maximum Δ lam R i j k ωz hfin).trans (le_abs_self _)
+
 /-- Under the later-cycle laws and an integrable independent coordinate maximum, the original
 coupled path has the corresponding coordinate velocity. -/
 theorem coupled_later_coordinate_velocity {d : ℕ}
@@ -155,7 +192,6 @@ theorem quenched_velocity_of_later_cycle_laws {d : ℕ}
     (hit : Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterDuration Δ lam R i))
     (hdt : ∀ n, IdentDistrib (laterDuration Δ lam R i n) (laterDuration Δ lam R i 0)
       (annealedCoupledLaw Q K) (annealedCoupledLaw Q K))
-    (hr : ∀ j, Integrable (laterCoordinateReward Δ lam R i j 0) (annealedCoupledLaw Q K))
     (hir : ∀ j, Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterCoordinateReward Δ lam R i j))
     (hdr : ∀ j n, IdentDistrib (laterCoordinateReward Δ lam R i j n) (laterCoordinateReward Δ lam R i j 0)
       (annealedCoupledLaw Q K) (annealedCoupledLaw Q K))
@@ -164,6 +200,11 @@ theorem quenched_velocity_of_later_cycle_laws {d : ℕ}
     (hdm : ∀ j n, IdentDistrib (laterCoordinateMaximum Δ lam R i j n) (laterCoordinateMaximum Δ lam R i j 0)
       (annealedCoupledLaw Q K) (annealedCoupledLaw Q K)) :
     ∃ v : Vec d, HasQuenchedVelocity Q (originLaw P) v ∧ 0 < v i := by
+  have hr : ∀ j, Integrable (laterCoordinateReward Δ lam R i j 0) (annealedCoupledLaw Q K) := by
+    intro j
+    apply integrable_laterCoordinateReward_of_maximum Q K Δ lam R i j 0
+    · exact hfinite.mono fun _ h => h _
+    · exact hm j
   let v : Vec d := fun j =>
     (∫ ωz, laterCoordinateReward Δ lam R i j 0 ωz ∂annealedCoupledLaw Q K) /
       ∫ ωz, laterDuration Δ lam R i 0 ωz ∂annealedCoupledLaw Q K
