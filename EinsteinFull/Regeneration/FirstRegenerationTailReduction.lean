@@ -1,4 +1,5 @@
 import EinsteinFull.Regeneration.FirstRegenerationMaximum
+import Mathlib.Probability.Moments.Basic
 
 /-!
 # Reduction of the first-regeneration tail
@@ -8,10 +9,38 @@ estimate with the exponential estimate on the regeneration endpoint. The two est
 and almost-sure finiteness remain explicit hypotheses.
 -/
 
-open MeasureTheory EinsteinRelation EinsteinRelation.Regeneration
+open MeasureTheory ProbabilityTheory EinsteinRelation EinsteinRelation.Regeneration
 open scoped NNReal ENNReal
 
 namespace EinsteinFull.Regeneration
+
+/-- An integrable exponential moment of the first-regeneration displacement bounds its
+upper tail by Markov's inequality. -/
+theorem first_regeneration_endpoint_tail_of_exp_moment {d : ℕ}
+    (Q : Measure (FieldPair d)) [IsProbabilityMeasure Q]
+    (K : CoupledQuenchedLaws d) (hK : HasProbabilityLaws Q K)
+    (Δ : ℝ≥0) (lam R : ℝ) (i : Fin d) (s D : ℝ) (hs : 0 ≤ s)
+    (hint : Integrable (fun ωz : FieldPair d × CoupledSample d =>
+      Real.exp (s * (lam * (ωz.2.1 (firstRegenerationTime Δ lam R ωz.2 i).toNNReal i -
+        ωz.2.1 0 i)))) (annealedCoupledLaw Q K))
+    (hmoment : (∫ ωz : FieldPair d × CoupledSample d,
+      Real.exp (s * (lam * (ωz.2.1 (firstRegenerationTime Δ lam R ωz.2 i).toNNReal i -
+        ωz.2.1 0 i))) ∂annealedCoupledLaw Q K) ≤ D) (b : ℝ) :
+    annealedCoupledLaw Q K {ωz | b ≤ lam *
+      (ωz.2.1 (firstRegenerationTime Δ lam R ωz.2 i).toNNReal i - ωz.2.1 0 i)} ≤
+        ENNReal.ofReal (D * Real.exp (-s * b)) := by
+  have : IsProbabilityMeasure (annealedCoupledLaw Q K) :=
+    annealedCoupledLaw_isProbabilityMeasure Q K hK
+  let X : FieldPair d × CoupledSample d → ℝ := fun ωz => lam *
+    (ωz.2.1 (firstRegenerationTime Δ lam R ωz.2 i).toNNReal i - ωz.2.1 0 i)
+  have h := measure_ge_le_exp_mul_mgf (X := X) (μ := annealedCoupledLaw Q K) b hs hint
+  have hm : mgf X (annealedCoupledLaw Q K) s ≤ D := hmoment
+  rw [← ENNReal.ofReal_toReal (measure_ne_top (annealedCoupledLaw Q K) _)]
+  apply ENNReal.ofReal_le_ofReal
+  calc
+    _ ≤ Real.exp (-s * b) * mgf X (annealedCoupledLaw Q K) s := h
+    _ ≤ Real.exp (-s * b) * D := mul_le_mul_of_nonneg_left hm (Real.exp_pos _).le
+    _ = D * Real.exp (-s * b) := mul_comm _ _
 
 /-- The first-regeneration tail follows from the forward-hitting and endpoint estimates,
 with constants independent of time. -/
