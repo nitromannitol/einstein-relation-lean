@@ -1,4 +1,5 @@
 import Mathlib.Probability.Moments.SubGaussian
+import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
 # A lower-tail estimate for a biased walk
@@ -9,7 +10,7 @@ of steps. The estimate also applies to any independent increments with those bou
 -/
 
 open MeasureTheory ProbabilityTheory Finset
-open scoped ProbabilityTheory NNReal
+open scoped ProbabilityTheory NNReal ENNReal
 
 namespace EinsteinFull.Regeneration
 
@@ -56,5 +57,48 @@ theorem biased_walk_lower_tail {Ω : Type*} [MeasurableSpace Ω] (μ : Measure �
       rw [← Real.exp_add]
       congr 1
       ring
+
+/-- The chance that the biased walk ever drops below `-m` has an exponential bound.
+The geometric constant is finite because `exp (-1/50) < 1`. -/
+theorem biased_walk_ever_below {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
+    [IsProbabilityMeasure μ] (X : ℕ → Ω → ℝ)
+    (hX : ∀ i, Measurable (X i)) (hind : iIndepFun X μ)
+    (hbound : ∀ i, ∀ᵐ ω ∂μ, X i ω ∈ Set.Icc (-1 : ℝ) 1)
+    (hmean : ∀ i, (∫ ω, X i ω ∂μ) = (1 / 5 : ℝ)) (m : ℝ) :
+    μ {ω | ∃ n : ℕ, ∑ i ∈ range n, X i ω ≤ -m} ≤
+      ENNReal.ofReal (Real.exp (-m / 5)) *
+        (1 - ENNReal.ofReal (Real.exp (-(1 / 50 : ℝ))))⁻¹ := by
+  have hpoint (n : ℕ) : μ {ω | ∑ i ∈ range n, X i ω ≤ -m} ≤
+      ENNReal.ofReal (Real.exp (-m / 5 - (n : ℝ) / 50)) := by
+    rw [← ENNReal.ofReal_toReal (measure_ne_top μ _)]
+    apply ENNReal.ofReal_le_ofReal
+    simpa only [neg_div, measureReal_def] using
+      biased_walk_lower_tail μ X hX hind hbound hmean n (-m)
+  have hfactor (n : ℕ) : ENNReal.ofReal (Real.exp (-m / 5 - (n : ℝ) / 50)) =
+      ENNReal.ofReal (Real.exp (-m / 5)) *
+        ENNReal.ofReal (Real.exp (-(1 / 50 : ℝ))) ^ n := by
+    rw [← ENNReal.ofReal_pow, ← ENNReal.ofReal_mul (Real.exp_pos _).le,
+      ← Real.exp_nat_mul, ← Real.exp_add]
+    congr 1
+    ring
+    positivity
+  have hevent : {ω | ∃ n : ℕ, ∑ i ∈ range n, X i ω ≤ -m} =
+      ⋃ n : ℕ, {ω | ∑ i ∈ range n, X i ω ≤ -m} := by
+    ext ω
+    simp
+  rw [hevent]
+  calc
+    _ ≤ ∑' n : ℕ, μ {ω | ∑ i ∈ range n, X i ω ≤ -m} := measure_iUnion_le _
+    _ ≤ ∑' n : ℕ, ENNReal.ofReal (Real.exp (-m / 5 - (n : ℝ) / 50)) :=
+      ENNReal.tsum_le_tsum hpoint
+    _ = ENNReal.ofReal (Real.exp (-m / 5)) *
+        (1 - ENNReal.ofReal (Real.exp (-(1 / 50 : ℝ))))⁻¹ := by
+      simp_rw [hfactor, ENNReal.tsum_mul_left, ENNReal.tsum_geometric]
+
+/-- The geometric factor in the backward-crossing estimate is finite. -/
+theorem biased_walk_geometric_factor_lt_top :
+    (1 - ENNReal.ofReal (Real.exp (-(1 / 50 : ℝ))))⁻¹ < ⊤ := by
+  rw [ENNReal.inv_lt_top, tsub_pos_iff_lt, ENNReal.ofReal_lt_one, Real.exp_lt_one_iff]
+  norm_num
 
 end EinsteinFull.Regeneration
