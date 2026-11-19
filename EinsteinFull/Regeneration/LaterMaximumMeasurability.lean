@@ -66,4 +66,25 @@ theorem measurable_laterCoordinateMaximum {d : ℕ} (Δ : ℝ≥0) (lam R : ℝ)
   funext ωz
   simp [laterCoordinateMaximum, absoluteCoordinateMaximum, sampleTimeShift, pathTimeShift]
 
+/-- The set of absolute displacements defining a later-cycle maximum is bounded above. -/
+theorem laterCoordinateMaximum_bddAbove {d : ℕ} (Δ : ℝ≥0) (lam R : ℝ)
+    (i j : Fin d) (k : ℕ) (ωz : FieldPair d × CoupledSample d) :
+    BddAbove ((fun s : ℝ≥0 =>
+      |ωz.2.1 ((regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal + s) j -
+        ωz.2.1 (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal j|) ''
+      Set.Icc 0 ((regenerationTime Δ lam R ωz.2 i (k + 2)).toNNReal -
+        (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal)) := by
+  have hf : Continuous (fun s : ℝ≥0 =>
+      |ωz.2.1 ((regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal + s) j -
+        ωz.2.1 (regenerationTime Δ lam R ωz.2 i (k + 1)).toNNReal j|) := by fun_prop
+  exact (isCompact_Icc.image hf).bddAbove
+
+/-- A later-cycle absolute-displacement maximum is nonnegative. -/
+theorem laterCoordinateMaximum_nonneg {d : ℕ} (Δ : ℝ≥0) (lam R : ℝ)
+    (i j : Fin d) (k : ℕ) (ωz : FieldPair d × CoupledSample d) :
+    0 ≤ laterCoordinateMaximum Δ lam R i j k ωz := by
+  apply le_csSup (laterCoordinateMaximum_bddAbove Δ lam R i j k ωz)
+  refine ⟨0, ⟨le_rfl, zero_le⟩, ?_⟩
+  simp
+
 end EinsteinFull.Regeneration
