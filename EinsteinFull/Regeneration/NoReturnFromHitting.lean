@@ -9,7 +9,7 @@ coupling transfers any uniform quenched lower bound to the corresponding anneale
 -/
 
 open MeasureTheory EinsteinRelation EinsteinRelation.Regeneration
-open scoped ENNReal
+open scoped NNReal ENNReal
 
 namespace EinsteinFull.Regeneration
 
@@ -31,6 +31,36 @@ theorem annealed_path_event_eq {d : ℕ} (Q : Measure (FieldPair d)) [IsProbabil
   rw [Probability.probabilityPart_eq_of_isProbabilityMeasure (originCoupledLaw K) ω]
   rw [← hmap, Measure.map_apply measurable_fst hE]
   rfl
+
+/-- An almost-sure quenched upper bound for a path event also bounds its annealed mass. -/
+theorem annealed_path_event_le_of_quenched {d : ℕ}
+    (Q : Measure (FieldPair d)) [IsProbabilityMeasure Q]
+    (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
+    (hK : HasProbabilityLaws Q K) (hpath : HasPathMarginals Q K P)
+    (E : Set (Path d)) (hE : MeasurableSet E) (c : ℝ≥0∞)
+    (hupper : ∀ᵐ ω ∂Q, P (0, ω) E ≤ c) :
+    annealedCoupledLaw Q K {ωz | ωz.2.1 ∈ E} ≤ c := by
+  rw [annealed_path_event_eq Q P K hK hpath E hE]
+  calc
+    _ ≤ ∫⁻ _ω, c ∂Q := lintegral_mono_ae hupper
+    _ = c := by simp
+
+/-- Uniform quenched forward-hitting estimates hold for the annealed coupled path. -/
+theorem annealed_forward_hitting_bound {d : ℕ}
+    (Q : Measure (FieldPair d)) [IsProbabilityMeasure Q]
+    (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
+    (hK : HasProbabilityLaws Q K) (hpath : HasPathMarginals Q K P)
+    (lam κ C : ℝ) (i : Fin d)
+    (hhit : ∀ (T : ℝ≥0) (a : ℝ), ∀ᵐ ω ∂Q,
+      P (0, ω) {γ | (T : ℝ≥0∞) ≤ firstHittingAbove γ i a} ≤
+        ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a))) :
+    ∀ (T : ℝ≥0) (a : ℝ),
+      annealedCoupledLaw Q K {ωz | (T : ℝ≥0∞) ≤ firstHittingAbove ωz.2.1 i a} ≤
+        ENNReal.ofReal (C * Real.exp (-κ * lam ^ 2 * T + lam * a)) := by
+  intro T a
+  apply annealed_path_event_le_of_quenched Q P K hK hpath _ _ _ (hhit T a)
+  exact measurableSet_le measurable_const
+    ((measurable_firstHittingAbove i).comp (measurable_const.prodMk measurable_id))
 
 /-- A quenched no-backtracking lower bound gives the same annealed lower bound for the
 literal no-return event. -/
