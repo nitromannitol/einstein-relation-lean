@@ -41,6 +41,57 @@ noncomputable def laterCount {d : ℕ} (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R : �
   exact if h : ∀ k, regenerationTime Δ lam R ωz.2 i k ≠ ⊤ then
     laterRegenerationCount Δ hΔ lam R ωz.2 i h t else 0
 
+/-- A velocity after a finite time shift is also the velocity of the original path. -/
+theorem coordinate_velocity_of_time_shift {d : ℕ} (γ : Path d) (i : Fin d) (S : ℝ≥0) (v : ℝ)
+    (h : Tendsto (fun t : ℝ => (γ (S + t.toNNReal) i - γ S i) / t) atTop (𝓝 v)) :
+    Tendsto (fun t : ℝ≥0 => (t : ℝ)⁻¹ * γ t i) atTop (𝓝 v) := by
+  have hcoe : Tendsto (fun t : ℝ≥0 => (t : ℝ)) atTop atTop :=
+    NNReal.tendsto_coe_atTop.mpr tendsto_id
+  have htime : Tendsto (fun t : ℝ≥0 => (t : ℝ) - S) atTop atTop := by
+    simpa only [sub_eq_add_neg] using tendsto_atTop_add_const_right _ (-(S : ℝ)) hcoe
+  have hinv : Tendsto (fun t : ℝ≥0 => (t : ℝ)⁻¹) atTop (𝓝 0) :=
+    tendsto_inv_atTop_zero.comp hcoe
+  have hfactor : Tendsto (fun t : ℝ≥0 => ((t : ℝ) - S) / t) atTop (𝓝 1) := by
+    have h' := (tendsto_const_nhds : Tendsto (fun _ : ℝ≥0 => (1 : ℝ)) atTop (𝓝 1)).sub
+      (hinv.const_mul (S : ℝ))
+    have h'' : Tendsto (fun t : ℝ≥0 => 1 - (S : ℝ) * (t : ℝ)⁻¹) atTop (𝓝 1) := by
+      simpa using h'
+    apply h''.congr'
+    filter_upwards [hcoe.eventually_gt_atTop 0] with t ht
+    have ht' : (t : ℝ) ≠ 0 := ne_of_gt ht
+    field_simp
+  have hconst : Tendsto (fun t : ℝ≥0 => γ S i / (t : ℝ)) atTop (𝓝 0) := by
+    simpa only [div_eq_mul_inv, mul_zero] using hinv.const_mul (γ S i)
+  have htotal := ((h.comp htime).mul hfactor).add hconst
+  have htotal' : Tendsto (fun t : ℝ≥0 =>
+      ((γ (S + ((t : ℝ) - S).toNNReal) i - γ S i) / ((t : ℝ) - S)) *
+        (((t : ℝ) - S) / (t : ℝ)) + γ S i / (t : ℝ)) atTop (𝓝 v) := by
+    simpa only [Function.comp_apply, mul_one, add_zero] using htotal
+  apply htotal'.congr'
+  filter_upwards [hcoe.eventually_gt_atTop (S : ℝ), hcoe.eventually_gt_atTop 0] with t ht ht0
+  have hst : (S : ℝ) ≤ (t : ℝ) := ht.le
+  have hsum : S + ((t : ℝ) - S).toNNReal = t := by
+    apply NNReal.eq
+    rw [NNReal.coe_add, Real.coe_toNNReal _ (sub_nonneg.mpr hst)]
+    ring
+  rw [hsum]
+  have hden : (t : ℝ) - S ≠ 0 := ne_of_gt (sub_pos.mpr ht)
+  have ht' : (t : ℝ) ≠ 0 := ne_of_gt ht0
+  field_simp
+  ring
+
+/-- An almost-sure elapsed-time velocity transfers to the original coupled path. -/
+theorem ae_coordinate_velocity_of_later_velocity {d : ℕ}
+    (Q : Measure (FieldPair d)) (K : CoupledQuenchedLaws d)
+    (Δ : ℝ≥0) (lam R : ℝ) (i : Fin d) (v : ℝ)
+    (h : ∀ᵐ ωz ∂annealedCoupledLaw Q K, Tendsto
+      (fun t : ℝ => laterPosition Δ lam R i ωz t / t) atTop (𝓝 v)) :
+    ∀ᵐ ωz ∂annealedCoupledLaw Q K, Tendsto
+      (fun t : ℝ≥0 => (t : ℝ)⁻¹ * ωz.2.1 t i) atTop (𝓝 v) := by
+  filter_upwards [h] with ωz hωz
+  exact coordinate_velocity_of_time_shift ωz.2.1 i
+    (regenerationTime Δ lam R ωz.2 i 1).toNNReal v hωz
+
 /-- The literal later cycles give a positive renewal velocity once their independence,
 integrability, finiteness and incomplete-cycle estimate have been established. -/
 theorem later_regeneration_velocity_ae {d : ℕ}
