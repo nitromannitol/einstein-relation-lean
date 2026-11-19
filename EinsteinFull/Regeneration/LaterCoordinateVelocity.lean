@@ -141,4 +141,46 @@ theorem coupled_later_coordinate_velocity {d : ℕ}
   filter_upwards [hv] with ωz hωz
   exact coordinate_velocity_of_time_shift ωz.2.1 j (regenerationTime Δ lam R ωz.2 i 1).toNNReal _ hωz
 
+/-- The source cycle laws imply a quenched vector velocity with a positive force component.
+The finiteness, independence and moment statements for the literal cycles are explicit. -/
+theorem quenched_velocity_of_later_cycle_laws {d : ℕ}
+    (Q : Measure (FieldPair d)) [IsProbabilityMeasure Q]
+    (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
+    (hK : HasProbabilityLaws Q K) (hpath : HasPathMarginals Q K P)
+    (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R : ℝ) (hlam : 0 < lam) (hR : 0 < R)
+    (i : Fin d) (hsupport : HasSuccessfulBridgeSupport Q Δ i R K)
+    (hfinite : ∀ᵐ ωz ∂annealedCoupledLaw Q K,
+      ∀ k, regenerationTime Δ lam R ωz.2 i k ≠ ⊤)
+    (ht : Integrable (laterDuration Δ lam R i 0) (annealedCoupledLaw Q K))
+    (hit : Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterDuration Δ lam R i))
+    (hdt : ∀ n, IdentDistrib (laterDuration Δ lam R i n) (laterDuration Δ lam R i 0)
+      (annealedCoupledLaw Q K) (annealedCoupledLaw Q K))
+    (hr : ∀ j, Integrable (laterCoordinateReward Δ lam R i j 0) (annealedCoupledLaw Q K))
+    (hir : ∀ j, Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterCoordinateReward Δ lam R i j))
+    (hdr : ∀ j n, IdentDistrib (laterCoordinateReward Δ lam R i j n) (laterCoordinateReward Δ lam R i j 0)
+      (annealedCoupledLaw Q K) (annealedCoupledLaw Q K))
+    (hm : ∀ j, Integrable (laterCoordinateMaximum Δ lam R i j 0) (annealedCoupledLaw Q K))
+    (him : ∀ j, Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterCoordinateMaximum Δ lam R i j))
+    (hdm : ∀ j n, IdentDistrib (laterCoordinateMaximum Δ lam R i j n) (laterCoordinateMaximum Δ lam R i j 0)
+      (annealedCoupledLaw Q K) (annealedCoupledLaw Q K)) :
+    ∃ v : Vec d, HasQuenchedVelocity Q (originLaw P) v ∧ 0 < v i := by
+  let v : Vec d := fun j =>
+    (∫ ωz, laterCoordinateReward Δ lam R i j 0 ωz ∂annealedCoupledLaw Q K) /
+      ∫ ωz, laterDuration Δ lam R i 0 ωz ∂annealedCoupledLaw Q K
+  have hv : HasQuenchedVelocity Q (originLaw P) v := by
+    apply quenched_velocity_of_coordinates
+    intro j
+    have h := coupled_later_coordinate_velocity Q K hK Δ hΔ lam R i j hfinite
+      (hr j) ht (hir j) hit (hdr j) hdt (hm j) (him j) (hdm j)
+    exact quenched_coordinate_velocity_of_annealed Q P K hK hpath j (v j) h
+  have hfin2 : ∀ᵐ ωz ∂annealedCoupledLaw Q K, regenerationTime Δ lam R ωz.2 i (1 + 1) ≠ ⊤ :=
+    hfinite.mono fun _ h => h _
+  have hr' : Integrable (fun ωz : FieldPair d × CoupledSample d =>
+      ωz.2.1 (regenerationTime Δ lam R ωz.2 i (1 + 1)).toNNReal i -
+        ωz.2.1 (regenerationTime Δ lam R ωz.2 i 1).toNNReal i) (annealedCoupledLaw Q K) := hr i
+  have hmeanR : 0 < ∫ ωz, laterCoordinateReward Δ lam R i i 0 ωz ∂annealedCoupledLaw Q K :=
+    regeneration_cycle_expected_displacement_pos Q K hK Δ hΔ lam R hlam hR i hsupport 1 hfin2 hr'
+  have hmeanT := laterDuration_integral_pos Q K hK Δ hΔ lam R i hfinite ht
+  exact ⟨v, hv, div_pos hmeanR hmeanT⟩
+
 end EinsteinFull.Regeneration
