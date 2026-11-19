@@ -93,6 +93,43 @@ theorem reward_div_index_tendsto_zero_ae {Ω : Type*} [MeasurableSpace Ω]
   simp only [Nat.cast_add, Nat.cast_one, sum_range_succ]
   field_simp; ring
 
+/-- Integrable independent cycle maxima make a dominated incomplete-cycle remainder
+sublinear when the cycle count has a finite asymptotic rate. -/
+theorem remainder_div_time_tendsto_zero_ae {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (maxima : ℕ → Ω → ℝ) (count : Ω → ℝ → ℕ)
+    (remainder : Ω → ℝ → ℝ) (ν : ℝ)
+    (hm : Integrable (maxima 0) μ)
+    (him : Pairwise ((· ⟂ᵢ[μ] ·) on maxima))
+    (hdm : ∀ n, IdentDistrib (maxima n) (maxima 0) μ μ)
+    (hcount : ∀ᵐ ω ∂μ, Tendsto (count ω) atTop atTop)
+    (hrate : ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => (count ω t : ℝ) / t) atTop (𝓝 ν))
+    (hbound : ∀ᵐ ω ∂μ, ∀ᶠ t in atTop, |remainder ω t| ≤ maxima (count ω t) ω) :
+    ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => remainder ω t / t) atTop (𝓝 0) := by
+  filter_upwards [reward_div_index_tendsto_zero_ae μ maxima hm him hdm,
+    hcount, hrate, hbound] with ω hmax hc ht hb
+  have hfac : Tendsto (fun t : ℝ => ((count ω t : ℝ) + 1) / t) atTop (𝓝 ν) := by
+    simpa only [add_div, one_div, add_zero] using ht.add tendsto_inv_atTop_zero
+  have hg : Tendsto (fun t : ℝ =>
+      (maxima (count ω t) ω / ((count ω t : ℝ) + 1)) *
+        (((count ω t : ℝ) + 1) / t)) atTop (𝓝 0) := by
+    simpa only [Function.comp_apply, zero_mul] using (hmax.comp hc).mul hfac
+  have hle : ∀ᶠ t in atTop, |remainder ω t / t| ≤
+      (maxima (count ω t) ω / ((count ω t : ℝ) + 1)) *
+        (((count ω t : ℝ) + 1) / t) := by
+    filter_upwards [hb, eventually_gt_atTop 0] with t hbt ht0
+    have hn : (count ω t : ℝ) + 1 ≠ 0 := by positivity
+    have hcalc : maxima (count ω t) ω / t =
+        (maxima (count ω t) ω / ((count ω t : ℝ) + 1)) *
+          (((count ω t : ℝ) + 1) / t) := by
+      field_simp
+    rw [abs_div, abs_of_pos ht0, ← hcalc]
+    exact div_le_div_of_nonneg_right hbt ht0.le
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' (by simpa using hg.neg) hg
+  · filter_upwards [hle] with t h
+    exact (abs_le.mp h).1
+  · filter_upwards [hle] with t h
+    exact (abs_le.mp h).2
+
 /-- A cycle strong law transfers to continuous time when the cycle count has an asymptotic
 rate and the displacement remaining after the last completed cycle is sublinear. -/
 theorem reward_rate_of_cycle_count_ae {Ω : Type*} [MeasurableSpace Ω]
