@@ -32,4 +32,32 @@ theorem reward_sum_div_duration_sum_tendsto_ae {Ω : Type*} [MeasurableSpace Ω]
   simp only [smul_eq_mul]
   exact mul_div_mul_left _ _ (inv_ne_zero (Nat.cast_ne_zero.mpr (ne_of_gt hn)))
 
+/-- For an integrable sequence of pairwise independent identically distributed variables, the
+individual value divided by its index tends to zero almost surely. -/
+theorem reward_div_index_tendsto_zero_ae {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (reward : ℕ → Ω → ℝ)
+    (hr : Integrable (reward 0) μ)
+    (hir : Pairwise ((· ⟂ᵢ[μ] ·) on reward))
+    (hdr : ∀ n, IdentDistrib (reward n) (reward 0) μ μ) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n : ℕ => reward n ω / ((n : ℝ) + 1)) atTop (𝓝 0) := by
+  filter_upwards [strong_law_ae reward hr hir hdr] with ω hR
+  have hs : Tendsto (fun n : ℕ => (n : ℝ)⁻¹ * ∑ i ∈ range n, reward i ω)
+      atTop (𝓝 (∫ ω, reward 0 ω ∂μ)) := by
+    simpa only [smul_eq_mul] using hR
+  have hs' := hs.comp (tendsto_add_atTop_nat 1)
+  have hf : Tendsto (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 1)) atTop (𝓝 1) :=
+    tendsto_natCast_div_add_atTop 1
+  have hdiff : Tendsto
+      (fun n : ℕ => ((n + 1 : ℕ) : ℝ)⁻¹ * (∑ i ∈ range (n + 1), reward i ω) -
+        ((n : ℝ) / ((n : ℝ) + 1)) * ((n : ℝ)⁻¹ * ∑ i ∈ range n, reward i ω))
+      atTop (𝓝 0) := by
+    simpa only [Function.comp_apply, one_mul, sub_self] using hs'.sub (hf.mul hs)
+  apply hdiff.congr'
+  filter_upwards [eventually_gt_atTop 0] with n hn
+  have hn0 : (n : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (ne_of_gt hn)
+  have hn1 : (n : ℝ) + 1 ≠ 0 := by positivity
+  simp only [Nat.cast_add, Nat.cast_one, sum_range_succ]
+  field_simp
+  <;> ring
+
 end EinsteinFull.Regeneration
