@@ -4,7 +4,8 @@ import Mathlib.Probability.StrongLaw
 # Ratios of independent cycle rewards and durations
 
 The strong law for rewards and durations gives convergence of their cumulative ratio when the
-mean duration is positive. This is the discrete-time component of the regeneration velocity law.
+mean duration is positive. A cycle count and a sublinear remainder then transfer the strong law
+to continuous time.
 -/
 
 open MeasureTheory Filter Finset ProbabilityTheory
@@ -57,7 +58,38 @@ theorem reward_div_index_tendsto_zero_ae {Ω : Type*} [MeasurableSpace Ω]
   have hn0 : (n : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (ne_of_gt hn)
   have hn1 : (n : ℝ) + 1 ≠ 0 := by positivity
   simp only [Nat.cast_add, Nat.cast_one, sum_range_succ]
-  field_simp
-  <;> ring
+  field_simp; ring
+
+/-- A cycle strong law transfers to continuous time when the cycle count has an asymptotic
+rate and the displacement remaining after the last completed cycle is sublinear. -/
+theorem reward_rate_of_cycle_count_ae {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (reward : ℕ → Ω → ℝ) (count : Ω → ℝ → ℕ)
+    (position : Ω → ℝ → ℝ) (ν : ℝ)
+    (hr : Integrable (reward 0) μ)
+    (hir : Pairwise ((· ⟂ᵢ[μ] ·) on reward))
+    (hdr : ∀ n, IdentDistrib (reward n) (reward 0) μ μ)
+    (hcount : ∀ᵐ ω ∂μ, Tendsto (count ω) atTop atTop)
+    (hrate : ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => (count ω t : ℝ) / t) atTop (𝓝 ν))
+    (hrem : ∀ᵐ ω ∂μ, Tendsto
+      (fun t : ℝ => (position ω t - ∑ i ∈ range (count ω t), reward i ω) / t)
+      atTop (𝓝 0)) :
+    ∀ᵐ ω ∂μ, Tendsto (fun t : ℝ => position ω t / t)
+      atTop (𝓝 ((∫ ω, reward 0 ω ∂μ) * ν)) := by
+  filter_upwards [strong_law_ae reward hr hir hdr, hcount, hrate, hrem] with ω hs hc ht hleft
+  have hs' : Tendsto (fun n : ℕ => (n : ℝ)⁻¹ * ∑ i ∈ range n, reward i ω)
+      atTop (𝓝 (∫ ω, reward 0 ω ∂μ)) := by
+    simpa only [smul_eq_mul] using hs
+  have hsum := ((hs'.comp hc).mul ht).add hleft
+  have hsum' : Tendsto
+      (fun t : ℝ => ((count ω t : ℝ)⁻¹ * ∑ i ∈ range (count ω t), reward i ω) *
+        ((count ω t : ℝ) / t) +
+        (position ω t - ∑ i ∈ range (count ω t), reward i ω) / t)
+      atTop (𝓝 ((∫ ω, reward 0 ω ∂μ) * ν)) := by
+    simpa only [Function.comp_apply, add_zero] using hsum
+  apply hsum'.congr'
+  filter_upwards [hc.eventually (eventually_gt_atTop 0), eventually_gt_atTop 0] with t hn ht0
+  have hn0 : (count ω t : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (ne_of_gt hn)
+  have ht0' : t ≠ 0 := ne_of_gt ht0
+  field_simp; ring
 
 end EinsteinFull.Regeneration
