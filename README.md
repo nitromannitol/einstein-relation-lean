@@ -145,10 +145,10 @@ Regularity*, Grundlehren 352, Springer, 2019. GMP: N. Gantert, P. Mathieu and A.
 relation for reversible diffusions in a random environment*, Comm. Pure Appl. Math. 65 (2012), 187–228.
 DFGW: A. De Masi, P. A. Ferrari, S. Goldstein and W. D. Wick, *An invariance principle for reversible Markov
 processes*, J. Stat. Phys. 55 (1989), 787–855. Bass: R. F. Bass, *Diffusions and Elliptic Operators*,
-Springer, 1997. The library also declares `gmp_dirichlet_lower` (GMP, Lemma 5.3) and
-`akm_white_noise_exists` (AKM, Proposition 5.14), which no numbered result uses. The second, the
-existence of scalar white noise, is proved in `EinsteinFull/WhiteNoise/Existence.lean`
-(`EinsteinFull.WhiteNoise.akmWhiteNoiseExistence`), and Proposition 7.1 uses that theorem.
+Springer, 1997. The library also declares `gmp_dirichlet_lower` (GMP, Lemma 5.3), which no
+numbered result uses. Scalar white-noise existence (AKM, Proposition 5.14) is proved in
+`EinsteinFull/WhiteNoise/Existence.lean` and supplied to Proposition 7.1 by
+`EinsteinFull.WhiteNoise.akmWhiteNoiseExistence`.
 
 The precise Lean statement of each input is in `EinsteinFull/External/` (and, for the regeneration
 tail, `EinsteinFull/Frozen/GantertRegenerationTail.lean`), with the pinpoint references in its

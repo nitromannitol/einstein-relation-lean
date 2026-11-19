@@ -90,10 +90,9 @@ status:
     Twelve results cited from the literature (Armstrong, Kuusi and Mourrat 2019; Gantert,
     Mathieu and Piatnitski 2012; De Masi, Ferrari, Goldstein and Wick 1989; Bass 1997) are named
     axioms in EinsteinFull/External/ and EinsteinFull/Frozen/GantertRegenerationTail.lean, each
-    with its source in its docstring; the README lists them. The library declares two further
-    inputs, gmp_dirichlet_lower and akm_white_noise_exists, which no numbered result uses; the
-    second (Armstrong, Kuusi and Mourrat, Proposition 5.14, existence of scalar white noise) is
-    proved in EinsteinFull/WhiteNoise/Existence.lean.
+    with its source in its docstring; the README lists them. The library also declares
+    gmp_dirichlet_lower, which no numbered result uses. Scalar white-noise existence (Armstrong,
+    Kuusi and Mourrat, Proposition 5.14) is proved in EinsteinFull/WhiteNoise/Existence.lean.
   main_results:
     - declaration: "EinsteinFull.Frozen.uniform_small_force_expansion"
       file: "EinsteinFull/Frozen/UniformSmallForceExpansion.lean"
