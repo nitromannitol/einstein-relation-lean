@@ -1,5 +1,6 @@
 import EinsteinFull.Regeneration.LaterCoordinateVelocity
 import EinsteinFull.Regeneration.PhysicalClockRate
+import EinsteinFull.Regeneration.PhysicalClockCycleBounds
 
 /-!
 # Physical velocity from regeneration cycle laws
@@ -39,13 +40,18 @@ theorem physical_quenched_velocity_of_cycle_laws {d : ℕ}
     (him : ∀ j, Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterCoordinateMaximum Δ lam R i j))
     (hdm : ∀ j n, IdentDistrib (laterCoordinateMaximum Δ lam R i j n) (laterCoordinateMaximum Δ lam R i j 0)
       (annealedCoupledLaw Q K) (annealedCoupledLaw Q K))
-    (hc : Integrable (laterProfileReward Δ lam R i physicalClockProfile 0) (annealedCoupledLaw Q K))
     (hic : Pairwise ((· ⟂ᵢ[annealedCoupledLaw Q K] ·) on laterProfileReward Δ lam R i physicalClockProfile))
     (hdc : ∀ n, IdentDistrib (laterProfileReward Δ lam R i physicalClockProfile n)
       (laterProfileReward Δ lam R i physicalClockProfile 0) (annealedCoupledLaw Q K) (annealedCoupledLaw Q K)) :
     ∃ v : Vec d, HasQuenchedVelocity Q PX v ∧ 0 < v i := by
   obtain ⟨v, hv, hvpos⟩ := quenched_velocity_of_later_cycle_laws Q P K hK hpath
     Δ hΔ lam R hlam hR i hsupport hfinite ht hit hdt hr hir hdr hm him hdm
+  have hregJoint : ∀ᵐ ωz ∂annealedCoupledLaw Q K, IsRegular L ωz.1 :=
+    Measure.ae_compProd_of_ae_fst (Probability.probabilityPart (originCoupledLaw K))
+      (Sharpness.measurableSet_isRegular_fieldPair L) hreg
+  have hV : ∀ᵐ ωz ∂annealedCoupledLaw Q K, ∀ x, |ωz.1.2 x| ≤ L :=
+    hregJoint.mono fun _ h => h.2.1
+  have hc := integrable_later_physicalClockReward Q K Δ lam R L i hfinite hV ht
   let η : ℝ := (∫ ωz, laterProfileReward Δ lam R i physicalClockProfile 0 ωz ∂annealedCoupledLaw Q K) /
     ∫ ωz, laterDuration Δ lam R i 0 ωz ∂annealedCoupledLaw Q K
   have ha := annealed_physical_clock_rate_of_cycle_laws Q K hK Δ hΔ lam R i hfinite
