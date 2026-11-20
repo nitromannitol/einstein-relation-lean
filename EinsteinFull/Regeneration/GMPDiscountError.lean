@@ -106,4 +106,21 @@ theorem gmp_positive_slab_exit_tendsto_discounted_payoff
   have hv := hu.sub herror
   simpa only [sub_zero, sub_sub_cancel] using hv
 
+/-- Eventual discounted payoff bounds imply the positive slab-exit bound. -/
+theorem gmp_positive_slab_exit_of_discounted_bounds
+    (d : ℕ) (hd : 2 ≤ d) (Λ r l : ℝ) (hl : 1 ≤ l)
+    (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+    (ω : FieldPair d) (hω : IsRegular (sourceReducedBound Λ) (zeroPotentialReducedPair ω))
+    (G : GantertFixedEnvironmentRealization hd (sourceReducedBound Λ)
+      (one_le_sourceReducedBound Q.ellipticity_parameter) (zeroPotentialReducedPair ω)
+      hω μ hμ.le hμ1) (x y : Vec d) (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
+    (ha0 : Tendsto a atTop (𝓝 0)) (b : ℝ)
+    (hbound : ∀ᶠ n : ℕ in atTop, b ≤ gmpDiscountedSlabPayoff G (Renewal.forceCoord hd)
+      x (l / μ) y n (a n * μ ^ 2) x) :
+    b ≤ (G.pathLaw x).real {γ | coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ) ≠ ⊤ ∧
+      γ (coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ)).toNNReal
+        (Renewal.forceCoord hd) - γ 0 (Renewal.forceCoord hd) = l / μ} :=
+  ge_of_tendsto (gmp_positive_slab_exit_tendsto_discounted_payoff d hd Λ r l hl Q μ hμ hμ1
+    ω hω G x y a ha ha0) hbound
+
 end EinsteinFull.Regeneration
