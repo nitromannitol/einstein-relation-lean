@@ -61,4 +61,17 @@ theorem measurable_cappedSlabExitTime {d : ℕ} (i : Fin d) (r : ℝ) (g : ℝ�
     funext γ
     rfl
 
+/-- Each time in the successive uncapped slab clock is measurable. -/
+theorem measurable_successiveSlabExitTime {d : ℕ} (i : Fin d) (r : ℝ) (n : ℕ) :
+    Measurable (fun γ : Path d => successiveSlabExitTime γ i r n) := by
+  induction n with
+  | zero => exact measurable_const
+  | succ n ih =>
+    have hshift : Measurable (fun γ : Path d =>
+        pathTimeShift γ (successiveSlabExitTime γ i r n)) :=
+      Probability.continuous_path_time_shift.measurable.comp (ih.prodMk measurable_id)
+    convert ih.add (((measurable_coordinateSlabExit i r).comp hshift).ennreal_toNNReal) using 1
+    funext γ
+    rfl
+
 end EinsteinFull.Regeneration
