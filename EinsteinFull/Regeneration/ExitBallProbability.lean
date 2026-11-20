@@ -50,4 +50,30 @@ theorem tendsto_finiteExitEvent_ball (α : Type*) [PseudoMetricSpace α]
   rw [MarkovProcess.ContinuousPath.exitTimeTop_apply,
     MarkovProcess.ContinuousPath.exitTimeTop_apply, heq]
 
+/-- Bounded measurable exit payoffs converge along bounded-domain exhaustion. -/
+theorem tendsto_integral_exitPayoff_ball (α : Type*) [PseudoMetricSpace α]
+    [MeasurableSpace α] [BorelSpace α] (μ : Measure (MarkovProcess.ContinuousPath α))
+    [IsFiniteMeasure μ] (U : Set α) (hU : IsOpen U) (x : α) (f : α → ℝ)
+    (hf : Measurable f) (C : ℝ) (hC : ∀ z, ‖f z‖ ≤ C)
+    (hfin : ∀ᵐ γ ∂μ, MarkovProcess.ContinuousPath.exitTime U γ ≠ ⊤) :
+    Tendsto (fun n : ℕ => ∫ γ, f (γ ((MarkovProcess.ContinuousPath.exitTimeTop
+      (U ∩ Metric.ball x n) γ).untopD 0)) ∂μ) atTop
+      (𝓝 (∫ γ, f (γ ((MarkovProcess.ContinuousPath.exitTimeTop U γ).untopD 0)) ∂μ)) := by
+  apply tendsto_integral_of_dominated_convergence (fun _ => C)
+  · intro n
+    exact (hf.comp (MarkovProcess.ContinuousPath.measurable_eval_untopD_exitTimeTop
+      (U ∩ Metric.ball x n) (hU.inter Metric.isOpen_ball))).aestronglyMeasurable
+  · exact integrable_const C
+  · intro n
+    exact Filter.Eventually.of_forall fun γ => hC _
+  · filter_upwards [hfin] with γ hγ
+    obtain ⟨R₀, _, hR⟩ := exists_ball_exitTime_eq U γ x hγ
+    obtain ⟨N, hN⟩ := exists_nat_gt R₀
+    apply tendsto_const_nhds.congr'
+    filter_upwards [eventually_ge_atTop N] with n hn
+    have hle : R₀ ≤ (n : ℝ) := hN.le.trans (by exact_mod_cast hn)
+    have heq := hR n hle
+    rw [MarkovProcess.ContinuousPath.exitTimeTop_apply,
+      MarkovProcess.ContinuousPath.exitTimeTop_apply, heq]
+
 end EinsteinFull.Regeneration
