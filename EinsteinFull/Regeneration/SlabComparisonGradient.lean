@@ -46,7 +46,9 @@ theorem slab_comparison_gradient_le_energy
       (PDE.vecNormSq (u.grad (centralSlabPoint n i p)) +
         PDE.vecNormSq ((slabBoundaryProfile hU i L).grad (centralSlabPoint n i p))))
       ((volume.restrict (Icc (-L) L)).prod (volume.restrict K)) := by
-    convert hu.add hv using 1 <;> ext p <;> simp only [Pi.add_apply, mul_add]
+    convert hu.add hv using 1
+    ext p
+    simp only [Pi.add_apply, mul_add]
   refine ⟨hsum, ?_⟩
   have heq : (∫ p : ℝ × (Fin n → ℝ), Real.exp (s * p.1) *
       (PDE.vecNormSq (u.grad (centralSlabPoint n i p)) +

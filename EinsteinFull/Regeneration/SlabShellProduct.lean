@@ -22,18 +22,23 @@ def slabShellSection {n : ℕ} (i : Fin (n + 1)) (a b : PDE.Vec (n + 1)) (w : �
     Set (Fin n → ℝ) :=
   transverseOpenBox i a b \ transverseOpenBox i (slabInsetLower i a w) (slabInsetUpper i b w)
 
+/-- The transverse shell lies in the closed transverse box. -/
+theorem slabShellSection_subset_closed {n : ℕ} (i : Fin (n + 1))
+    (a b : PDE.Vec (n + 1)) (w : ℝ) :
+    slabShellSection i a b w ⊆ transverseClosedBox i a b := by
+  intro z hz
+  have houter := hz.1
+  constructor <;> intro j
+  · exact (houter j (Set.mem_univ j)).1.le
+  · exact (houter j (Set.mem_univ j)).2.le
+
 /-- The transverse shell is measurable and has finite volume. -/
 theorem slabShellSection_measurable_finite {n : ℕ} (i : Fin (n + 1))
     (a b : PDE.Vec (n + 1)) (w : ℝ) :
     MeasurableSet (slabShellSection i a b w) ∧ volume (slabShellSection i a b w) ≠ ⊤ := by
   have hm : MeasurableSet (slabShellSection i a b w) :=
     (PDE.isOpen_axisBox _ _).measurableSet.diff (PDE.isOpen_axisBox _ _).measurableSet
-  have hsub : slabShellSection i a b w ⊆ transverseClosedBox i a b := by
-    intro z hz
-    have houter := hz.1
-    constructor <;> intro j
-    · exact (houter j (Set.mem_univ j)).1.le
-    · exact (houter j (Set.mem_univ j)).2.le
+  have hsub := slabShellSection_subset_closed i a b w
   exact ⟨hm, ne_top_of_le_ne_top isCompact_Icc.measure_lt_top.ne (measure_mono hsub)⟩
 
 /-- The force-coordinate splitting sends an open box to an interval product. -/

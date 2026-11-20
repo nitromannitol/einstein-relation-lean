@@ -83,12 +83,12 @@ theorem slab_profile_gradient_product_le
     by_cases ht : p.1 ∈ Ioo (-L) (-L + 1)
     · have hx : centralSlabPoint n i p ∈
           {x : PDE.Vec (n + 1) | -L < x i ∧ x i < -L + 1} := by
-        simpa only [mem_setOf_eq, hc, mem_Ioo] using ht
+        simpa only [mem_ofPred_eq, hc, mem_Ioo] using ht
       rw [indicator_of_mem hx, PDE.vecNormSq_basisVec]
       simp [g, ht]
     · have hx : centralSlabPoint n i p ∉
           {x : PDE.Vec (n + 1) | -L < x i ∧ x i < -L + 1} := by
-        simpa only [mem_setOf_eq, hc, mem_Ioo] using ht
+        simpa only [mem_ofPred_eq, hc, mem_Ioo] using ht
       rw [indicator_of_notMem hx]
       simp [g, ht, PDE.vecNormSq, PDE.vecDot]
   have hintegral : (∫ p : ℝ × (Fin n → ℝ), Real.exp (s * p.1) *
