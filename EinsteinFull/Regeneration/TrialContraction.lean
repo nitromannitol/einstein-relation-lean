@@ -307,4 +307,109 @@ theorem trial_moment_step {d : ℕ} (hd : 2 ≤ d)
           _ = ENNReal.ofReal q₁ * ∫⁻ q, trialStartWeight Δ lam R a i n q.2 ∂μ := rfl
     _ = _ := by ring
 
+
+/-- The first weighted trial start is a candidate search from time zero at level `3R`. -/
+theorem trial_moment_first {d : ℕ} (hd : 2 ≤ d)
+    {Λ₀ r₀ : ℝ} (Q : EnvironmentLaw d Λ₀ r₀) (lam : ℝ)
+    (h0 : 0 < lam) (h1 : lam ≤ 1) (l δ : ℝ) (hl : 0 < l)
+    (hsep : r₀ < 2 * l) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
+    (hK : IsRegenerationCoupling hd Q lam l δ h0.le h1 P K)
+    (a a₂ D₁ ρ : ℝ) (ha : 0 ≤ a) (ha₂ : 0 < a₂) (haa : a ≤ a₂)
+    (h1st : ∀ᵐ q ∂annealedCoupledLaw Q.measure K, ∀ (m : ℕ) (L : ℝ), 0 ≤ L →
+      ∫⁻ w, failedRoundWeight (Renewal.regenDelta lam) lam (l / lam) L a₂ (Renewal.forceCoord hd) 0 w
+        ∂K (q.2.1 ((m : ℝ≥0) * Renewal.regenDelta lam), q.1) ≤ ENNReal.ofReal D₁)
+    (hcoin : ∀ᵐ q ∂annealedCoupledLaw Q.measure K, ∀ m : ℕ,
+      ∫⁻ v, failedCoinWeight (Renewal.regenDelta lam) lam (l / lam) a₂ (Renewal.forceCoord hd) v
+        ∂K (q.2.1 ((m : ℝ≥0) * Renewal.regenDelta lam), q.1) ≤ ENNReal.ofReal ρ) :
+    ∫⁻ q, trialStartWeight (Renewal.regenDelta lam) lam (l / lam) a (Renewal.forceCoord hd) 0 q.2
+        ∂annealedCoupledLaw Q.measure K ≤
+      ENNReal.ofReal (Real.exp (a * (3 * l))) *
+        (1 + ENNReal.ofReal (a / a₂) * (ENNReal.ofReal (Real.exp (a₂ * lam * (11 * (l / lam)))) *
+          ((1 - ENNReal.ofReal ρ)⁻¹ * ENNReal.ofReal D₁))) := by
+  let Δ := Renewal.regenDelta lam
+  have hΔ : 0 < Δ := EinsteinRelation.regenDelta_pos h0
+  let R := l / lam
+  have hR : 0 < R := div_pos hl h0
+  have hlR : lam * R = l := by simp only [R]; field_simp
+  let i := Renewal.forceCoord hd
+  let μ := annealedCoupledLaw Q.measure K
+  have : IsProbabilityMeasure Q.measure := Q.probability
+  have : IsProbabilityMeasure μ := annealedCoupledLaw_isProbabilityMeasure Q.measure K hK.1
+  let T₀ : CoupledSample d → ℝ≥0∞ := fun _ => 0
+  have hcand := lintegral_candidateOvershoot_le hd Q lam h0 h1 l δ hl hsep hδ0 hδ1 P K hK
+    a₂ D₁ ρ ha₂.le h1st hcoin T₀ measurable_const
+    (fun _ _ => ⟨0, by simp [T₀]⟩) (fun _ => 1) measurable_const (fun _ => 3 * lam * R)
+    measurable_const (fun _ => by positivity)
+    (by
+      intro m z z' _ _
+      exact ⟨rfl, rfl⟩)
+  have hT₀ : ∀ q : FieldPair d × CoupledSample d, T₀ q.2 ≠ ⊤ := fun q => ENNReal.zero_ne_top
+  have hshift0 : ∀ z : CoupledSample d, sampleTimeShift Δ z (T₀ z).toNNReal = z := by
+    intro z
+    simp only [T₀, ENNReal.toNNReal_zero]
+    exact sampleTimeShift_zero Δ z
+  have hI1 : ∫⁻ q, {q : FieldPair d × CoupledSample d | T₀ q.2 ≠ ⊤}.indicator (fun q =>
+      (fun _ : CoupledSample d => (1 : ℝ≥0∞)) q.2 * candidateOvershootWeight Δ lam R
+        ((fun _ : CoupledSample d => 3 * lam * R) q.2) a₂ i
+        (sampleTimeShift Δ q.2 (T₀ q.2).toNNReal)) q ∂μ =
+      ∫⁻ q, candidateOvershootWeight Δ lam R (3 * lam * R) a₂ i q.2 ∂μ := by
+    congr 1
+    funext q
+    rw [Set.indicator_of_mem (show q ∈ {q : FieldPair d × CoupledSample d | T₀ q.2 ≠ ⊤} from
+      hT₀ q), one_mul, hshift0]
+  have hI2 : ∫⁻ q, {q : FieldPair d × CoupledSample d | T₀ q.2 ≠ ⊤}.indicator (fun q =>
+      (fun _ : CoupledSample d => (1 : ℝ≥0∞)) q.2) q ∂μ = 1 := by
+    have h : (fun q : FieldPair d × CoupledSample d =>
+        {q : FieldPair d × CoupledSample d | T₀ q.2 ≠ ⊤}.indicator (fun q =>
+          (fun _ : CoupledSample d => (1 : ℝ≥0∞)) q.2) q) = fun _ => 1 := by
+      funext q
+      rw [Set.indicator_of_mem (show q ∈ {q : FieldPair d × CoupledSample d | T₀ q.2 ≠ ⊤} from
+        hT₀ q)]
+    rw [h, lintegral_const, measure_univ, one_mul]
+  rw [hI1, hI2, mul_one] at hcand
+  have hpoint : ∀ z : CoupledSample d, trialStartWeight Δ lam R a i 0 z ≤
+      ENNReal.ofReal (Real.exp (a * (3 * l))) *
+        (1 + ENNReal.ofReal (a / a₂) * candidateOvershootWeight Δ lam R (3 * lam * R) a₂ i z) := by
+    intro z
+    have hS0 : trialStartSequence Δ lam R z i 0 =
+        firstSuccessfulCandidate Δ lam R (3 * lam * R) z i + Δ := by
+      rw [trialStartSequence]
+    by_cases hC : firstSuccessfulCandidate Δ lam R (3 * lam * R) z i = ⊤
+    · have hS : trialStartSequence Δ lam R z i 0 = ⊤ := by rw [hS0, hC, top_add]
+      simp only [trialStartWeight]
+      rw [Set.indicator_of_notMem (show z ∉ {z : CoupledSample d |
+        trialStartSequence Δ lam R z i 0 ≠ ⊤} from fun h => h hS)]
+      exact zero_le
+    · have hSfin : trialStartSequence Δ lam R z i 0 ≠ ⊤ := by
+        rw [hS0]
+        exact ENNReal.add_ne_top.mpr ⟨hC, ENNReal.coe_ne_top⟩
+      calc trialStartWeight Δ lam R a i 0 z
+          = ENNReal.ofReal (Real.exp (a * (3 * l))) *
+              candidateOvershootWeight Δ lam R (3 * lam * R) a i z := by
+            simp only [trialStartWeight, candidateOvershootWeight]
+            rw [Set.indicator_of_mem (show z ∈ {z : CoupledSample d |
+                trialStartSequence Δ lam R z i 0 ≠ ⊤} from hSfin),
+              Set.indicator_of_mem (show z ∈ {w : CoupledSample d |
+                firstSuccessfulCandidate Δ lam R (3 * lam * R) w i ≠ ⊤} from hC),
+              ← ENNReal.ofReal_mul (Real.exp_pos _).le, ← Real.exp_add, hS0]
+            congr 2
+            rw [← hlR]
+            field_simp
+            ring
+        _ ≤ _ := by
+            gcongr
+            exact candidateOvershootWeight_le_tilt Δ lam R _ a a₂ ha haa ha₂ i z
+  calc ∫⁻ q, trialStartWeight Δ lam R a i 0 q.2 ∂μ
+      ≤ ∫⁻ q, ENNReal.ofReal (Real.exp (a * (3 * l))) *
+          (1 + ENNReal.ofReal (a / a₂) *
+            candidateOvershootWeight Δ lam R (3 * lam * R) a₂ i q.2) ∂μ :=
+        lintegral_mono fun q => hpoint q.2
+    _ = ENNReal.ofReal (Real.exp (a * (3 * l))) * (1 + ENNReal.ofReal (a / a₂) *
+          ∫⁻ q, candidateOvershootWeight Δ lam R (3 * lam * R) a₂ i q.2 ∂μ) := by
+        rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top, lintegral_add_left measurable_const,
+          lintegral_const, measure_univ, mul_one, lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
+    _ ≤ _ := by
+        gcongr
+
 end EinsteinFull.Regeneration
