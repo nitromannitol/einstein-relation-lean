@@ -499,6 +499,22 @@ def PairingBound (e : Vec d) (δ cμ : ℝ) (N m : ℕ) : Prop :=
       δ * (3 : ℝ) ^ N * Real.sqrt ((3 : ℝ) ^ (N * d)) * (M + cμ * ((3 : ℝ) ^ N)⁻¹) *
         Real.sqrt (cubeVolume R)
 
+theorem PairingBound.mono {e : Vec d} {δ δ' cμ : ℝ} {N m : ℕ} (hcμ : 0 ≤ cμ) (hδ : δ ≤ δ')
+    (h : s.PairingBound e δ cμ N m) : s.PairingBound e δ' cμ N m := by
+  intro j hj R hR η hη hcs hts h0 h1 M hM i
+  refine (h j hj R hR η hη hcs hts h0 h1 M hM i).trans ?_
+  have hM0 : 0 ≤ M := le_trans (norm_nonneg _) (hM 0)
+  have hfac : 0 ≤ (3 : ℝ) ^ N * Real.sqrt ((3 : ℝ) ^ (N * d)) * (M + cμ * ((3 : ℝ) ^ N)⁻¹) *
+      Real.sqrt (cubeVolume R) := by positivity
+  have h1 : δ * (3 : ℝ) ^ N * Real.sqrt ((3 : ℝ) ^ (N * d)) * (M + cμ * ((3 : ℝ) ^ N)⁻¹) *
+      Real.sqrt (cubeVolume R) = δ * ((3 : ℝ) ^ N * Real.sqrt ((3 : ℝ) ^ (N * d)) *
+        (M + cμ * ((3 : ℝ) ^ N)⁻¹) * Real.sqrt (cubeVolume R)) := by ring
+  have h2 : δ' * (3 : ℝ) ^ N * Real.sqrt ((3 : ℝ) ^ (N * d)) * (M + cμ * ((3 : ℝ) ^ N)⁻¹) *
+      Real.sqrt (cubeVolume R) = δ' * ((3 : ℝ) ^ N * Real.sqrt ((3 : ℝ) ^ (N * d)) *
+        (M + cμ * ((3 : ℝ) ^ N)⁻¹) * Real.sqrt (cubeVolume R)) := by ring
+  rw [h1, h2]
+  exact mul_le_mul_of_nonneg_right hδ hfac
+
 end EllipticWholeSpaceSolution
 
 /-- The oscillation bound from smooth-test pairings in normalized form, for the corrector of a
