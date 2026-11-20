@@ -1,4 +1,5 @@
 import EinsteinFull.Regeneration.CoordinateWeightedError
+import EinsteinFull.Regeneration.CoordinateWeightedGradient
 import EinsteinFull.Regeneration.SlabBoundaryProfile
 import EinsteinFull.Regeneration.SlabProfileError
 
@@ -51,6 +52,13 @@ theorem slab_comparison_error_le_energy
     (hEll : ∃ lam' Λ', PDE.IsEllipticFieldOn lam' Λ' U
       (fun x => Real.exp (s * x i) • A x))
     (hA : ∀ᵐ x ∂(volume.restrict U), PDE.IsEllipticMatrix lam Λ (A x)) :
+    Integrable (fun p => Real.exp (s * p.1) *
+      (u (centralSlabPoint n i p) - slabBoundaryProfile hU i L (centralSlabPoint n i p)) ^ 2)
+      ((volume.restrict (Icc (-L) L)).prod (volume.restrict K)) ∧
+    Integrable (fun p => PDE.vecDot
+      (PDE.matVecMul (Real.exp (s * p.1) • A (centralSlabPoint n i p))
+        (u.grad (centralSlabPoint n i p))) (u.grad (centralSlabPoint n i p)))
+      ((volume.restrict (Icc (-L) L)).prod (volume.restrict K)) ∧
     lam * (∫ p, Real.exp (s * p.1) *
       (u (centralSlabPoint n i p) - slabBoundaryProfile hU i L (centralSlabPoint n i p)) ^ 2
       ∂((volume.restrict (Icc (-L) L)).prod (volume.restrict K))) ≤
@@ -96,13 +104,21 @@ theorem slab_comparison_error_le_energy
     have hsq : (v p - w p) ^ 2 ≤ (1 - v p) ^ 2 + (1 - w p) ^ 2 := by nlinarith
     simpa only [Pi.add_apply, ← mul_add] using
       mul_le_mul_of_nonneg_left hsq (Real.exp_pos (s * p.1)).le
-  have hprofile := slab_profile_error_product_le n s L hs hL K hKfinite hKsub
+  have hprofile := (slab_profile_error_product_le n s L hs hL K hKfinite hKsub).2
   have henergy := coordinate_weighted_error_le_energy hU u i (-L) L s lam Λ
     (by linarith) hs hlam K hK hKfinite hsub hr hball hcont hzero hone hface A hEll hA
   have hprofile_eq : ∀ p, slabBoundaryProfile hU i L (centralSlabPoint n i p) = w p := by
     intro p
     rw [slabBoundaryProfile_apply]
     simp [w, centralSlabPoint, MeasurableEquiv.piFinSuccAbove_symm_apply]
+  have hactual : Integrable (fun p => Real.exp (s * p.1) *
+      (u (centralSlabPoint n i p) - slabBoundaryProfile hU i L (centralSlabPoint n i p)) ^ 2) μ := by
+    apply hdiff.congr
+    filter_upwards with p
+    rw [hprofile_eq]
+  have henergyint := (coordinate_weighted_gradient_le_energy u i (-L) L s lam Λ
+    hs K hK hKfinite hsub A hEll hA).2.1
+  refine ⟨hactual, henergyint, ?_⟩
   have htarget : (∫ p, Real.exp (s * p.1) *
       (u (centralSlabPoint n i p) - slabBoundaryProfile hU i L (centralSlabPoint n i p)) ^ 2
       ∂μ) = ∫ p, Real.exp (s * p.1) * (v p - w p) ^ 2 ∂μ := by

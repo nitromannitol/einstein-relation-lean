@@ -15,6 +15,8 @@ namespace EinsteinFull.Regeneration
 /-- The weighted squared error of the clamped profile is bounded by the
 weighted mass of the left boundary layer. -/
 theorem slab_profile_error_integral_le (s L : ℝ) (hs : 0 ≤ s) (hL : 1 ≤ L) :
+    IntegrableOn (fun t => Real.exp (s * t) *
+      (1 - min (max (t + L) 0) 1) ^ 2) (Icc (-L) L) ∧
     (∫ t in Icc (-L) L, Real.exp (s * t) *
       (1 - min (max (t + L) 0) 1) ^ 2) ≤
       Real.exp s * Real.exp (-(s * L)) := by
@@ -22,6 +24,7 @@ theorem slab_profile_error_integral_le (s L : ℝ) (hs : 0 ≤ s) (hL : 1 ≤ L)
   have hcont : Continuous f := by
     dsimp [f]
     fun_prop
+  refine ⟨hcont.integrableOn_Icc, ?_⟩
   have hsub : Ioc (-L) (-L + 1) ⊆ Ioc (-L) L := by
     intro t ht
     exact ⟨ht.1, by linarith [ht.2]⟩
@@ -61,6 +64,9 @@ theorem slab_profile_error_product_le (n : ℕ) (s L : ℝ) (hs : 0 ≤ s) (hL :
     (K : Set (Fin n → ℝ)) (hKfinite : volume K ≠ ∞)
     (hKsub : K ⊆ Icc (fun _ => -Real.exp (s * L / (n + 1)))
       (fun _ => Real.exp (s * L / (n + 1)))) :
+    Integrable (fun p : ℝ × (Fin n → ℝ) => Real.exp (s * p.1) *
+      (1 - min (max (p.1 + L) 0) 1) ^ 2)
+      ((volume.restrict (Icc (-L) L)).prod (volume.restrict K)) ∧
     (∫ p : ℝ × (Fin n → ℝ), Real.exp (s * p.1) *
       (1 - min (max (p.1 + L) 0) 1) ^ 2
       ∂((volume.restrict (Icc (-L) L)).prod (volume.restrict K))) ≤
@@ -85,13 +91,14 @@ theorem slab_profile_error_product_le (n : ℕ) (s L : ℝ) (hs : 0 ≤ s) (hL :
     rw [volume_transverse_cube n _ (Real.exp_pos _).le] at h
     exact h
   have hvol0 : 0 ≤ (volume : Measure (Fin n → ℝ)).real K := measureReal_nonneg
+  refine ⟨hp, ?_⟩
   change (∫ p : ℝ × (Fin n → ℝ), f p.1
     ∂((volume.restrict (Icc (-L) L)).prod ν)) ≤ _
   rw [heq]
   calc
     _ ≤ (Real.exp s * Real.exp (-(s * L))) *
         (2 * Real.exp (s * L / (n + 1))) ^ n :=
-      mul_le_mul (slab_profile_error_integral_le s L hs hL) hvol hvol0
+      mul_le_mul (slab_profile_error_integral_le s L hs hL).2 hvol hvol0
         (by positivity)
     _ = Real.exp s * ((2 * Real.exp (s * L / (n + 1))) ^ n *
         Real.exp (-(s * L))) := by ring
