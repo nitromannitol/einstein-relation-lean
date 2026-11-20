@@ -15,16 +15,17 @@ namespace EinsteinFull.Regeneration
 
 /-- All-time path domination by the comparison walk gives an exponential
 backward-crossing bound at the source spatial scale. -/
-theorem backward_hitting_le_of_biased_walk {Ω : Type*} [MeasurableSpace Ω]
-    (μ : Measure Ω) [IsProbabilityMeasure μ] {d : ℕ} (γ : Ω → Path d) (i : Fin d)
-    (X : ℕ → Ω → ℝ) (hX : ∀ n, Measurable (X n)) (hind : iIndepFun X μ)
-    (hbound : ∀ n, ∀ᵐ ω ∂μ, X n ω ∈ Set.Icc (-1 : ℝ) 1)
-    (hmean : ∀ n, (∫ ω, X n ω ∂μ) = (1 / 5 : ℝ))
-    (lam L : ℝ) (hlam : 0 < lam) (hL : 0 < L)
-    (hcover : ∀ᵐ ω ∂μ, ∀ t : ℝ≥0, ∃ n : ℕ,
-      (L / lam) * ((∑ j ∈ range n, X j ω) - 1) ≤ γ ω t i - γ ω 0 i) :
-    ∃ κ C : ℝ, 0 < κ ∧ 0 < C ∧ ∀ u : ℝ,
-      μ {ω | firstHittingBelow (γ ω) i (-u) ≠ ⊤} ≤ ENNReal.ofReal (C * Real.exp (-κ * lam * u)) := by
+theorem backward_hitting_le_of_biased_walk (L : ℝ) (hL : 0 < L) :
+    ∃ κ C : ℝ, 0 < κ ∧ 0 < C ∧ ∀ {Ω : Type*} [MeasurableSpace Ω]
+      (μ : Measure Ω) [IsProbabilityMeasure μ] {d : ℕ} (γ : Ω → Path d) (i : Fin d)
+      (X : ℕ → Ω → ℝ), (∀ n, Measurable (X n)) → iIndepFun X μ →
+      (∀ n, ∀ᵐ ω ∂μ, X n ω ∈ Set.Icc (-1 : ℝ) 1) →
+      (∀ n, (∫ ω, X n ω ∂μ) = (1 / 5 : ℝ)) →
+      ∀ lam : ℝ, 0 < lam →
+      (∀ᵐ ω ∂μ, ∀ t : ℝ≥0, ∃ n : ℕ,
+        (L / lam) * ((∑ j ∈ range n, X j ω) - 1) ≤ γ ω t i - γ ω 0 i) →
+      ∀ u : ℝ, μ {ω | firstHittingBelow (γ ω) i (-u) ≠ ⊤} ≤
+        ENNReal.ofReal (C * Real.exp (-κ * lam * u)) := by
   let F : ℝ≥0∞ := (1 - ENNReal.ofReal (Real.exp (-(1 / 50 : ℝ))))⁻¹
   have hFfin : F ≠ ⊤ := biased_walk_geometric_factor_lt_top.ne
   let κ : ℝ := 1 / (5 * L)
@@ -32,7 +33,7 @@ theorem backward_hitting_le_of_biased_walk {Ω : Type*} [MeasurableSpace Ω]
   have hκ : 0 < κ := by dsimp [κ]; positivity
   have hC : 0 < C := by dsimp [C]; positivity
   refine ⟨κ, C, hκ, hC, ?_⟩
-  intro u
+  intro Ω _ μ _ d γ i X hX hind hbound hmean lam hlam hcover u
   let m : ℝ := lam * u / L - 1
   have hsub : ∀ᵐ ω ∂μ, ω ∈ {ω | firstHittingBelow (γ ω) i (-u) ≠ ⊤} →
       ω ∈ {ω | ∃ n : ℕ, ∑ j ∈ range n, X j ω ≤ -m} := by
