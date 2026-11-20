@@ -1,5 +1,6 @@
 import EinsteinFull.Homogenization.SourceResponseBridge
 import Homogenization.Book.Ch02.Theorems.SubadditivityScaling
+import Homogenization.Book.Ch02.Theorems.HomogenizationError.ResponseBounds
 
 /-!
 # Subadditivity of the Dirichlet energy
@@ -38,5 +39,21 @@ theorem sourceDirichletEnergy_subadditive {d : ℕ} {K : ℝ}
     rw [Internal.Ch02.book_responseJ_eq_ResponseJ]
     exact (sourceDirichletEnergy_eq_ResponseJ a V k hK e).symm
   simpa only [hvalue] using h
+
+/-- Subadditivity on a triadic cube in terms of its descendants at a fixed
+finite depth. -/
+theorem sourceDirichletEnergy_le_descendantsAverage {d : ℕ} {K : ℝ}
+    (a : Coefficient d K) (Q : TriadicCube d) (j : ℕ) (e : Vec d) :
+    EinsteinRelation.External.AKM.sourceDirichletEnergy a (openCubeSet Q) e ≤
+      descendantsAverage Q j (fun R =>
+        EinsteinRelation.External.AKM.sourceDirichletEnergy a (openCubeSet R) e) := by
+  have h := sourceDirichletEnergy_subadditive a (Book.Ch02.cubeDomain Q)
+    (Book.Ch02.descendantsDomainPartition Q j) e
+  change EinsteinRelation.External.AKM.sourceDirichletEnergy a (openCubeSet Q) e ≤
+    (Book.Ch02.descendantsDomainPartition Q j).weightedAverage (fun i =>
+      EinsteinRelation.External.AKM.sourceDirichletEnergy a (openCubeSet i.1) e) at h
+  rw [Book.Ch02.descendantsDomainPartition_weightedAverage Q j
+    (fun R => EinsteinRelation.External.AKM.sourceDirichletEnergy a (openCubeSet R) e)] at h
+  exact h
 
 end EinsteinFull.Homogenization
