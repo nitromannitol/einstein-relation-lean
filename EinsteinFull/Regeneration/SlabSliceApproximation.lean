@@ -82,4 +82,50 @@ theorem continuous_increment_of_smooth_vector_errors
     hab hlimcont hlimLp hg hweak (s := a) (t := b) (by simp [hab.le]) (by simp [hab.le])
   simpa only [heq (right_mem_Icc.mpr hab.le), heq (left_mem_Icc.mpr hab.le)] using hinc
 
+/-- Product-space smooth approximation errors determine almost every line increment. -/
+theorem ae_slab_increment_of_smooth_approximations
+    {Z : Type*} [MeasurableSpace Z] (ν : Measure Z) [IsFiniteMeasure ν]
+    {d : ℕ} (i : Fin d) (L : ℝ) (hL : 0 < L)
+    (F : ℕ → ℝ × Z → ℝ) (u g : ℝ × Z → ℝ) (E : ℕ → ℝ × Z → PDE.Vec d)
+    (hF : ∀ z n, ContDiff ℝ 1 (fun t => F n (t, z)))
+    (hcont : ∀ᵐ z ∂ν, ContinuousOn (fun t => u (t, z)) (Icc 0 L))
+    (hu : MemLp u 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hg : MemLp g 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hValueLp : ∀ n, MemLp (fun p => F n p - u p) 2
+      ((volume.restrict (Ioc 0 L)).prod ν))
+    (hVectorLp : ∀ n, MemLp (fun p => PDE.vecEuclideanNorm (E n p)) 2
+      ((volume.restrict (Ioc 0 L)).prod ν))
+    (hValueSum : Summable fun n => (2 : ℝ) ^ n *
+      ∫ p, (F n p - u p) ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν))
+    (hVectorSum : Summable fun n => (2 : ℝ) ^ n *
+      ∫ p, (PDE.vecEuclideanNorm (E n p)) ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν))
+    (hDerivative : ∀ z n t, deriv (fun r => F n (r, z)) t - g (t, z) = E n (t, z) i) :
+    ∀ᵐ z ∂ν, u (L, z) - u (0, z) = ∫ t in (0 : ℝ)..L, g (t, z) := by
+  have humeas := memLp_slab_slice_ae ν L u hu
+  have hgmeas := memLp_slab_slice_ae ν L g hg
+  have hvmeas := ae_all_iff.2 (fun n => memLp_slab_slice_ae ν L (fun p => F n p - u p)
+    (hValueLp n))
+  have hemeas := ae_all_iff.2 (fun n => memLp_slab_slice_ae ν L
+    (fun p => PDE.vecEuclideanNorm (E n p)) (hVectorLp n))
+  have hvlim := ae_tendsto_slab_slice_sq_of_summable_dyadic ν L
+    (fun n p => F n p - u p) hValueLp hValueSum
+  have helim := ae_tendsto_slab_slice_sq_of_summable_dyadic ν L
+    (fun n p => PDE.vecEuclideanNorm (E n p)) hVectorLp hVectorSum
+  filter_upwards [hcont, humeas, hgmeas, hvmeas, hemeas, hvlim, helim] with
+    z hc hu' hg' hv' he' hvlim' helim'
+  have hu'' : MemLp (fun t => u (t, z)) 2 (volume.restrict (Icc 0 L)) := by
+    rwa [← Measure.restrict_congr_set Ioc_ae_eq_Icc]
+  have hg'' : MemLp (fun t => g (t, z)) 2 (volume.restrict (Icc 0 L)) := by
+    rwa [← Measure.restrict_congr_set Ioc_ae_eq_Icc]
+  have hv'' (n : ℕ) : MemLp (fun t => F n (t, z) - u (t, z)) 2
+      (volume.restrict (Icc 0 L)) := by
+    rw [← Measure.restrict_congr_set Ioc_ae_eq_Icc]
+    exact hv' n
+  have he'' (n : ℕ) : MemLp (fun t => PDE.vecEuclideanNorm (E n (t, z))) 2
+      (volume.restrict (Icc 0 L)) := by
+    rw [← Measure.restrict_congr_set Ioc_ae_eq_Icc]
+    exact he' n
+  exact continuous_increment_of_smooth_vector_errors hL (hF z) hc hu'' hg'' hv'' he''
+    (by simpa only [sq_abs] using hvlim') helim' (hDerivative z)
+
 end EinsteinFull.Regeneration
