@@ -106,4 +106,88 @@ theorem trialStart_historyDecided {d : ℕ} (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R
     z.1 (trialStartSequence Δ lam R z i n).toNNReal - z.1 0
   rw [← heq, ← hag.1 _ hSle, ← hag.1 0 zero_le]
 
+
+/-- Failure times, failure heights and search levels are decided by the observed
+history at the failure. -/
+theorem trialFailure_historyDecided {d : ℕ} (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R a : ℝ)
+    (hlam : 0 < lam) (hR : 0 < R) (i : Fin d) (n : ℕ) :
+    HistoryDecided Δ (trialFailure Δ lam R i n)
+      (fun z => (trialFailureHeight Δ lam R a i n z, trialLevel Δ lam R i n z)) := by
+  intro m z z' hag hF0
+  have hF : trialFailure Δ lam R i n z = (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := hF0
+  set S := trialStartSequence Δ lam R z i n with hSdef
+  have hFne : trialFailure Δ lam R i n z ≠ ⊤ := by rw [hF]; exact ENNReal.coe_ne_top
+  have hS : S ≠ ⊤ := by
+    intro hS
+    apply hFne
+    simp only [trialFailure, trialFailureTime, trialDownwardTime, ← hSdef, hS, ite_true]
+    simp [roundUp]
+  set H := firstHittingBelow (sampleTimeShift Δ z S.toNNReal).1 i (-R) with hHdef
+  have hdown : trialDownwardTime Δ R z i S = S + H := by
+    simp only [trialDownwardTime, ite_eq_right hS, hHdef]
+  have hSH_le : S + H ≤ (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := by
+    rw [← hF, ← hdown]
+    exact le_roundUp Δ hΔ _
+  have hSle : S ≤ (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := (le_add_right le_rfl).trans hSH_le
+  obtain ⟨k, hk⟩ := trialStartSequence_mem_grid Δ hΔ lam R z i n hS
+  have hk' : S = (((k : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := hk
+  have hkm : k ≤ m := by
+    rw [hk'] at hSle
+    have h : (k : ℝ≥0) * Δ ≤ (m : ℝ≥0) * Δ := ENNReal.coe_le_coe.mp hSle
+    exact_mod_cast le_of_mul_le_mul_right h hΔ
+  have htwo := two_step_le_trialStartSequence Δ hΔ lam R hlam hR z i n
+  have hk2 : 2 ≤ k := by
+    rw [← hSdef, hk'] at htwo
+    have h : (2 : ℝ≥0) * Δ ≤ (k : ℝ≥0) * Δ := by exact_mod_cast htwo
+    exact_mod_cast le_of_mul_le_mul_right h hΔ
+  -- the trial start is the same for z'
+  have hSeq : trialStartSequence Δ lam R z' i n = S := by
+    have hdec := trialStart_historyDecided Δ hΔ lam R hlam hR i n k z z' (hag.mono hkm) hk'
+    exact hdec.1
+  -- the fall is the same
+  have hagw := hag.shift hΔ hkm
+  have hSnn : S.toNNReal = (k : ℝ≥0) * Δ := by rw [hk', ENNReal.toNNReal_coe]
+  have hHle : H ≤ ((((m - k : ℕ) : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := by
+    have hsplit : (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) =
+        (((k : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) + ((((m - k : ℕ) : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := by
+      rw [← ENNReal.coe_add, ← add_mul, ← Nat.cast_add, Nat.add_sub_cancel' hkm]
+    rw [hsplit, ← hk'] at hSH_le
+    exact (ENNReal.add_le_add_iff_left hS).mp hSH_le
+  have hHeq : firstHittingBelow (sampleTimeShift Δ z' S.toNNReal).1 i (-R) = H := by
+    rw [hSnn]
+    rw [hSnn] at hHdef
+    rw [hHdef]
+    exact firstHittingBelow_eq_of_agree _ _ i (-R) _ (fun t ht => hagw.1 t ht) (hHdef ▸ hHle)
+  have hdown' : trialDownwardTime Δ R z' i S = trialDownwardTime Δ R z i S := by
+    rw [hdown]
+    simp only [trialDownwardTime, ite_eq_right hS]
+    rw [hHeq]
+  have hFeq : trialFailure Δ lam R i n z' = trialFailure Δ lam R i n z := by
+    simp only [trialFailure, trialFailureTime]
+    rw [hSeq, hdown']
+  refine ⟨hFeq, ?_⟩
+  have hFle : (trialFailure Δ lam R i n z).toNNReal ≤ (m : ℝ≥0) * Δ := by
+    rw [hF, ENNReal.toNNReal_coe]
+  have hmax : coordinateMaximum z'.1 i (trialFailure Δ lam R i n z).toNNReal =
+      coordinateMaximum z.1 i (trialFailure Δ lam R i n z).toNNReal := by
+    unfold coordinateMaximum
+    congr 1
+    apply Set.image_congr
+    intro s hs
+    rw [← hag.1 s (hs.2.trans hFle), ← hag.1 0 zero_le]
+  have hval : z'.1 (trialFailure Δ lam R i n z).toNNReal i - z'.1 0 i =
+      z.1 (trialFailure Δ lam R i n z).toNNReal i - z.1 0 i := by
+    rw [← hag.1 _ hFle, ← hag.1 0 zero_le]
+  simp only [Prod.mk.injEq]
+  constructor
+  · simp only [trialFailureHeight]
+    rw [Set.indicator_of_mem (show z' ∈ {z : CoupledSample d | trialFailure Δ lam R i n z ≠ ⊤} by
+        change trialFailure Δ lam R i n z' ≠ ⊤
+        rw [hFeq]
+        exact hFne),
+      Set.indicator_of_mem (show z ∈ {z : CoupledSample d | trialFailure Δ lam R i n z ≠ ⊤}
+        from hFne), hFeq, hmax]
+  · simp only [trialLevel]
+    rw [hFeq, hmax, hval]
+
 end EinsteinFull.Regeneration
