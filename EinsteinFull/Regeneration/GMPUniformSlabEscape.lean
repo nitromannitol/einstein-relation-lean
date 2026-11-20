@@ -120,4 +120,24 @@ theorem uniform_regular_gmp_slab_exit_tail
     exact hm
   exact (measure_mono_ae hsub).trans hsurv
 
+/-- The uniform scaled slab-exit estimate holds for every supplied reduced law. -/
+theorem uniform_supplied_gmp_slab_exit_tail
+    (d : ℕ) (hd : 2 ≤ d) (Λ r l : ℝ) (hl : 1 ≤ l) :
+    ∃ n : ℕ, ∀ (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+      (P : QuenchedPathLaws d),
+      IsGMPReducedKernel hd Q.ellipticity_parameter Q μ hμ.le hμ1 P →
+      ∀ᵐ ω ∂Q.measure, ∀ x : Vec d,
+        P (x, ω) {γ : Path d |
+          (((n : ℝ≥0) * Renewal.regenDelta μ : ℝ≥0) : ℝ≥0∞) <
+            coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ)} ≤
+          ENNReal.ofReal (1 / 15 : ℝ) := by
+  obtain ⟨n, hn⟩ := uniform_regular_gmp_slab_exit_tail d hd Λ r l hl
+  refine ⟨n, ?_⟩
+  intro Q μ hμ hμ1 P hP
+  filter_upwards [hP] with ω hω
+  obtain ⟨hω, G, hrow⟩ := hω
+  intro x
+  rw [hrow x]
+  exact hn Q μ hμ hμ1 ω hω G x
+
 end EinsteinFull.Regeneration
