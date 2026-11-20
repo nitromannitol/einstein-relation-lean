@@ -4,7 +4,7 @@ import EinsteinFull.Regeneration.EllipticComplement
 # Harnack lower bound on the central cube
 
 The pointwise comparison gives the quantitative central-cube lower bound in
-Gantert–Mathieu–Piatnitski, equation (4.12).
+Gantert–Mathieu–Piatnitski, Lemma 4.4, immediately before (4.12).
 -/
 
 open MeasureTheory Set
