@@ -1,5 +1,4 @@
 import EinsteinFull.Homogenization.SourceAnnealedDualMatrix
-import EinsteinFull.Homogenization.SourceDualCoarseBound
 
 /-!
 # Limiting annealed dual matrix
