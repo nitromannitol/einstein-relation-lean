@@ -24,6 +24,12 @@ theorem coordinate_weighted_gradient_le_energy
     (hEll : ∃ lam' Λ', PDE.IsEllipticFieldOn lam' Λ' U
       (fun x => Real.exp (s * x i) • A x))
     (hA : ∀ᵐ x ∂(volume.restrict U), PDE.IsEllipticMatrix lam Λ (A x)) :
+    Integrable (fun p => Real.exp (s * p.1) * PDE.vecNormSq (u.grad (centralSlabPoint n i p)))
+      ((volume.restrict (Icc a b)).prod (volume.restrict K)) ∧
+    Integrable (fun p => PDE.vecDot
+      (PDE.matVecMul (Real.exp (s * p.1) • A (centralSlabPoint n i p))
+        (u.grad (centralSlabPoint n i p))) (u.grad (centralSlabPoint n i p)))
+      ((volume.restrict (Icc a b)).prod (volume.restrict K)) ∧
     lam * (∫ p, Real.exp (s * p.1) * PDE.vecNormSq (u.grad (centralSlabPoint n i p))
       ∂((volume.restrict (Icc a b)).prod (volume.restrict K))) ≤
       ∫ p, PDE.vecDot (PDE.matVecMul (Real.exp (s * p.1) • A (centralSlabPoint n i p))
@@ -97,6 +103,7 @@ theorem coordinate_weighted_gradient_le_energy
       Matrix.smul_mulVec _ _ _
     rw [hmat, PDE.DGNM.vecDot_smul_left, PDE.vecDot_comm]
     nlinarith
+  refine ⟨hgweight, henergy, ?_⟩
   have hcompare := integral_mono_ae (hgweight.const_mul lam) henergy hpoint
   rw [integral_const_mul] at hcompare
   exact hcompare

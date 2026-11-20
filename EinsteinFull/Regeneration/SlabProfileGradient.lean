@@ -23,6 +23,9 @@ theorem slab_profile_gradient_product_le
     (K : Set (Fin n → ℝ)) (hKfinite : volume K ≠ ∞)
     (hKsub : K ⊆ Icc (fun _ => -Real.exp (s * L / (n + 1)))
       (fun _ => Real.exp (s * L / (n + 1)))) :
+    Integrable (fun p : ℝ × (Fin n → ℝ) => Real.exp (s * p.1) *
+      PDE.vecNormSq ((slabBoundaryProfile hU i L).grad (centralSlabPoint n i p)))
+      ((volume.restrict (Icc (-L) L)).prod (volume.restrict K)) ∧
     (∫ p : ℝ × (Fin n → ℝ), Real.exp (s * p.1) *
       PDE.vecNormSq ((slabBoundaryProfile hU i L).grad (centralSlabPoint n i p))
       ∂((volume.restrict (Icc (-L) L)).prod (volume.restrict K))) ≤
@@ -93,6 +96,7 @@ theorem slab_profile_gradient_product_le
       ∂((volume.restrict (Icc (-L) L)).prod ν)) =
       ∫ p, g p.1 ∂((volume.restrict (Icc (-L) L)).prod ν) := by
     exact integral_congr_ae (Filter.Eventually.of_forall hpoint)
+  refine ⟨hprod.congr (Filter.Eventually.of_forall (fun p => (hpoint p).symm)), ?_⟩
   change (∫ p : ℝ × (Fin n → ℝ), Real.exp (s * p.1) *
       PDE.vecNormSq ((slabBoundaryProfile hU i L).grad (centralSlabPoint n i p))
       ∂((volume.restrict (Icc (-L) L)).prod ν)) ≤ _
