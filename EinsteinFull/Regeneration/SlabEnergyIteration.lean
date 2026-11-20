@@ -126,4 +126,30 @@ theorem exists_slab_width_of_gmp_energy_recurrence (d : ℕ) (hd : 0 < d)
     simpa [div_eq_mul_inv, mul_comm] using hstep j hj
   · exact hinit
 
+/-- The `2d` energy steps work for every positive exponential force. -/
+theorem exists_slab_width_of_force_energy_recurrence (d : ℕ) (hd : 0 < d)
+    (s A C D c : ℝ) (hs : 0 < s) (hA : 0 ≤ A) (hC : 0 ≤ C) (hc : 0 < c) :
+    ∃ L₀ : ℝ, ∀ L : ℝ, L₀ ≤ L → ∀ E : ℕ → ℝ,
+      (∀ j < 2 * d, E (j + 1) ≤ A * Real.exp (-(s * L / d)) +
+        (C * L ^ 2 * Real.exp (-(s * L / d))) * E j) →
+      E 0 ≤ D * Real.exp ((s * (2 * d - 1) / d) * L) → L * E (2 * d) < c := by
+  have hdpos : (0 : ℝ) < d := by exact_mod_cast hd
+  have hα : 0 < s / (d : ℝ) := div_pos hs hdpos
+  have hdecay : 0 < ((2 * d : ℕ) : ℝ) * (s / (d : ℝ)) -
+      (s * (2 * (d : ℝ) - 1) / d) := by
+    push_cast
+    have heq : 2 * (d : ℝ) * (s / d) - s * (2 * (d : ℝ) - 1) / d = s / d := by
+      field_simp
+      ring
+    rw [heq]
+    exact hα
+  obtain ⟨L₀, hL₀⟩ := exists_slab_width_of_energy_recurrence A C D
+    (s / (d : ℝ)) (s * (2 * (d : ℝ) - 1) / d) c (2 * d) hA hC hα hc hdecay
+  refine ⟨L₀, ?_⟩
+  intro L hL E hstep hinit
+  apply hL₀ L hL E
+  · intro j hj
+    simpa [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using hstep j hj
+  · exact hinit
+
 end EinsteinFull.Regeneration
