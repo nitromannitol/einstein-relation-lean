@@ -236,4 +236,79 @@ theorem lintegral_grid_stopping_le {d : ℕ} (hd : 2 ≤ d)
         simp only [Set.indicator, Set.mem_ofPred_eq]
         split_ifs <;> simp
 
+
+/-- Two coupled samples agree on the observed history up to the grid time `mΔ`:
+the path through `mΔ` and the bits before `m`. -/
+def HistoryAgree {d : ℕ} (Δ : ℝ≥0) (m : ℕ) (z z' : CoupledSample d) : Prop :=
+  (∀ s : ℝ≥0, s ≤ (m : ℝ≥0) * Δ → z.1 s = z'.1 s) ∧ (∀ j < m, z.2 j = z'.2 j)
+
+theorem HistoryAgree.symm {d : ℕ} {Δ : ℝ≥0} {m : ℕ} {z z' : CoupledSample d}
+    (h : HistoryAgree Δ m z z') : HistoryAgree Δ m z' z :=
+  ⟨fun s hs => (h.1 s hs).symm, fun j hj => (h.2 j hj).symm⟩
+
+theorem HistoryAgree.mono {d : ℕ} {Δ : ℝ≥0} {k m : ℕ} {z z' : CoupledSample d}
+    (h : HistoryAgree Δ m z z') (hkm : k ≤ m) : HistoryAgree Δ k z z' := by
+  refine ⟨fun s hs => h.1 s (hs.trans ?_), fun j hj => h.2 j (lt_of_lt_of_le hj hkm)⟩
+  exact mul_le_mul_of_nonneg_right (by exact_mod_cast hkm) zero_le
+
+theorem historyAgree_stoppedHistorySample {d : ℕ} (Δ : ℝ≥0) (m : ℕ) (z : CoupledSample d) :
+    HistoryAgree Δ m z (EinsteinRelation.Probability.stoppedHistorySample Δ m z) :=
+  ⟨fun s hs => (EinsteinRelation.Probability.stoppedHistorySample_path Δ m z s hs).symm,
+    fun j hj => (EinsteinRelation.Probability.stoppedHistorySample_bit Δ m z j hj).symm⟩
+
+/-- Agreement through `mΔ` gives agreement of the samples shifted to an earlier grid
+time `kΔ`, through `(m - k)Δ`. -/
+theorem HistoryAgree.shift {d : ℕ} {Δ : ℝ≥0} (hΔ : 0 < Δ) {k m : ℕ}
+    {z z' : CoupledSample d} (h : HistoryAgree Δ m z z') (hkm : k ≤ m) :
+    HistoryAgree Δ (m - k) (sampleTimeShift Δ z ((k : ℝ≥0) * Δ))
+      (sampleTimeShift Δ z' ((k : ℝ≥0) * Δ)) := by
+  refine ⟨fun s hs => ?_, fun j hj => ?_⟩
+  · change z.1 ((k : ℝ≥0) * Δ + s) = z'.1 ((k : ℝ≥0) * Δ + s)
+    apply h.1
+    calc (k : ℝ≥0) * Δ + s ≤ (k : ℝ≥0) * Δ + ((m - k : ℕ) : ℝ≥0) * Δ := add_le_add le_rfl hs
+      _ = (m : ℝ≥0) * Δ := by rw [← add_mul, ← Nat.cast_add, Nat.add_sub_cancel' hkm]
+  · change z.2 (gridIndex Δ ((k : ℝ≥0) * Δ) + j) = z'.2 (gridIndex Δ ((k : ℝ≥0) * Δ) + j)
+    rw [gridIndex_mul Δ hΔ]
+    exact h.2 _ (by omega)
+
+/-- A grid-valued time and a quantity are decided by the observed history at the time. -/
+def HistoryDecided {d : ℕ} {α : Type*} (Δ : ℝ≥0) (T : CoupledSample d → ℝ≥0∞)
+    (F : CoupledSample d → α) : Prop :=
+  ∀ (m : ℕ) (z z' : CoupledSample d), HistoryAgree Δ m z z' →
+    T z = (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) → T z' = T z ∧ F z' = F z
+
+/-- The restart bound of `lintegral_grid_stopping_le`, with the history conditions
+expressed by agreement of observed histories. -/
+theorem lintegral_grid_stopping_le_of_decided {d : ℕ} (hd : 2 ≤ d)
+    {Λ₀ r₀ : ℝ} (Q : EnvironmentLaw d Λ₀ r₀) (lam : ℝ)
+    (h0 : 0 < lam) (h1 : lam ≤ 1) (l δ : ℝ) (hl : 0 < l)
+    (hsep : r₀ < 2 * l) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
+    (hK : IsRegenerationCoupling hd Q lam l δ h0.le h1 P K)
+    (T : CoupledSample d → ℝ≥0∞) (hT : Measurable T)
+    (hgrid : ∀ z, T z ≠ ⊤ → ∃ m : ℕ,
+      T z = (((m : ℝ≥0) * Renewal.regenDelta lam : ℝ≥0) : ℝ≥0∞))
+    (W : CoupledSample d → ℝ≥0∞) (hW : Measurable W)
+    (Φ : CoupledSample d × CoupledSample d → ℝ≥0∞) (hΦ : Measurable Φ)
+    (hdec : HistoryDecided (Renewal.regenDelta lam) T
+      (fun z => (W z, fun w => Φ (z, w))))
+    (B : ℝ≥0∞)
+    (hinner : ∀ᵐ q ∂annealedCoupledLaw Q.measure K, ∀ m : ℕ,
+      T q.2 = (((m : ℝ≥0) * Renewal.regenDelta lam : ℝ≥0) : ℝ≥0∞) →
+      ∫⁻ w, Φ (q.2, w) ∂K (q.2.1 ((m : ℝ≥0) * Renewal.regenDelta lam), q.1) ≤ B) :
+    (∫⁻ q, {q : FieldPair d × CoupledSample d | T q.2 ≠ ⊤}.indicator
+        (fun q => W q.2 * Φ (q.2, sampleTimeShift (Renewal.regenDelta lam) q.2 (T q.2).toNNReal)) q
+        ∂annealedCoupledLaw Q.measure K) ≤
+      B * ∫⁻ q, {q : FieldPair d × CoupledSample d | T q.2 ≠ ⊤}.indicator (fun q => W q.2) q
+        ∂annealedCoupledLaw Q.measure K := by
+  apply lintegral_grid_stopping_le hd Q lam h0 h1 l δ hl hsep hδ0 hδ1 P K hK T hT hgrid W hW Φ hΦ
+    _ B hinner
+  intro m z
+  have hag := historyAgree_stoppedHistorySample (Renewal.regenDelta lam) m z
+  refine ⟨⟨fun hz => (hdec m z _ hag hz).1.trans hz, fun hz => ?_⟩, fun hz => ?_⟩
+  · exact (hdec m _ z hag.symm hz).1.trans hz
+  · obtain ⟨_, hF⟩ := hdec m z _ hag hz
+    simp only [Prod.mk.injEq] at hF
+    exact ⟨hF.1, fun w => congrFun hF.2 w⟩
+
 end EinsteinFull.Regeneration
