@@ -165,4 +165,64 @@ theorem sum_pow_three_mul_tail_le_geometric
       mul_le_mul_of_nonneg_left hsum (by norm_num)
     _ = _ := by ring
 
+/-- Three nested defect contributions are reduced to one geometric
+convolution at the final scale. -/
+theorem sum_weighted_defect_bounds_le
+    (θ α β B D : ℝ) (hθ : (1 / 2 : ℝ) ≤ θ)
+    (hα : 0 ≤ α) (hβ : 0 ≤ β) (hB : 0 ≤ B) (hD : 0 ≤ D)
+    (N : ℕ) (τ : ℕ → ℝ) (hτ : ∀ l, 0 ≤ τ l) :
+    (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m *
+      (α * (∑ l ∈ Finset.Ico m N, τ l) +
+       α * (θ ^ m * B + D * ∑ l ∈ Finset.range (m + 1), θ ^ (m - l) * τ l) +
+       β * ∑ l ∈ Finset.Ico m N, τ l)) ≤
+    3 * 3 ^ N * ((α * B) * θ ^ N + (α + β + α * D) *
+      ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l) := by
+  let tail : ℝ := ∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m * ∑ l ∈ Finset.Ico m N, τ l
+  let base : ℝ := ∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m * θ ^ m
+  let conv : ℝ := ∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m *
+    ∑ l ∈ Finset.range (m + 1), θ ^ (m - l) * τ l
+  let last : ℝ := ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l
+  let W : ℝ := (3 : ℝ) ^ N
+  have hθ0 : 0 ≤ θ := by linarith
+  have hlast : 0 ≤ last := Finset.sum_nonneg (fun l _ => mul_nonneg (pow_nonneg hθ0 _) (hτ l))
+  have hW : 0 ≤ W := by dsimp [W]; positivity
+  have htail : tail ≤ (3 / 2 : ℝ) * W * last := by
+    dsimp only [tail, W, last]
+    rw [Finset.sum_range_succ]
+    simp only [Finset.Ico_self, Finset.sum_empty, mul_zero, add_zero]
+    exact sum_pow_three_mul_tail_le_geometric θ hθ N τ hτ
+  have htail' : tail ≤ 3 * W * last := by
+    have hnonneg := mul_nonneg hW hlast
+    nlinarith
+  have hbase : base ≤ 3 * W * θ ^ N := by
+    exact sum_pow_three_mul_geometric_le θ hθ N
+  have hconv : conv ≤ 3 * W * last := by
+    exact sum_pow_three_mul_geometric_defects_le θ hθ N τ hτ
+  have hident :
+      (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m *
+        (α * (∑ l ∈ Finset.Ico m N, τ l) +
+         α * (θ ^ m * B + D * ∑ l ∈ Finset.range (m + 1), θ ^ (m - l) * τ l) +
+         β * ∑ l ∈ Finset.Ico m N, τ l)) =
+      (α + β) * tail + (α * B) * base + (α * D) * conv := by
+    let t : ℕ → ℝ := fun m => ∑ l ∈ Finset.Ico m N, τ l
+    let v : ℕ → ℝ := fun m => ∑ l ∈ Finset.range (m + 1), θ ^ (m - l) * τ l
+    change (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m *
+      (α * t m + α * (θ ^ m * B + D * v m) + β * t m)) =
+      (α + β) * (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m * t m) +
+      (α * B) * (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m * θ ^ m) +
+      (α * D) * (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m * v m)
+    simp only [Finset.mul_sum, ← Finset.sum_add_distrib]
+    apply Finset.sum_congr rfl
+    intro m _
+    ring
+  rw [hident]
+  calc
+    _ ≤ (α + β) * (3 * W * last) + (α * B) * (3 * W * θ ^ N) +
+        (α * D) * (3 * W * last) := by
+      exact add_le_add (add_le_add
+        (mul_le_mul_of_nonneg_left htail' (add_nonneg hα hβ))
+        (mul_le_mul_of_nonneg_left hbase (mul_nonneg hα hB)))
+        (mul_le_mul_of_nonneg_left hconv (mul_nonneg hα hD))
+    _ = _ := by dsimp only [W, last]; ring
+
 end EinsteinFull.Homogenization
