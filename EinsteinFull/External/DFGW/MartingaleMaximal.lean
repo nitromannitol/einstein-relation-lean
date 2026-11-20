@@ -1,4 +1,5 @@
 import Mathlib.Probability.Martingale.OptionalStopping
+import EinsteinFull.External.DFGW.IntegralCauchy
 
 /-! # A discrete martingale maximal estimate
 
@@ -43,5 +44,20 @@ theorem measureReal_martingale_max_le (M : ℕ → Ω → ℝ) (hM : Martingale 
     (integral_nonneg fun ω => abs_nonneg _)] at ht
   change ε * P.real A ≤ ∫ ω, |M n ω| ∂P at ht
   simpa only [hA] using ht
+
+/-- The squared excursion probability is bounded by the terminal second moment. -/
+theorem sq_measureReal_martingale_max_le [IsProbabilityMeasure P]
+    (M : ℕ → Ω → ℝ) (hM : Martingale M ℱ P) (n : ℕ) (hM2 : MemLp (M n) 2 P)
+    {ε : ℝ} (hε : 0 ≤ ε) :
+    (ε * P.real {ω | ∃ k ≤ n, ε ≤ |M k ω|}) ^ 2 ≤ ∫ ω, (M n ω) ^ 2 ∂P := by
+  have hm := measureReal_martingale_max_le M hM n hε
+  have hc := integral_mul_sq_le (fun ω => |M n ω|) (fun _ => 1) hM2.abs (memLp_const 1)
+  simp only [mul_one, one_pow, integral_const, smul_eq_mul] at hc
+  have htotal : P.real Set.univ = 1 := by simp [Measure.real]
+  have hc' : (∫ ω, |M n ω| ∂P) ^ 2 ≤ ∫ ω, (M n ω) ^ 2 ∂P := by
+    simpa only [sq_abs, htotal, mul_one] using hc
+  have hp : 0 ≤ ε * P.real {ω | ∃ k ≤ n, ε ≤ |M k ω|} :=
+    mul_nonneg hε measureReal_nonneg
+  nlinarith
 
 end EinsteinFull.External.DFGW
