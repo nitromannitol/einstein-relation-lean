@@ -141,6 +141,54 @@ theorem measure_failedSuccessfulBlocks_le {d : ℕ} (Q : Measure (FieldPair d))
   have hbase : μ (F 0) = 1 := by simp [F, failedSuccessfulBlocks, μ]
   simpa [hbase] using h
 
+/-- Failed blocks retain their geometric bound on any event in the initial history. -/
+theorem measure_history_failedSuccessfulBlocks_le {d : ℕ} (Q : Measure (FieldPair d))
+    [IsProbabilityMeasure Q] (K : CoupledQuenchedLaws d) (hK : HasProbabilityLaws Q K)
+    (Δ : ℝ≥0) (δ : ℝ) (hδ : 0 ≤ δ) (hδ1 : δ ≤ 1)
+    (hFresh : HasFreshBits Q Δ δ K) (M N m : ℕ) (A : Set (CoupledSample d))
+    (hA : MeasurableSet[finiteHistorySigma Δ M] A) :
+    annealedCoupledLaw Q K {q | q.2 ∈ A ∧ q.2 ∈ failedSuccessfulBlocks M N m} ≤
+      ENNReal.ofReal (1 - δ ^ N) ^ m * annealedCoupledLaw Q K {q | q.2 ∈ A} := by
+  let μ := annealedCoupledLaw Q K
+  have : IsProbabilityMeasure μ := annealedCoupledLaw_isProbabilityMeasure Q K hK
+  have hp1 : δ ^ N ≤ 1 := pow_le_one₀ hδ hδ1
+  let F : ℕ → Set (FieldPair d × CoupledSample d) :=
+    fun j => {q | q.2 ∈ A ∧ q.2 ∈ failedSuccessfulBlocks M N j}
+  have hstep (j : ℕ) : μ (F (j + 1)) ≤ ENNReal.ofReal (1 - δ ^ N) * μ (F j) := by
+    let B := A ∩ failedSuccessfulBlocks (d := d) M N j
+    let G : Set (FieldPair d × CoupledSample d) :=
+      {q | q.2 ∈ successfulRun (M + j * N) N}
+    have hG : MeasurableSet G := measurable_snd
+      ((Probability.finiteHistorySigma_le Δ (M + j * N + N)) _
+        (measurableSet_successfulRun_history Δ (M + j * N) N))
+    have hB : MeasurableSet[finiteHistorySigma Δ (M + j * N)] B :=
+      (finiteHistorySigma_mono Δ (Nat.le_add_right M _) A hA).inter
+        (measurableSet_failedSuccessfulBlocks_history Δ M N j)
+    have hmass := measure_annealed_successful_run Q K hK Δ δ hδ hFresh
+      (M + j * N) N B hB
+    have hreal : δ ^ N * μ.real (F j) ≤ μ.real (F j ∩ G) := by
+      have hh := congrArg ENNReal.toReal hmass
+      rw [ENNReal.toReal_mul, ENNReal.toReal_pow, ENNReal.toReal_ofReal hδ] at hh
+      exact le_of_eq hh.symm
+    have hf : F (j + 1) = F j \ G := by
+      ext q
+      simp only [F, G, failedSuccessfulBlocks, Set.mem_ofPred_eq, Set.mem_sdiff]
+      constructor
+      · rintro ⟨ha, h⟩
+        exact ⟨⟨ha, fun k hk => h k (by omega)⟩, h j (by omega)⟩
+      · rintro ⟨⟨ha, h⟩, hj⟩
+        refine ⟨ha, fun k hk => ?_⟩
+        by_cases hk' : k < j
+        · exact h k hk'
+        · have : k = j := by omega
+          simpa [this] using hj
+    rw [hf]
+    exact EinsteinFull.Blueprint.ConditionalTrialExhaustion.measure_sdiff_le_of_success_measure
+      μ (F j) G hG (δ ^ N) hp1 hreal
+  have h := EinsteinFull.Blueprint.ConditionalTrialExhaustion.finite_product_of_failure_step
+    μ F (ENNReal.ofReal (1 - δ ^ N)) hstep m
+  simpa [F, failedSuccessfulBlocks] using h
+
 /-- Fresh successful runs of every finite length occur arbitrarily late almost surely. -/
 theorem ae_arbitrarily_late_successful_runs {d : ℕ} (Q : Measure (FieldPair d))
     [IsProbabilityMeasure Q] (K : CoupledQuenchedLaws d) (hK : HasProbabilityLaws Q K)
