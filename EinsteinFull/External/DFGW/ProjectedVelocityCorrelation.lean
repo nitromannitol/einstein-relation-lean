@@ -1,5 +1,6 @@
 import EinsteinFull.External.DFGW.CorrelationLinear
 import EinsteinFull.External.DFGW.VelocityCorrelation
+import EinsteinFull.External.DFGW.ProjectedLp
 
 /-! # Correlation of projected velocities
 
@@ -52,19 +53,8 @@ theorem integrableOn_projected_velocity_autocorrelation
     have h := integrableOn_velocity_kernel_correlation hP hX φ hφ hlim hL2 hM i i
     simpa only [integral_mul_kernel_eq_inner hP _ (fun x => φ x i) (fun x => φ x i)
       (hφ.eval i) (hφ.eval i)] using h
-  have hsum : hg.toLp (fun x => dot e (φ x)) = ∑ i : Fin d, v i := by
-    apply Lp.ext
-    have hvi : ∀ᵐ x ∂μ, ∀ i : Fin d, v i x = e i * φ x i := by
-      rw [ae_all_iff]
-      intro i
-      filter_upwards [Lp.coeFn_smul (e i) ((hφ.eval i).toLp (fun x => φ x i)),
-        MemLp.coeFn_toLp (hφ.eval i)] with x hs hi
-      rw [hs]
-      change e i * ((hφ.eval i).toLp (fun x => φ x i)) x = _
-      rw [hi]
-    filter_upwards [MemLp.coeFn_toLp hg, Lp.coeFn_finsetSum Finset.univ v, hvi] with x hx hs hvx
-    rw [hx, hs]
-    simp only [Finset.sum_apply, dot, hvx]
+  have hsum : hg.toLp (fun x => dot e (φ x)) = ∑ i : Fin d, v i :=
+    projected_toLp_eq_sum φ hφ e hg
   rw [hsum]
   exact integrableOn_autocorrelation_sum hP Finset.univ v (fun i _ => hv i)
 
