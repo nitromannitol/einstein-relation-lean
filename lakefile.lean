@@ -10,6 +10,10 @@ require mathlib from git
 require «MarkovProcess» from git
   "https://github.com/scottnarmstrong/MarkovProcess" @ "666cda029098a1106914fc9fa7abd1727573284a"
 
+-- Reusable probability results, including martingale limit theorems.
+require «lattice-probability» from git
+  "https://github.com/nitromannitol/Lattice-Probability.git" @ "721505023bc12a20241c73449ec33339fcf4555f"
+
 -- The coarse-graining library of Armstrong and Kuusi (library name `Homogenization`).
 require «CoarseGraining» from git
   "https://github.com/scottnarmstrong/CoarseGraining" @ "310d1a6bab3ba2d398cdaffec32f3c9d4b5a24be"
