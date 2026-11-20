@@ -9,10 +9,10 @@ The scaled exit-time moment controls the error of discounting at a rate
 proportional to the force squared, uniformly over bounded source slabs.
 -/
 
-open MeasureTheory ProbabilityTheory Set EinsteinRelation
+open Filter MeasureTheory ProbabilityTheory Set EinsteinRelation
 open EinsteinRelation.Regeneration EinsteinRelation.Diffusion
 open EinsteinRelation.External.GantertSection7Support
-open scoped NNReal ENNReal
+open scoped NNReal ENNReal Topology
 
 namespace EinsteinFull.Regeneration
 
@@ -73,5 +73,37 @@ theorem uniform_regular_gmp_slab_discount_error
   change 0 ≤ (∫ γ, F γ ∂G.pathLaw x) - _ ∧ (∫ γ, F γ ∂G.pathLaw x) - _ ≤ a * C
   rw [hdiscount]
   exact ⟨herror.1, herror.2.trans (mul_le_mul_of_nonneg_left hSb ha)⟩
+
+/-- Discounted bounded-slab payoffs converge to the positive slab-exit probability. -/
+theorem gmp_positive_slab_exit_tendsto_discounted_payoff
+    (d : ℕ) (hd : 2 ≤ d) (Λ r l : ℝ) (hl : 1 ≤ l)
+    (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+    (ω : FieldPair d) (hω : IsRegular (sourceReducedBound Λ) (zeroPotentialReducedPair ω))
+    (G : GantertFixedEnvironmentRealization hd (sourceReducedBound Λ)
+      (one_le_sourceReducedBound Q.ellipticity_parameter) (zeroPotentialReducedPair ω)
+      hω μ hμ.le hμ1) (x y : Vec d) (a : ℕ → ℝ) (ha : ∀ n, 0 ≤ a n)
+    (ha0 : Tendsto a atTop (𝓝 0)) :
+    let i := Renewal.forceCoord hd
+    Tendsto (fun n : ℕ => gmpDiscountedSlabPayoff G i x (l / μ) y n (a n * μ ^ 2) x) atTop
+      (𝓝 ((G.pathLaw x).real {γ | coordinateSlabExit γ i (l / μ) ≠ ⊤ ∧
+        γ (coordinateSlabExit γ i (l / μ)).toNNReal i - γ 0 i = l / μ})) := by
+  dsimp only
+  let i := Renewal.forceCoord hd
+  obtain ⟨C, _, hC⟩ := uniform_regular_gmp_slab_discount_error d hd Λ r l hl
+  let u : ℕ → ℝ := fun n => gmpBoundedSlabPayoff G i x (l / μ) y n x
+  let v : ℕ → ℝ := fun n => gmpDiscountedSlabPayoff G i x (l / μ) y n (a n * μ ^ 2) x
+  have h0 : ∀ n, 0 ≤ u n - v n := fun n => (hC Q μ hμ hμ1 ω hω G x x y n (a n) (ha n)).1
+  have h1 : ∀ n, u n - v n ≤ a n * C := fun n =>
+    (hC Q μ hμ hμ1 ω hω G x x y n (a n) (ha n)).2
+  have herror : Tendsto (fun n => u n - v n) atTop (𝓝 0) := by
+    apply squeeze_zero h0 h1
+    simpa only [zero_mul] using ha0.mul_const C
+  have hu : Tendsto u atTop
+      (𝓝 ((G.pathLaw x).real {γ | coordinateSlabExit γ i (l / μ) ≠ ⊤ ∧
+        γ (coordinateSlabExit γ i (l / μ)).toNNReal i - γ 0 i = l / μ})) := by
+    simpa only [u, gmpBoundedSlabPayoff] using
+      gmp_positive_slab_exit_tendsto_smooth_payoff d hd Λ r l hl Q μ hμ hμ1 ω hω G x y
+  have hv := hu.sub herror
+  simpa only [sub_zero, sub_sub_cancel] using hv
 
 end EinsteinFull.Regeneration
