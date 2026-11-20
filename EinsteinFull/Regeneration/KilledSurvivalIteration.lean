@@ -16,7 +16,7 @@ namespace EinsteinFull.Regeneration
 
 /-- A uniform one-step mass bound iterates under the semigroup law. -/
 theorem killed_kernel_survival_le_pow {X : Type*} [MeasurableSpace X]
-    (K : ℝ≥0 → Kernel X X) (hfinite : ∀ t, IsFiniteKernel (K t))
+    (K : ℝ≥0 → Kernel X X) (_hfinite : ∀ t, IsFiniteKernel (K t))
     (hadd : ∀ s t, K (s + t) = (K t).comp (K s))
     (hzero : ∀ x, K 0 x Set.univ ≤ 1) (τ : ℝ≥0) (q : ℝ≥0∞)
     (hstep : ∀ x, K τ x Set.univ ≤ q) :
@@ -28,8 +28,8 @@ theorem killed_kernel_survival_le_pow {X : Type*} [MeasurableSpace X]
       simpa only [Nat.cast_zero, zero_mul, pow_zero] using hzero x
   | succ n ih =>
       intro x
-      letI := hfinite ((n : ℝ≥0) * τ)
-      letI := hfinite τ
+      let := _hfinite ((n : ℝ≥0) * τ)
+      let := _hfinite τ
       calc
         K (((n + 1 : ℕ) : ℝ≥0) * τ) x Set.univ =
             ∫⁻ y, K τ y Set.univ ∂K ((n : ℝ≥0) * τ) x := by
@@ -57,7 +57,7 @@ theorem gmp_survival_le_pow {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
   have hzero : ∀ x, gmpKilledEndpointKernel G U hU 0 x Set.univ ≤ 1 := by
     intro x
     rw [hevent]
-    haveI : IsMarkovKernel G.pathLaw := G.pathLaw_isMarkovKernel
+    have : IsMarkovKernel G.pathLaw := G.pathLaw_isMarkovKernel
     simpa only [measure_univ] using (measure_mono (Set.subset_univ _) :
       G.pathLaw x {γ : Path d | ∀ t : ℝ≥0, t ≤ 0 → γ t ∈ U} ≤ G.pathLaw x Set.univ)
   have hs : ∀ x, gmpKilledEndpointKernel G U hU τ x Set.univ ≤ q := by
