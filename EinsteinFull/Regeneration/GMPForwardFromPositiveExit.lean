@@ -77,4 +77,35 @@ theorem uniform_regular_forward_hitting_of_positive_exit
       (l / μ) (div_pos (by linarith) hμ) _ (hpositive y) (hlate y)
   · exact ha
 
+/-- GMP's positive-exit estimate gives forward hitting for every supplied reduced law. -/
+theorem uniform_supplied_forward_hitting_of_positive_exit
+    (d : ℕ) (hd : 2 ≤ d) (Λ r l : ℝ) (hl : 1 ≤ l) :
+    ∃ g : ℝ, 0 < g ∧
+      ∀ (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+        (P : QuenchedPathLaws d),
+        IsGMPReducedKernel hd Q.ellipticity_parameter Q μ hμ.le hμ1 P →
+        (∀ᵐ ω ∂Q.measure, ∀ y : Vec d, (2 / 3 : ℝ) ≤ (P (y, ω)).real {γ |
+          coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ) ≠ ⊤ ∧
+          γ (coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ)).toNNReal
+            (Renewal.forceCoord hd) - γ 0 (Renewal.forceCoord hd) = l / μ}) →
+        ∀ᵐ ω ∂Q.measure, ∀ (x : Vec d) (T : ℝ≥0) (a : ℝ), 0 ≤ a →
+          P (x, ω) {γ | (T : ℝ≥0∞) ≤ firstHittingAbove γ (Renewal.forceCoord hd) a} ≤
+            ENNReal.ofReal (Real.exp (1 / 200) *
+              Real.exp (-(1 / (400 * g)) * μ ^ 2 * (T : ℝ) + μ * a)) := by
+  obtain ⟨g, hg, hforward⟩ := uniform_regular_forward_hitting_of_positive_exit d hd Λ r l hl
+  refine ⟨g, hg, ?_⟩
+  intro Q μ hμ hμ1 P hP hpositive
+  filter_upwards [hP, hpositive] with ω hω hp
+  obtain ⟨hω, G, hrow⟩ := hω
+  have hpositiveG : ∀ y : Vec d, (2 / 3 : ℝ) ≤ (G.pathLaw y).real {γ |
+      coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ) ≠ ⊤ ∧
+      γ (coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ)).toNNReal
+        (Renewal.forceCoord hd) - γ 0 (Renewal.forceCoord hd) = l / μ} := by
+    intro y
+    rw [← hrow y]
+    exact hp y
+  intro x T a ha
+  rw [hrow x]
+  exact hforward Q μ hμ hμ1 ω hω G hpositiveG x T a ha
+
 end EinsteinFull.Regeneration
