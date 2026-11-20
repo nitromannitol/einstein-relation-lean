@@ -1,4 +1,5 @@
 import EinsteinFull.Homogenization.SourceCorrectorHighContrast
+import EinsteinFull.Homogenization.LinearWeakGradient
 import EinsteinFull.Homogenization.NormalizedBallNorms
 import EinsteinRelation.Correctors.AKMLocalCanonicalIdentificationSublinearity
 import HCPoly.Provider.Regularity.CorrectorNormalizedL2Bridge
@@ -30,20 +31,6 @@ variable {d : ℕ}
 /-- The corrected affine function of a dilated potential, `x ↦ e·x + u(2x)/2`. -/
 noncomputable def dilatedCorrectedAffine (e : Vec d) (u : Vec d → ℝ) (x : Vec d) : ℝ :=
   vecDot e x + dilatedPotential u x
-
-theorem contDiff_vecDot_left (e : Vec d) : ContDiff ℝ 1 (fun x : Vec d => vecDot e x) := by
-  unfold vecDot
-  exact ContDiff.sum fun i _ => contDiff_const.mul (contDiff_apply ℝ ℝ i)
-
-theorem fderiv_vecDot_left_apply (e : Vec d) (x : Vec d) (i : Fin d) :
-    fderiv ℝ (fun y : Vec d => vecDot e y) x (basisVec i) = e i := by
-  have hlin : (fun y : Vec d => vecDot e y) =
-      fun y => (∑ j : Fin d, e j • ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin d => ℝ) j)
-        y := by
-    funext y
-    simp [vecDot, smul_eq_mul]
-  rw [hlin, ContinuousLinearMap.fderiv]
-  simp [basisVec, Pi.single_apply, smul_eq_mul]
 
 theorem locallyIntegrable_of_hasWeakGradient {u : Vec d → ℝ} {g : Vec d → Vec d}
     [NeZero d] (h : HasWeakGradient Set.univ u g) : LocallyIntegrable u volume := by
