@@ -200,4 +200,64 @@ theorem exists_central_slab_energy_lower_of_harnack
   have hgap := hcmp a hm' hA' (u.restrict hBopen hBU) hlocal hcont hupper hsmall
   exact ⟨(hcont.comp (continuous_centralSlabPoint n i z)).continuousOn, hweak, hgap, hface⟩
 
+/-- A small center value forces the source full-box energy lower bound at large scales. -/
+theorem exists_slab_box_energy_lower_of_harnack
+    (n : ℕ) (lam Λ s : ℝ) (hlam : 0 < lam) (hΛ : lam ≤ Λ) (hs : 0 < s) :
+    ∃ c L₀ : ℝ, 0 < c ∧ 0 < L₀ ∧ ∀ (i : Fin (n + 1)) (L : ℝ), L₀ ≤ L →
+      ∀ {U : Set (PDE.Vec (n + 1))} (a : PDE.CoeffField (n + 1)) (u : PDE.H1Function U),
+      IsOpen U → coordinateSlabBox n i s L ⊆ U →
+      (∃ lam' Λ', PDE.IsEllipticFieldOn lam' Λ' U
+        (fun x => Real.exp (s * x i) • a x)) →
+      (∀ j k, AEMeasurable (fun x => a x j k) (volume.restrict U)) →
+      (∀ᵐ x ∂(volume.restrict U), PDE.IsEllipticMatrix lam Λ (a x)) →
+      PDE.IsWeakDivergenceFormL2SolutionOn (fun x => Real.exp (s * x i) • a x) U u 0 0 →
+      Continuous u.toFun → (∀ x, u x ≤ 1) → u 0 < 2 / 3 →
+      (∀ᵐ z ∂(volume.restrict (Icc (fun _ : Fin n => (-1 : ℝ)) (fun _ => 1))),
+        PDE.HasWeakDerivOnIoo 0 L (fun t => u (centralSlabPoint n i (t, z)))
+          (fun t => u.grad (centralSlabPoint n i (t, z)) i) ∧
+        u (centralSlabPoint n i (L, z)) = 1) →
+      lam * (c ^ 2 * (2 : ℝ) ^ n) ≤ L * ∫ x in coordinateSlabBox n i s L,
+        PDE.vecDot (PDE.matVecMul (Real.exp (s * x i) • a x) (u.grad x)) (u.grad x) := by
+  obtain ⟨c, hc, henergy⟩ :=
+    exists_central_slab_energy_lower_of_harnack n lam Λ s hlam hΛ hs
+  obtain ⟨L₀, hL₀, hsides⟩ := exists_large_slab_sides n s hs
+  refine ⟨c, L₀, hc, hL₀, ?_⟩
+  intro i L hL U a u hU hbox hEll hmeas hA hsol hcont hupper hsmall hslice
+  have hLpos : 0 < L := hL₀.trans_le hL
+  obtain ⟨hside, htrans⟩ := hsides L hL
+  have htrans' : 1 ≤ Real.exp (s * L / (n + 1)) := by
+    have hR : 0 ≤ Real.sqrt (8 * ((n + 1 : ℕ) : ℝ)) := Real.sqrt_nonneg _
+    linarith
+  have hcentral : coordinateCentralSlab n i L ⊆ coordinateSlabBox n i s L :=
+    coordinateCentralSlab_subset_slabBox n i s L hLpos.le htrans'
+  have hballs : ∀ z ∈ Icc (fun _ : Fin n => (-1 : ℝ)) (fun _ => 1),
+      PDE.euclideanBall
+        ((1 / 2 : ℝ) • ((0 : PDE.Vec (n + 1)) + centralSlabPoint n i (0, z)))
+        (Real.sqrt (8 * ((n + 1 : ℕ) : ℝ))) ⊆ U := by
+    intro z hz
+    exact (central_comparison_ball_subset_slab_box n i s L z hz hside htrans).trans hbox
+  have hlow := henergy i L hLpos a u hU (hcentral.trans hbox) hballs hEll
+    hmeas hA hsol hcont hupper hsmall hslice
+  let f : PDE.Vec (n + 1) → ℝ := fun x =>
+    PDE.vecDot (PDE.matVecMul (Real.exp (s * x i) • a x) (u.grad x)) (u.grad x)
+  obtain ⟨lam', Λ', hEll'⟩ := hEll
+  have hf : IntegrableOn f (coordinateSlabBox n i s L) := by
+    have h := PDE.integrableOn_coefficientEnergy_of_isEllipticFieldOn hEll' u.gradMemL2
+    simpa only [f, PDE.vecDot_comm] using h.mono_set hbox
+  have hboxmeas : MeasurableSet (coordinateSlabBox n i s L) := by
+    exact (measurableSet_Icc.prod measurableSet_Icc).preimage
+      (MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) i).measurable
+  have hfnonneg : ∀ᵐ x ∂(volume.restrict (coordinateSlabBox n i s L)), 0 ≤ f x := by
+    filter_upwards [ae_restrict_mem hboxmeas] with x hx
+    have h := (hEll'.elliptic (hbox hx)).coercive (u.grad x)
+    have hp := (hEll'.elliptic (hbox hx)).lam_pos
+    have hq := PDE.vecNormSq_nonneg (u.grad x)
+    dsimp only [f]
+    rw [PDE.vecDot_comm]
+    nlinarith
+  have hmono : (∫ x in coordinateCentralSlab n i L, f x) ≤
+      ∫ x in coordinateSlabBox n i s L, f x :=
+    setIntegral_mono_set hf hfnonneg (Filter.Eventually.of_forall fun _ hx => hcentral hx)
+  exact hlow.trans (mul_le_mul_of_nonneg_left hmono hLpos.le)
+
 end EinsteinFull.Regeneration
