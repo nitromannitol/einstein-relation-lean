@@ -1,6 +1,7 @@
 import PDEFoundation.Monotonicity.Core.RellichSphere
 import Mathlib.MeasureTheory.Integral.Prod
 import Mathlib.MeasureTheory.Function.L2Space
+import PDEFoundation.Sobolev.OneDimensional.ContinuousWeakIncrement
 
 /-!
 # Lower energy bounds from coordinate slices
@@ -82,5 +83,28 @@ theorem slab_coercive_energy_lower_of_L2_slices {Z : Type*} [MeasurableSpace Z]
   let : IsFiniteMeasure ((volume.restrict (Ioc 0 L)).prod ν) := by infer_instance
   exact slab_coercive_energy_lower_of_slice_integrals ν L c lam hL hc hlam g ρ
     (hg.integrable (by norm_num)) hg.integrable_sq hρ hbound hcoercive
+
+/-- Continuous weak slices convert an endpoint gap into the slab energy lower bound. -/
+theorem slab_coercive_energy_lower_of_weak_slices {Z : Type*} [MeasurableSpace Z]
+    (ν : Measure Z) [IsFiniteMeasure ν] (L c lam : ℝ)
+    (hL : 0 < L) (hc : 0 ≤ c) (hlam : 0 ≤ lam)
+    (u g ρ : ℝ × Z → ℝ)
+    (hg : MemLp g 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hρ : Integrable ρ ((volume.restrict (Ioc 0 L)).prod ν))
+    (hslice : ∀ᵐ z ∂ν,
+      ContinuousOn (fun t => u (t, z)) (Icc 0 L) ∧
+      MemLp (fun t => u (t, z)) 2 (volume.restrict (Ioo 0 L)) ∧
+      MemLp (fun t => g (t, z)) 2 (volume.restrict (Icc 0 L)) ∧
+      PDE.HasWeakDerivOnIoo 0 L (fun t => u (t, z)) (fun t => g (t, z)) ∧
+      c ≤ |u (L, z) - u (0, z)|)
+    (hcoercive : ∀ᵐ p ∂((volume.restrict (Ioc 0 L)).prod ν), lam * g p ^ 2 ≤ ρ p) :
+    lam * (c ^ 2 * ν.real univ) ≤ L * ∫ p, ρ p ∂((volume.restrict (Ioc 0 L)).prod ν) := by
+  apply slab_coercive_energy_lower_of_L2_slices ν L c lam hL.le hc hlam g ρ hg hρ
+  · filter_upwards [hslice] with z ⟨hu, huLp, hgLp, hweak, hgap⟩
+    have hinc := PDE.ContinuousOn.increment_eq_intervalIntegral_of_hasWeakDerivOnIoo
+      hL hu huLp hgLp hweak (s := 0) (t := L) (by simp [hL.le]) (by simp [hL.le])
+    rw [intervalIntegral.integral_of_le hL.le] at hinc
+    simpa only [← hinc] using hgap
+  · exact hcoercive
 
 end EinsteinFull.Regeneration
