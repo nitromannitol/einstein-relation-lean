@@ -23,7 +23,7 @@ theorem symmetric_matrix_eq_of_quadratic {d : ℕ} (A B : Mat d)
   have hsB : B j i = B i j := congrFun (congrFun hB i) j
   simp only [dot, unitVector, Matrix.mulVec, dotProduct, Pi.add_apply, Pi.single_apply,
     add_mul, mul_add, Finset.sum_add_distrib, ite_mul, one_mul, zero_mul,
-    mul_ite, mul_one, mul_zero, Finset.sum_ite_eq', Finset.mem_univ, if_true] at hii hjj hij
+    mul_ite, mul_one, mul_zero, Finset.sum_ite_eq', Finset.mem_univ, ite_true] at hii hjj hij
   linarith
 
 end EinsteinFull.External.DFGW

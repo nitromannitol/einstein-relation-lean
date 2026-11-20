@@ -54,7 +54,7 @@ theorem tendsto_resolvent_remainder_integer (hP : Draft.IsDFGWTrajectoryProcess 
     rw [hat] at hbound
     have htriangle : ‖U - Z t‖ ≤ ‖U - D‖ + ‖D - Z t‖ := by
       calc
-        ‖U - Z t‖ = ‖(U - D) + (D - Z t)‖ := by congr 1 <;> abel
+        ‖U - Z t‖ = ‖(U - D) + (D - Z t)‖ := by congr 1; abel
         _ ≤ _ := norm_add_le _ _
     have hsq : ‖U - Z t‖ ^ 2 ≤ 18 * ‖Q‖ ^ 2 + 2 * ‖D - Z t‖ ^ 2 := by
       have hnonneg1 := norm_nonneg (U - Z t)
