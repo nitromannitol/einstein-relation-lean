@@ -66,6 +66,21 @@ theorem boxCutoff_support_subset {d : ℕ} {a b δ : PDE.Vec d}
       (b := b j) (δ := δ j) (t := x j) (hδ j) (le_of_not_ge hn)
     exact hj (by simp [PDE.cubeCutoffScalarFactor, h])
 
+/-- The cutoff vanishes on either outer half-collar of any coordinate. -/
+theorem boxCutoff_eq_zero_of_near_face {d : ℕ} {a b δ : PDE.Vec d}
+    (hδ : ∀ j, 0 < δ j) (j : Fin d) (x : PDE.Vec d)
+    (hx : x j ≤ a j + δ j / 2 ∨ b j - δ j / 2 ≤ x j) :
+    boxCutoff a b δ x = 0 := by
+  unfold boxCutoff
+  apply Finset.prod_eq_zero (Finset.mem_univ j)
+  rcases hx with hl | hr
+  · have hz := PDE.axisBoxLowerTransition_eq_zero_of_le_add_half_delta
+      (a := a j) (δ := δ j) (t := x j) (hδ j) hl
+    simp [boxCutoffFactor, PDE.cubeCutoffScalarFactor, hz]
+  · have hz := PDE.axisBoxUpperTransition_eq_zero_of_sub_half_delta_le
+      (b := b j) (δ := δ j) (t := x j) (hδ j) hr
+    simp [boxCutoffFactor, PDE.cubeCutoffScalarFactor, hz]
+
 /-- The support box is compact. -/
 theorem boxCutoffSupport_isCompact {d : ℕ} (a b δ : PDE.Vec d) :
     IsCompact (boxCutoffSupport a b δ) := by
