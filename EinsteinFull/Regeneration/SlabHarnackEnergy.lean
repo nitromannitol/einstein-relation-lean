@@ -46,6 +46,21 @@ theorem centralSlabPoint_abs_le_one (n : ℕ) (i : Fin (n + 1)) (z : Fin n → �
   · rw [(centralSlabPoint_coord n i 0 z).2 k]
     exact abs_le.mpr ⟨hz.1 k, hz.2 k⟩
 
+/-- A fixed transverse coordinate determines a continuous force-coordinate line. -/
+theorem continuous_centralSlabPoint (n : ℕ) (i : Fin (n + 1)) (z : Fin n → ℝ) :
+    Continuous (fun t => centralSlabPoint n i (t, z)) := by
+  apply continuous_pi
+  intro j
+  refine i.succAboveCases ?_ (fun k => ?_) j
+  · have hi : (fun t => centralSlabPoint n i (t, z) i) = id :=
+      funext fun t => (centralSlabPoint_coord n i t z).1
+    rw [hi]
+    exact continuous_id
+  · have hk : (fun t => centralSlabPoint n i (t, z) (i.succAbove k)) =
+        fun _ => z k := funext fun t => (centralSlabPoint_coord n i t z).2 k
+    rw [hk]
+    exact continuous_const
+
 /-- Harnack supplies a uniform central gap for the physical central-slab energy bound. -/
 theorem exists_central_slab_energy_lower_of_harnack
     (n : ℕ) (lam Λ s : ℝ) (hlam : 0 < lam) (hΛ : lam ≤ Λ) (hs : 0 < s) :
@@ -63,7 +78,6 @@ theorem exists_central_slab_energy_lower_of_harnack
       PDE.IsWeakDivergenceFormL2SolutionOn (fun x => Real.exp (s * x i) • a x) U u 0 0 →
       Continuous u.toFun → (∀ x, u x ≤ 1) → u 0 < 2 / 3 →
       (∀ᵐ z ∂(volume.restrict (Icc (fun _ : Fin n => (-1 : ℝ)) (fun _ => 1))),
-        ContinuousOn (fun t => u (centralSlabPoint n i (t, z))) (Icc 0 L) ∧
         PDE.HasWeakDerivOnIoo 0 L (fun t => u (centralSlabPoint n i (t, z)))
           (fun t => u.grad (centralSlabPoint n i (t, z)) i) ∧
         u (centralSlabPoint n i (L, z)) = 1) →
@@ -75,7 +89,7 @@ theorem exists_central_slab_energy_lower_of_harnack
   intro i L hL U a u hU hsub hball hEll hmeas hA hsol hcont hupper hsmall hslice
   apply coordinate_central_slab_energy_lower_of_weak_slices n i L c lam Λ s
     hL hc.le hlam hs.le a u hsub hEll hA
-  filter_upwards [ae_restrict_mem measurableSet_Icc, hslice] with z hz ⟨hline, hweak, hface⟩
+  filter_upwards [ae_restrict_mem measurableSet_Icc, hslice] with z hz ⟨hweak, hface⟩
   let x := centralSlabPoint n i (0, z)
   let B := PDE.euclideanBall ((1 / 2 : ℝ) • ((0 : PDE.Vec (n + 1)) + x))
     (Real.sqrt (8 * ((n + 1 : ℕ) : ℝ)))
@@ -91,6 +105,6 @@ theorem exists_central_slab_energy_lower_of_harnack
   have hcmp := hcompare i x hx hcub
   dsimp only at hcmp
   have hgap := hcmp a hm' hA' (u.restrict hBopen hBU) hlocal hcont hupper hsmall
-  exact ⟨hline, hweak, hgap, hface⟩
+  exact ⟨(hcont.comp (continuous_centralSlabPoint n i z)).continuousOn, hweak, hgap, hface⟩
 
 end EinsteinFull.Regeneration
