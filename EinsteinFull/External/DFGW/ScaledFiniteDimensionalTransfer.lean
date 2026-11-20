@@ -29,7 +29,7 @@ theorem tendstoInMeasure_scaled_finite_dimensional_remainder
       fun η => N t (Draft.dfgwShift s η))
     (hrem : ∀ e : Vec d, Tendsto (fun t : ℝ≥0 => (t : ℝ)⁻¹ *
       ∫ η, (dot e (X 0 t η) - dot e (N t η)) ^ 2 ∂P) atTop (𝓝 0))
-    {n : ℕ} (times : Fin n → ℝ≥0) :
+    {J : Type*} [Fintype J] (times : J → ℝ≥0) :
     TendstoInMeasure P (fun (ε : ℝ) η k =>
       ε • Y η ((ε⁻¹ ^ 2).toNNReal * times k) -
         ε • N ((ε⁻¹ ^ 2).toNNReal * times k) η) (𝓝[>] 0) (fun _ => 0) := by
@@ -53,14 +53,14 @@ theorem tendstoInDistribution_scaled_finite_dimensional_of_martingale
       fun η => N t (Draft.dfgwShift s η))
     (hrem : ∀ e : Vec d, Tendsto (fun t : ℝ≥0 => (t : ℝ)⁻¹ *
       ∫ η, (dot e (X 0 t η) - dot e (N t η)) ^ 2 ∂P) atTop (𝓝 0))
-    {n : ℕ} (times : Fin n → ℝ≥0) (Z : Ω' → Fin n → Vec d)
+    {J : Type*} [Fintype J] (times : J → ℝ≥0) (Z : Ω' → J → Vec d)
     (hlimit : TendstoInDistribution (fun (ε : ℝ) η k =>
       ε • N ((ε⁻¹ ^ 2).toNNReal * times k) η) (𝓝[>] 0) Z (fun _ => P) ν) :
     TendstoInDistribution (fun (ε : ℝ) η k =>
       ε • Y η ((ε⁻¹ ^ 2).toNNReal * times k)) (𝓝[>] 0) Z (fun _ => P) ν := by
-  let A : ℝ → C(ℝ, S) → Fin n → Vec d := fun ε η k =>
+  let A : ℝ → C(ℝ, S) → J → Vec d := fun ε η k =>
     ε • Y η ((ε⁻¹ ^ 2).toNNReal * times k)
-  let B : ℝ → C(ℝ, S) → Fin n → Vec d := fun ε η k =>
+  let B : ℝ → C(ℝ, S) → J → Vec d := fun ε η k =>
     ε • N ((ε⁻¹ ^ 2).toNNReal * times k) η
   have hdiff : TendstoInMeasure P (A - B) (𝓝[>] 0) 0 :=
     tendstoInMeasure_scaled_finite_dimensional_remainder hP hX φ hφ hL2 N hN2 hstat hrem times
