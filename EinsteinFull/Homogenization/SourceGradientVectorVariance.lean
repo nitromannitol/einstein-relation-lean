@@ -16,6 +16,61 @@ namespace EinsteinFull.Homogenization
 open EinsteinRelation.Environment.AKMTestIntegralSupport
 open EinsteinRelation.External.AKM
 
+/-- For a square-integrable finite vector, its squared distance from its mean
+is integrable and its expectation is the sum of the coordinate variances. -/
+theorem integrable_and_integral_vecNormSq_sub_mean_eq_sum_variance
+    {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) [IsProbabilityMeasure P]
+    {d : ℕ} (F : Ω → Vec d) (hF : ∀ i, MemLp (fun a => F a i) 2 P) :
+    (∀ i, Integrable (fun a => F a i) P) ∧
+    Integrable (fun a => vecNormSq (F a - fun i => ∫ b, F b i ∂P)) P ∧
+    (∫ a, vecNormSq (F a - fun i => ∫ b, F b i ∂P) ∂P) =
+      ∑ i : Fin d, ProbabilityTheory.variance (fun a => F a i) P := by
+  classical
+  have hint (i : Fin d) : Integrable (fun a => F a i) P := (hF i).integrable (by norm_num)
+  let G : Fin d → Ω → ℝ := fun i a => (F a i - ∫ b, F b i ∂P) ^ 2
+  have hG (i : Fin d) : Integrable (G i) P :=
+    ((hF i).sub (memLp_const _)).integrable_sq
+  have hsum : Integrable (fun a => vecNormSq (F a - fun i => ∫ b, F b i ∂P)) P := by
+    have h := integrable_finsetSum Finset.univ (fun i _ => hG i)
+    simpa [vecNormSq, vecDot, G, pow_two] using h
+  refine ⟨hint, hsum, ?_⟩
+  calc
+    _ = ∑ i : Fin d, ∫ a, G i a ∂P := by
+      simpa [vecNormSq, vecDot, G, pow_two] using
+        (integral_finsetSum Finset.univ (fun i _ => hG i))
+    _ = _ := by
+      apply Finset.sum_congr rfl
+      intro i _
+      exact (ProbabilityTheory.variance_eq_integral (hF i).aemeasurable).symm
+
+/-- The optimizer-gradient vector variance is uniformly bounded on every cube,
+including the smallest triadic scale. -/
+theorem integrable_and_sourceGradientVectorVariance_le_uniform
+    {d : ℕ} [NeZero d] {K : ℝ} (P : Measure (Coefficient d K))
+    [IsProbabilityMeasure P] (Q : TriadicCube d) (k : ℕ) (hk : K ≤ (k : ℝ) + 1)
+    (p q : Vec d) (hp : vecNormSq p ≤ 1) (hq : vecNormSq q ≤ 1) :
+    let F : Coefficient d K → Vec d := fun a =>
+      Book.Ch02.averageGradient (Book.Ch02.cubeDomain Q)
+        (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk)
+        (Book.Ch02.canonicalMaximizer
+          (Book.Ch02.responseExistenceTheory (Book.Ch02.cubeDomain Q)
+            (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk)) p q).toSolution
+    (∀ i, Integrable (fun a => F a i) P) ∧
+    Integrable (fun a => vecNormSq (F a - fun i => ∫ b, F b i ∂P)) P ∧
+    (∫ a, vecNormSq (F a - fun i => ∫ b, F b i ∂P) ∂P) ≤
+      (d : ℝ) * (2 * (1 + (2 * d : ℝ) ^ 2)) := by
+  classical
+  intro F
+  have hF (i : Fin d) : MemLp (fun a => F a i) 2 P :=
+    memLp_sourceResponseAverageGradient_cube P Q k hk p q i 2
+  obtain ⟨hint, hsq, heq⟩ := integrable_and_integral_vecNormSq_sub_mean_eq_sum_variance P F hF
+  refine ⟨hint, hsq, ?_⟩
+  rw [heq]
+  calc
+    _ ≤ ∑ _i : Fin d, (2 * (1 + (2 * d : ℝ) ^ 2)) :=
+      Finset.sum_le_sum fun i _ => variance_sourceResponseAverageGradient_le P Q k hk p q hp hq i
+    _ = _ := by simp
+
 /-- At scales at least one, the response optimizer gradient has a uniform
 vector-variance bound in terms of geometrically weighted additivity defects. -/
 theorem integrable_and_sourceGradientVectorVariance_le
@@ -43,24 +98,8 @@ theorem integrable_and_sourceGradientVectorVariance_le
   intro η θ F
   have hF (i : Fin d) : MemLp (fun a => F a i) 2 P :=
     memLp_sourceResponseAverageGradient_cube P (originCube d ((m + 1 : ℕ) : ℤ)) k hk p q i 2
-  have hint (i : Fin d) : Integrable (fun a => F a i) P := (hF i).integrable (by norm_num)
-  let G : Fin d → Coefficient d K → ℝ := fun i a => (F a i - ∫ b, F b i ∂P) ^ 2
-  have hG (i : Fin d) : Integrable (G i) P :=
-    ((hF i).sub (memLp_const _)).integrable_sq
-  have hsum : Integrable (fun a => vecNormSq (F a - fun i => ∫ b, F b i ∂P)) P := by
-    have h := integrable_finsetSum Finset.univ (fun i _ => hG i)
-    simpa [vecNormSq, vecDot, G, pow_two] using h
+  obtain ⟨hint, hsum, heq⟩ := integrable_and_integral_vecNormSq_sub_mean_eq_sum_variance P F hF
   refine ⟨hint, hsum, ?_⟩
-  have heq : (∫ a, vecNormSq (F a - fun i => ∫ b, F b i ∂P) ∂P) =
-      ∑ i : Fin d, ProbabilityTheory.variance (fun a => F a i) P := by
-    calc
-      _ = ∑ i : Fin d, ∫ a, G i a ∂P := by
-        simpa [vecNormSq, vecDot, G, pow_two] using
-          (integral_finsetSum Finset.univ (fun i _ => hG i))
-      _ = _ := by
-        apply Finset.sum_congr rfl
-        intro i _
-        exact (ProbabilityTheory.variance_eq_integral (hF i).aemeasurable).symm
   rw [heq]
   have hcoord (i : Fin d) : ProbabilityTheory.variance (fun a => F a i) P ≤
       θ ^ m * (2 * (1 + (2 * d : ℝ) ^ 2)) + ∑ n ∈ Finset.range m,
