@@ -1,5 +1,6 @@
 import EinsteinFull.Homogenization.CoefficientL2
 import Homogenization.Ambient.MatrixOrderBridge
+import Homogenization.Probability.RegCoeffField.SliceMeasurability
 
 /-!
 # Ellipticity of source coefficients
@@ -75,5 +76,36 @@ theorem source_isEllipticMatrix {d : ℕ} {K L : ℝ} (a : Coefficient d K)
         Matrix.diagonal_apply, Finset.mul_sum, mul_left_comm]
     rw [hdiag] at h
     linarith
+
+/-- Every regular representative belongs to a common quantitative ellipticity
+slice on any measurable domain once the slice constant dominates the source bound. -/
+theorem regularCoefficient_aeeQuantitativeEllipticSlice {d : ℕ} {K : ℝ}
+    (U : Set (Vec d)) (hU : MeasurableSet U) (k : ℕ) (hK : K ≤ (k : ℝ) + 1)
+    (a : Coefficient d K) :
+    _root_.Homogenization.AEEQuantitativeEllipticSlice U k (regularCoefficient a).toFun := by
+  apply (_root_.Homogenization.aeeQuantitativeEllipticSlice_carrier_iff U hU k
+    (regularCoefficient a)).mpr
+  apply ae_restrict_of_ae
+  filter_upwards [regularCoefficient_ae_eq a] with x hx
+  rw [hx]
+  have hlarge : (1 : ℝ) ≤ (k : ℝ) + 1 := by
+    linarith [Nat.cast_nonneg (α := ℝ) k]
+  have hpos : (0 : ℝ) < (k : ℝ) + 1 := lt_of_lt_of_le zero_lt_one hlarge
+  exact (source_isEllipticMatrix a hlarge hK x).mono (inv_pos.mpr hpos)
+    ((inv_le_one₀ hpos).2 hlarge) le_rfl
+
+/-- The local matrix-valued L² realization is measurable for any quantitative
+slice constant dominating the source bound. -/
+theorem measurable_regularCoefficient_toHilbertMatrixL2_of_le {d : ℕ} {K : ℝ}
+    (U : Set (Vec d)) [IsFiniteMeasure (_root_.Homogenization.volumeMeasureOn U)]
+    (hU : IsOpen U) (k : ℕ) (hK : K ≤ (k : ℝ) + 1) :
+    @Measurable (Coefficient d K)
+      (Lp (_root_.Homogenization.HilbertMat d) 2 (_root_.Homogenization.volumeMeasureOn U))
+      (localSigma U) (borel _)
+      (fun a => _root_.Homogenization.AEEQuantitativeEllipticSlice.toHilbertMatrixL2
+        (_root_.Homogenization.rawSlice regularCoefficient
+          (regularCoefficient_aeeQuantitativeEllipticSlice U hU.measurableSet k hK) a)) :=
+  measurable_regularCoefficient_toHilbertMatrixL2 U hU k
+    (regularCoefficient_aeeQuantitativeEllipticSlice U hU.measurableSet k hK)
 
 end EinsteinFull.Homogenization
