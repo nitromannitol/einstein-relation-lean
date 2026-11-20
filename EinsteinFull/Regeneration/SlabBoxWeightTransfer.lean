@@ -66,4 +66,24 @@ theorem coordinate_slab_integral_le_weight (n : ℕ) (i : Fin (n + 1))
     _ = _ := hcalc
     _ ≤ _ := weighted_slab_product_volume_le n s L hs
 
+/-- The same bound holds for a measurable subdomain of the slab box. -/
+theorem coordinate_subslab_integral_le_weight (n : ℕ) (i : Fin (n + 1))
+    (s L : ℝ) (hs : 0 < s) (Q : Set (PDE.Vec (n + 1)))
+    (hQ : MeasurableSet Q) (hsub : Q ⊆ coordinateSlabBox n i s L)
+    (ρ : PDE.Vec (n + 1) → ℝ) (hint : IntegrableOn ρ Q)
+    (hbound : ∀ x ∈ Q, ρ x ≤ Real.exp (s * x i)) :
+    (∫ x in Q, ρ x) ≤
+      ((2 : ℝ) ^ n / s) * Real.exp ((s * (2 * (n + 1 : ℝ) - 1) / (n + 1)) * L) := by
+  have hglobal : Integrable (Q.indicator ρ) := hint.integrable_indicator hQ
+  have hpoint : ∀ᵐ x ∂(volume.restrict (coordinateSlabBox n i s L)),
+      Q.indicator ρ x ≤ Real.exp (s * x i) := by
+    filter_upwards with x
+    by_cases hx : x ∈ Q
+    · simpa only [Set.indicator_of_mem hx] using hbound x hx
+    · simpa only [Set.indicator_of_notMem hx] using (Real.exp_pos (s * x i)).le
+  have h := coordinate_slab_integral_le_weight n i s L hs (Q.indicator ρ) hglobal.integrableOn hpoint
+  have heq : (∫ x in coordinateSlabBox n i s L, Q.indicator ρ x) = ∫ x in Q, ρ x := by
+    rw [integral_indicator hQ, Measure.restrict_restrict hQ, Set.inter_eq_self_of_subset_left hsub]
+  rwa [heq] at h
+
 end EinsteinFull.Regeneration
