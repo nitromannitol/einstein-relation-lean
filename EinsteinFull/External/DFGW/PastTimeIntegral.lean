@@ -13,6 +13,7 @@ namespace EinsteinFull.External.DFGW
 
 variable {S : Type*} [TopologicalSpace S] [MeasurableSpace S] [BorelSpace S]
 
+omit [BorelSpace S] in
 /-- Clamping a path at time `t` uses only coordinates up to time `t`. -/
 theorem measurable_clamp_path (hcoord : Draft.dfgwCoordSigma (S := S) Set.univ =
     Draft.dfgwTrajectoryMeasurableSpace (S := S)) (t : ℝ) :

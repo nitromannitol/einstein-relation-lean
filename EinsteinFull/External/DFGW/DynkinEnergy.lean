@@ -55,7 +55,7 @@ theorem integral_dynkin_increment_sq_eq_energy (hP : Draft.IsDFGWTrajectoryProce
   have hsum : Tendsto (fun n : ℕ => 2 * ((n : ℝ) * (‖F‖ ^ 2 -
       inner ℝ F (transitionOperator hP ((n : ℝ≥0)⁻¹) F))) + R n) atTop
       (𝓝 (2 * -inner ℝ F g)) := by
-    convert (hgen.const_mul 2).add hR using 1 <;> simp [g]
+    convert (hgen.const_mul 2).add hR using 1; simp [g]
   have hconst : ∀ᶠ n : ℕ in atTop, 2 * ((n : ℝ) * (‖F‖ ^ 2 -
       inner ℝ F (transitionOperator hP ((n : ℝ≥0)⁻¹) F))) + R n = V := by
     filter_upwards [eventually_gt_atTop (0 : ℕ)] with n hn

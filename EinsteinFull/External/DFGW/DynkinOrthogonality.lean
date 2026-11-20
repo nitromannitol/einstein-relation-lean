@@ -45,10 +45,10 @@ theorem integral_L2_increment_mul_time_integral_eq_zero
         rw [intervalIntegral_observable_refl]
         have h1 : Draft.dfgwRefl ((t : ℝ) / 2) η t = η 0 := by
           change η (2 * ((t : ℝ) / 2) - t) = η 0
-          congr 1 <;> ring
+          congr 1; ring
         have h0 : Draft.dfgwRefl ((t : ℝ) / 2) η 0 = η t := by
           change η (2 * ((t : ℝ) / 2) - 0) = η t
-          congr 1 <;> ring
+          congr 1; ring
         rw [h1, h0]
         ring
       _ = _ := integral_neg _

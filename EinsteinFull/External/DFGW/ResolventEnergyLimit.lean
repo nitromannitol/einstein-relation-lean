@@ -29,8 +29,6 @@ theorem tendsto_resolvent_generator_energy (hP : Draft.IsDFGWTrajectoryProcess P
   simp only [sub_zero] at h
   apply h.congr'
   filter_upwards with n
-  change inner ℝ f (transitionResolvent hP (reciprocalShift n) f) -
-      (reciprocalShift n : ℝ) * ‖transitionResolvent hP (reciprocalShift n) f‖ ^ 2 = _
   change _ = -inner ℝ (transitionResolvent hP (reciprocalShift n) f)
     ((transitionSemigroup hP).generator (transitionResolventDomain hP (reciprocalShift n) f))
   have hgen : (transitionSemigroup hP).generator (transitionResolventDomain hP (reciprocalShift n) f) =

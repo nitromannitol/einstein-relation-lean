@@ -44,14 +44,14 @@ theorem exists_vector_increment_martingale_approximation
     have h := exists_projected_increment_martingale_approximation hP hcoord hX φ hφ hlim hL2 hM
       (unitVector i)
     simpa only [dot, unitVector, Pi.single_apply, ite_mul, one_mul, zero_mul,
-      Finset.sum_ite_eq', Finset.mem_univ, if_true] using h
+      Finset.sum_ite_eq', Finset.mem_univ, ite_true] using h
   choose N hN using hex
   let V : ℝ≥0 → C(ℝ, S) → Vec d := fun t η i => N i t η
   have hVLp (t : ℝ≥0) : MemLp (V t) 2 P := (memLp_pi_iff).2 fun i => (hN i).2.1 t
   have hVmart : Martingale V Draft.dfgwPast P := by
     constructor
     · intro t
-      letI : MeasurableSpace C(ℝ, S) := Draft.dfgwPast t
+      let : MeasurableSpace C(ℝ, S) := Draft.dfgwPast t
       apply Measurable.stronglyMeasurable
       apply measurable_pi_iff.mpr
       intro i

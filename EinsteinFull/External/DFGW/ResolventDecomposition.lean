@@ -45,7 +45,7 @@ theorem dynkinIncrementLp_eq_boundary_sub (hP : Draft.IsDFGWTrajectoryProcess P 
     (timeIntegralLp hP G t)
   apply Lp.ext
   filter_upwards [hrepr, hev t, hev 0, hint, hsub1, hsub2] with η hr hvt hv0 hi hs1 hs2
-  simp only [Pi.sub_apply, Function.comp_apply] at hs1 hs2 hvt hv0
+  simp only [Pi.sub_apply] at hs1 hs2 hvt hv0
   rw [hr, hs2, hs1, hvt, hv0, hi]
   simp only [dynkinProcess, NNReal.coe_zero, intervalIntegral.integral_same, sub_zero, F, G]
   ring

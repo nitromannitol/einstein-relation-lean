@@ -40,7 +40,7 @@ theorem tendstoInMeasure_scaled_finite_dimensional_remainder
   have h := tendstoInMeasure_scaled_martingale_remainder hP hX φ hφ hL2 N hN2 hstat
     (unitVector i) (hrem (unitVector i)) (times k)
   simpa only [dot, unitVector, Pi.single_apply, ite_mul, one_mul, zero_mul,
-    Finset.sum_ite_eq', Finset.mem_univ, if_true, Pi.sub_apply, Pi.smul_apply, smul_eq_mul] using h
+    Finset.sum_ite_eq', Finset.mem_univ, ite_true, Pi.sub_apply, Pi.smul_apply, smul_eq_mul] using h
 
 /-- Joint weak convergence at finitely many times transfers from the scaled martingale to the
 increment process. -/

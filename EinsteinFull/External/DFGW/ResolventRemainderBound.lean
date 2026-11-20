@@ -46,7 +46,7 @@ theorem norm_resolvent_remainder_le (hP : Draft.IsDFGWTrajectoryProcess P μ T)
   have hbound' : ‖U - D‖ ≤ 3 * ‖Q‖ := by nlinarith [norm_nonneg Q]
   have htriangle : ‖U - Z t‖ ≤ ‖U - D‖ + ‖D - Z t‖ := by
     calc
-      ‖U - Z t‖ = ‖(U - D) + (D - Z t)‖ := by congr 1 <;> abel
+      ‖U - Z t‖ = ‖(U - D) + (D - Z t)‖ := by congr 1; abel
       _ ≤ _ := norm_add_le _ _
   have hsq : ‖U - Z t‖ ^ 2 ≤ 18 * ‖Q‖ ^ 2 + 2 * ‖D - Z t‖ ^ 2 := by
     have h1 := norm_nonneg (U - Z t)

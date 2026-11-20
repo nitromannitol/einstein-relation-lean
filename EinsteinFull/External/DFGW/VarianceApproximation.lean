@@ -16,7 +16,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
 /-- A sublinear mean-square approximation preserves the normalized variance limit. -/
 theorem tendsto_variance_of_sublinear_approximation
     (A M : ℝ≥0 → Ω → ℝ) (hA : ∀ t, MemLp (A t) 2 P) (hM : ∀ t, MemLp (M t) 2 P)
-    (c : ℝ) (hc : 0 ≤ c)
+    (c : ℝ) (_hc : 0 ≤ c)
     (hvar : ∀ t, (∫ ω, M t ω ^ 2 ∂P) = (t : ℝ) * c)
     (hrem : Tendsto (fun t : ℝ≥0 => (t : ℝ)⁻¹ *
       ∫ ω, (A t ω - M t ω) ^ 2 ∂P) atTop (𝓝 0)) :

@@ -15,6 +15,7 @@ variable {S : Type*} [TopologicalSpace S] [MeasurableSpace S] [BorelSpace S]
 variable {d : ℕ} {P : Measure C(ℝ, S)}
 variable {X : ℝ → ℝ → C(ℝ, S) → Vec d} {Y : C(ℝ, S) → Path d}
 
+omit [BorelSpace S] in
 /-- A sublinear fixed-time mean-square remainder vanishes under diffusive scaling. -/
 theorem tendsto_scaled_martingale_remainder_sq
     (hX : Draft.IsDFGWTrajectoryFamily P X Y) (N : ℝ≥0 → C(ℝ, S) → Vec d)
