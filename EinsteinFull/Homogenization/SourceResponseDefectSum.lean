@@ -23,11 +23,15 @@ theorem expected_sourceResponseJ_sub_le_sum_tau
     (P : Measure (Coefficient d K)) [IsProbabilityMeasure P]
     (m n k : ℕ) (hmn : m ≤ n) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d)
     (hp : vecNormSq p < 1) (hq : vecNormSq q < 1) :
+    (∀ r : ℕ, Integrable (fun a => Book.Ch02.responseJ
+      (Book.Ch02.cubeDomain (originCube d (r : ℤ)))
+      (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (r : ℤ))) k hk) p q) P) ∧
     (∫ a, Book.Ch02.responseJ (Book.Ch02.cubeDomain (originCube d (m : ℤ)))
       (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (m : ℤ))) k hk) p q ∂P) -
     (∫ a, Book.Ch02.responseJ (Book.Ch02.cubeDomain (originCube d (n : ℤ)))
       (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (n : ℤ))) k hk) p q ∂P) ≤
       ∑ j ∈ Finset.Ico m n, sourceResponseTau P j k hk := by
+  refine ⟨fun r => integrable_sourceResponseJ hK P r k hk p q, ?_⟩
   let f : ℕ → ℝ := fun j => ∫ a, Book.Ch02.responseJ
     (Book.Ch02.cubeDomain (originCube d (j : ℤ)))
     (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (j : ℤ))) k hk) p q ∂P

@@ -25,6 +25,12 @@ theorem sq_integral_sourceGradient_sub_le_sum_tau
     (hstat : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
     (m n k : ℕ) (hmn : m ≤ n) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d)
     (hp : vecNormSq p < 1) (hq : vecNormSq q < 1) (i : Fin d) :
+    (∀ r : ℕ, Integrable (fun a => Book.Ch02.averageGradient
+      (Book.Ch02.cubeDomain (originCube d (r : ℤ)))
+      (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (r : ℤ))) k hk)
+      (Book.Ch02.canonicalMaximizer
+        (Book.Ch02.responseExistenceTheory (Book.Ch02.cubeDomain (originCube d (r : ℤ)))
+          (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (r : ℤ))) k hk)) p q).toSolution i) P) ∧
     ((∫ a, Book.Ch02.averageGradient (Book.Ch02.cubeDomain (originCube d (n : ℤ)))
       (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (n : ℤ))) k hk)
       (Book.Ch02.canonicalMaximizer
@@ -37,6 +43,8 @@ theorem sq_integral_sourceGradient_sub_le_sum_tau
           (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (m : ℤ))) k hk)) p q).toSolution i ∂P)) ^ 2 ≤
     (4 * d) * ∑ j ∈ Finset.Ico m n, sourceResponseTau P j k hk := by
   classical
+  refine ⟨fun r => (memLp_sourceResponseAverageGradient_cube P
+    (originCube d (r : ℤ)) k hk p q i 2).integrable (by norm_num), ?_⟩
   let Q := originCube d (n : ℤ)
   let j := n - m
   have hscale : Q.scale = (m : ℤ) + j := by
@@ -58,6 +66,7 @@ theorem sq_integral_sourceGradient_sub_le_sum_tau
     simpa only [Y, descendantsAverage, Finset.sum_apply,
       sourceCanonicalGradientAverage_self_eq (k := k) (hk := hk)] using hc
   have h := sq_integral_sourceGradientMismatch_le hK P hstat Q j m hscale k hk p q i
+  have h := h.2.2.2
   change (∫ a, (X a - Y a) ∂P) ^ 2 ≤ _ at h
   rw [integral_sub hX hY, integral_descendantsAverage_sourceGradient_eq_origin P hstat Q j m
     hscale k hk p q i] at h
@@ -71,6 +80,6 @@ theorem sq_integral_sourceGradient_sub_le_sum_tau
       (∫ a, Book.Ch02.responseJ (Book.Ch02.cubeDomain (originCube d (n : ℤ)))
         (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d (n : ℤ))) k hk) p q ∂P)) := by
           simpa only [Q] using h
-    _ ≤ _ := mul_le_mul_of_nonneg_left ht hc
+    _ ≤ _ := mul_le_mul_of_nonneg_left ht.2 hc
 
 end EinsteinFull.Homogenization

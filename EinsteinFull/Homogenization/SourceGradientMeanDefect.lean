@@ -26,6 +26,14 @@ theorem sq_integral_sourceGradientMismatch_le
     (hstat : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
     (Q : TriadicCube d) (j n : ℕ) (hscale : Q.scale = (n : ℤ) + j)
     (k : ℕ) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d) (i : Fin d) :
+    Integrable (fun a => Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q Q p q
+      (regularCoefficient a).toFun i - descendantsAverage Q j (fun R =>
+      Book.Ch04.canonicalScalarResponseGradientAverageCubeSet R R p q
+        (regularCoefficient a).toFun i)) P ∧
+    Integrable (fun a => Book.Ch02.responseJ (Book.Ch02.cubeDomain (originCube d n))
+      (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d n)) k hk) p q) P ∧
+    Integrable (fun a => Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
+      (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) p q) P ∧
     (∫ a, (Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q Q p q
         (regularCoefficient a).toFun i -
       descendantsAverage Q j (fun R =>
@@ -52,6 +60,8 @@ theorem sq_integral_sourceGradientMismatch_le
     simpa only [Y, descendantsAverage, Finset.sum_apply,
       sourceCanonicalGradientAverage_self_eq (k := k) (hk := hk)] using hc
   have hZ : MemLp Z 2 P := hX.sub hY
+  refine ⟨(hX.sub hY).integrable (by norm_num), integrable_sourceResponseJ hK P n k hk p q,
+    integrable_sourceResponseJ_cube hK P Q k hk p q, ?_⟩
   let G := fun a : Coefficient d K => descendantsAverage Q j (fun R =>
     vecNormSq (Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q R p q
         (regularCoefficient a).toFun -
