@@ -121,7 +121,7 @@ theorem abs_sub_le_of_dyadic_blocks {z : ℝ≥0 → ℝ} (hz : Continuous z) (a
         rw [abs_sub_comm (z t)]
         exact abs_sub_le _ _ _
       _ ≤ 3 * ρ := by linarith
-  · push_neg at hcase
+  · rw [not_le] at hcase
     have hj1lt : j + 1 < 2 ^ a := by
       have ht1 : (t : ℝ) ≤ 1 := by exact_mod_cast ht
       have : ((j : ℝ) + 1) < 2 ^ a := by
