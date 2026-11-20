@@ -32,6 +32,26 @@ theorem slabBoundaryProfile_apply {d : ℕ} {U : Set (PDE.Vec d)}
     slabBoundaryProfile hU i L x = min (max (x i + L) 0) 1 := by
   simp [slabBoundaryProfile, slabAffine]
 
+/-- The comparison profile takes values in the unit interval. -/
+theorem slabBoundaryProfile_mem_Icc {d : ℕ} {U : Set (PDE.Vec d)}
+    (hU : PDE.IsOpenBoundedConvexDomain U) (i : Fin d) (L : ℝ) (x : PDE.Vec d) :
+    slabBoundaryProfile hU i L x ∈ Icc (0 : ℝ) 1 := by
+  rw [slabBoundaryProfile_apply]
+  exact ⟨le_min (le_max_right _ _) zero_le_one, min_le_right _ _⟩
+
+/-- The profile vanishes on and before the lower slab face. -/
+theorem slabBoundaryProfile_eq_zero {d : ℕ} {U : Set (PDE.Vec d)}
+    (hU : PDE.IsOpenBoundedConvexDomain U) (i : Fin d) (L : ℝ) (x : PDE.Vec d)
+    (hx : x i ≤ -L) : slabBoundaryProfile hU i L x = 0 := by
+  rw [slabBoundaryProfile_apply, max_eq_right (by linarith), min_eq_left (by norm_num)]
+
+/-- The profile is one beyond the transition strip. -/
+theorem slabBoundaryProfile_eq_one {d : ℕ} {U : Set (PDE.Vec d)}
+    (hU : PDE.IsOpenBoundedConvexDomain U) (i : Fin d) (L : ℝ) (x : PDE.Vec d)
+    (hx : -L + 1 ≤ x i) : slabBoundaryProfile hU i L x = 1 := by
+  rw [slabBoundaryProfile_apply, min_eq_right]
+  exact le_trans (by linarith : (1 : ℝ) ≤ x i + L) (le_max_left _ _)
+
 /-- The profile gradient is supported precisely in its open transition strip. -/
 theorem slabBoundaryProfile_grad {d : ℕ} {U : Set (PDE.Vec d)}
     (hU : PDE.IsOpenBoundedConvexDomain U) (i : Fin d) (L : ℝ) :
