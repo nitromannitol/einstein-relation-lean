@@ -1,5 +1,6 @@
 import PDEFoundation.Monotonicity.Core.RellichSphere
 import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
 # Lower energy bounds from coordinate slices
@@ -66,5 +67,20 @@ theorem slab_coercive_energy_lower_of_slice_integrals {Z : Type*} [MeasurableSpa
   have h1 := mul_le_mul_of_nonneg_left hslice hlam
   have h2 := mul_le_mul_of_nonneg_left henergy hL
   nlinarith
+
+/-- An `L²` coordinate derivative supplies the integrability in the coercive slice bound. -/
+theorem slab_coercive_energy_lower_of_L2_slices {Z : Type*} [MeasurableSpace Z]
+    (ν : Measure Z) [IsFiniteMeasure ν] (L c lam : ℝ)
+    (hL : 0 ≤ L) (hc : 0 ≤ c) (hlam : 0 ≤ lam)
+    (g ρ : ℝ × Z → ℝ)
+    (hg : MemLp g 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hρ : Integrable ρ ((volume.restrict (Ioc 0 L)).prod ν))
+    (hbound : ∀ᵐ z ∂ν, c ≤ |∫ t in Ioc 0 L, g (t, z)|)
+    (hcoercive : ∀ᵐ p ∂((volume.restrict (Ioc 0 L)).prod ν), lam * g p ^ 2 ≤ ρ p) :
+    lam * (c ^ 2 * ν.real univ) ≤ L * ∫ p, ρ p ∂((volume.restrict (Ioc 0 L)).prod ν) := by
+  let : IsFiniteMeasure (volume.restrict (Ioc 0 L) : Measure ℝ) := by infer_instance
+  let : IsFiniteMeasure ((volume.restrict (Ioc 0 L)).prod ν) := by infer_instance
+  exact slab_coercive_energy_lower_of_slice_integrals ν L c lam hL hc hlam g ρ
+    (hg.integrable (by norm_num)) hg.integrable_sq hρ hbound hcoercive
 
 end EinsteinFull.Regeneration
