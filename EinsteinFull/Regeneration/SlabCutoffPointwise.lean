@@ -86,4 +86,65 @@ theorem slab_cutoff_pointwise_energy_le {n : ℕ} {U : Set (PDE.Vec (n + 1))}
   rw [slabCutoff_competitor_grad, matrixEnergy_smul_matrix]
   exact mul_le_mul_of_nonneg_left hscalar (Real.exp_pos _).le
 
+
+/-- At any point where a cutoff reaches one, its gradient vanishes. -/
+theorem cutoff_gradient_eq_zero_of_eq_one {d : ℕ} {inner outer : Set (PDE.Vec d)}
+    {C : ℝ} (η : PDE.QuantitativeSmoothCutoff inner outer C)
+    (x : PDE.Vec d) (hx : η x = 1) : PDE.classicalGradient η.toFun x = 0 := by
+  have hmax : IsMaxOn η.toFun Set.univ x := by
+    intro y _
+    rw [hx]
+    exact η.le_one y
+  have hfderiv : fderiv ℝ η.toFun x = 0 :=
+    (hmax.isLocalMax (by simp)).fderiv_eq_zero
+  funext j
+  rw [PDE.classicalGradient_apply, hfderiv]
+  exact zero_apply _
+
+/-- Where the cutoff is one, the actual competitor has the profile gradient. -/
+theorem slabCutoff_competitor_grad_of_eq_one
+    {n : ℕ} {U inner outer : Set (PDE.Vec (n + 1))} {C : ℝ}
+    (hU : PDE.IsOpenBoundedConvexDomain U) (u : PDE.H1Function U)
+    (i : Fin (n + 1)) (L : ℝ) (η : PDE.QuantitativeSmoothCutoff inner outer C)
+    (x : PDE.Vec (n + 1)) (hx : η x = 1) :
+    u.grad x + (slabCutoffPerturbation hU u i L η).grad x =
+      (slabBoundaryProfile hU i L).grad x := by
+  rw [slabCutoff_competitor_grad, hx, cutoff_gradient_eq_zero_of_eq_one η x hx]
+  simp
+
+/-- The mixed cutoff error can be absorbed into squared-value and gradient errors. -/
+theorem slab_cutoff_pointwise_energy_le_squared {n : ℕ} {U : Set (PDE.Vec (n + 1))}
+    (hU : PDE.IsOpenBoundedConvexDomain U) (u : PDE.H1Function U)
+    (i : Fin (n + 1)) (L s : ℝ) (a b : PDE.Vec (n + 1))
+    (w : ℝ) (hw : 0 < w) (x : PDE.Vec (n + 1)) (hx : x ∈ PDE.axisBox a b)
+    (A : PDE.Mat (n + 1)) (lam Λ : ℝ) (hA : PDE.IsEllipticMatrix lam Λ A)
+    (hsym : A.IsSymm) :
+    matrixEnergy (Real.exp (s * x i) • A)
+      (u.grad x + (slabCutoffPerturbation hU u i L (slabTransverseCutoff i a b w hw)).grad x) ≤
+      Real.exp (s * x i) *
+        (matrixEnergy A ((slabBoundaryProfile hU i L).grad x) + matrixEnergy A (u.grad x) +
+          Λ * (((32 * (n + 1 : ℝ)) / w) ^ 2 + ((32 * (n + 1 : ℝ)) / w)) *
+            (slabBoundaryProfile hU i L x - u x) ^ 2 +
+          2 * Λ * ((32 * (n + 1 : ℝ)) / w) *
+            (PDE.vecNormSq ((slabBoundaryProfile hU i L).grad x) + PDE.vecNormSq (u.grad x))) := by
+  let K : ℝ := (32 * (n + 1 : ℝ)) / w
+  let v := (slabBoundaryProfile hU i L).grad x
+  let g := u.grad x
+  let D := slabBoundaryProfile hU i L x - u x
+  have hK : 0 ≤ K := by dsimp [K]; positivity
+  have hmix : 2 * |D| * (PDE.vecEuclideanNorm v + PDE.vecEuclideanNorm g) ≤
+      D ^ 2 + 2 * (PDE.vecNormSq v + PDE.vecNormSq g) := by
+    have h1 := sq_nonneg (|D| - (PDE.vecEuclideanNorm v + PDE.vecEuclideanNorm g))
+    have h2 := sq_nonneg (PDE.vecEuclideanNorm v - PDE.vecEuclideanNorm g)
+    have hv := PDE.vecEuclideanNorm_sq v
+    have hg := PDE.vecEuclideanNorm_sq g
+    nlinarith [sq_abs D]
+  have hscaled := mul_le_mul_of_nonneg_left hmix (mul_nonneg hA.Lam_pos.le hK)
+  have hbase := slab_cutoff_pointwise_energy_le hU u i L s a b w hw x hx A lam Λ hA hsym
+  have hpoint : matrixEnergy A v + matrixEnergy A g + Λ * K ^ 2 * D ^ 2 +
+      2 * Λ * K * |D| * (PDE.vecEuclideanNorm v + PDE.vecEuclideanNorm g) ≤
+      matrixEnergy A v + matrixEnergy A g + Λ * (K ^ 2 + K) * D ^ 2 +
+        2 * Λ * K * (PDE.vecNormSq v + PDE.vecNormSq g) := by nlinarith [hscaled]
+  exact hbase.trans (mul_le_mul_of_nonneg_left hpoint (Real.exp_pos _).le)
+
 end EinsteinFull.Regeneration
