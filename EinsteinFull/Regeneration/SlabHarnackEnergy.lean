@@ -107,6 +107,53 @@ theorem central_comparison_ball_subset_slab_box (n : ℕ) (i : Fin (n + 1))
       change y (i.succAbove j) ≤ Real.exp (s * L / (n + 1))
       linarith
 
+/-- Every fixed positive force eventually makes both slab sides large enough. -/
+theorem exists_large_slab_sides (n : ℕ) (s : ℝ) (hs : 0 < s) :
+    ∃ L₀ : ℝ, 0 < L₀ ∧ ∀ L ≥ L₀,
+      Real.sqrt (8 * ((n + 1 : ℕ) : ℝ)) + 1 ≤ L ∧
+      Real.sqrt (8 * ((n + 1 : ℕ) : ℝ)) + 1 ≤
+        Real.exp (s * L / (n + 1)) := by
+  let R := Real.sqrt (8 * ((n + 1 : ℕ) : ℝ))
+  let d : ℝ := n + 1
+  have hd : 0 < d := by dsimp [d]; positivity
+  have hR : 0 ≤ R := Real.sqrt_nonneg _
+  refine ⟨max (R + 1) ((R + 1) * d / s), ?_, ?_⟩
+  · exact (by positivity : 0 < R + 1) |>.trans_le (le_max_left _ _)
+  · intro L hL
+    have hL1 : R + 1 ≤ L := (le_max_left _ _).trans hL
+    have hL2 : (R + 1) * d / s ≤ L := (le_max_right _ _).trans hL
+    have hmul : (R + 1) * d ≤ L * s := (div_le_iff₀ hs).1 hL2
+    have hr : R + 1 ≤ s * L / d := by
+      apply (le_div_iff₀ hd).2
+      nlinarith
+    have hexp := Real.add_one_le_exp (s * L / d)
+    constructor
+    · exact hL1
+    · change R + 1 ≤ Real.exp (s * L / d)
+      linarith
+
+/-- The central half-slab lies in the source slab box when the transverse side is at least one. -/
+theorem coordinateCentralSlab_subset_slabBox (n : ℕ) (i : Fin (n + 1)) (s L : ℝ)
+    (hL : 0 ≤ L) (hT : 1 ≤ Real.exp (s * L / (n + 1))) :
+    coordinateCentralSlab n i L ⊆ coordinateSlabBox n i s L := by
+  intro x hx
+  change (MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) i x) ∈
+    Ioc 0 L ×ˢ Icc (fun _ => (-1 : ℝ)) (fun _ => 1) at hx
+  change (MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) i x) ∈
+    Icc (-L) L ×ˢ Icc (fun _ => -Real.exp (s * L / (n + 1)))
+      (fun _ => Real.exp (s * L / (n + 1)))
+  refine ⟨⟨?_, hx.1.2⟩, ?_⟩
+  · linarith [hx.1.1]
+  · constructor
+    · intro j
+      have h := hx.2.1 j
+      dsimp only at h ⊢
+      linarith
+    · intro j
+      have h := hx.2.2 j
+      dsimp only at h ⊢
+      linarith
+
 /-- Harnack supplies a uniform central gap for the physical central-slab energy bound. -/
 theorem exists_central_slab_energy_lower_of_harnack
     (n : ℕ) (lam Λ s : ℝ) (hlam : 0 < lam) (hΛ : lam ≤ Λ) (hs : 0 < s) :
