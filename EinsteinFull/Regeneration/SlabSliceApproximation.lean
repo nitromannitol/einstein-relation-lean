@@ -1,5 +1,6 @@
 import EinsteinFull.Regeneration.SlabSliceEnergy
 import PDEFoundation.Measure.CommonSquareRadius
+import PDEFoundation.Sobolev.Trace.VectorErrorLimit
 
 /-!
 # Square-integrable errors on slab slices
@@ -54,5 +55,31 @@ theorem ae_tendsto_slab_slice_sq_of_summable_dyadic {Z : Type*} [MeasurableSpace
           (integral_nonneg fun _ => sq_nonneg _)
   filter_upwards [ae_tendsto_slab_slice_sq_of_summable ν L f hf hs] with z hz
   simpa only [integral_Icc_eq_integral_Ioc] using hz
+
+/-- A continuous representative has the exact increment of its smooth `L²` approximants. -/
+theorem continuous_increment_of_smooth_vector_errors
+    {d : ℕ} {i : Fin d} {a b : ℝ} (hab : a < b)
+    {F : ℕ → ℝ → ℝ} {u g : ℝ → ℝ} {E : ℕ → ℝ → PDE.Vec d}
+    (hF : ∀ n, ContDiff ℝ 1 (F n)) (hcont : ContinuousOn u (Icc a b))
+    (hu : MemLp u 2 (volume.restrict (Icc a b)))
+    (hg : MemLp g 2 (volume.restrict (Icc a b)))
+    (hValueError : ∀ n, MemLp (fun t => F n t - u t) 2 (volume.restrict (Icc a b)))
+    (hVectorError : ∀ n, MemLp (fun t => PDE.vecEuclideanNorm (E n t)) 2
+      (volume.restrict (Icc a b)))
+    (hValue : Tendsto (fun n => ∫ t in Icc a b, |F n t - u t| ^ 2) atTop (𝓝 0))
+    (hVector : Tendsto (fun n => ∫ t in Icc a b, PDE.vecEuclideanNorm (E n t) ^ 2)
+      atTop (𝓝 0))
+    (hDerivativeError : ∀ n t, deriv (F n) t - g t = E n t i) :
+    u b - u a = ∫ t in a..b, g t := by
+  obtain ⟨_, hlimcont, hlim, hweak⟩ :=
+    PDE.uniformCauchySeqLimit_hasWeakDerivOnIoo_of_tendsto_setIntegral_sq_vector_error
+      hab hF hu hg hValueError hVectorError hValue hVector hDerivativeError
+  have heq := Measure.eqOn_Icc_of_ae_eq volume hab.ne hlim hlimcont hcont
+  have hlimLp : MemLp (PDE.uniformCauchySeqLimit F) 2 (volume.restrict (Ioo a b)) := by
+    rw [Measure.restrict_congr_set Ioo_ae_eq_Icc]
+    exact hu.ae_eq hlim.symm
+  have hinc := PDE.ContinuousOn.increment_eq_intervalIntegral_of_hasWeakDerivOnIoo
+    hab hlimcont hlimLp hg hweak (s := a) (t := b) (by simp [hab.le]) (by simp [hab.le])
+  simpa only [heq (right_mem_Icc.mpr hab.le), heq (left_mem_Icc.mpr hab.le)] using hinc
 
 end EinsteinFull.Regeneration
