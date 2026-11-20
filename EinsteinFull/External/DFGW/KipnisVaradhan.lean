@@ -15,17 +15,19 @@ namespace EinsteinFull.External.DFGW
 variable {S : Type*} [TopologicalSpace S] [MeasurableSpace S] [BorelSpace S]
 variable {P : Measure C(ℝ, S)} {μ : Measure S} {T : ℝ≥0 → Kernel S S}
 
-/-- A stationary integrated `L²` observable with integrable autocorrelation has a
-stationary-increment martingale approximation with a sublinear mean-square remainder. -/
-theorem exists_martingale_approximation (hP : Draft.IsDFGWTrajectoryProcess P μ T)
+/-- Any fixed-time `L²` limit of the resolvent martingales, represented by a martingale, is
+square integrable, has stationary increments and the limiting variance, and approximates the
+integrated observable with a sublinear mean-square remainder. -/
+theorem resolvent_limit_martingale_properties (hP : Draft.IsDFGWTrajectoryProcess P μ T)
     (hcoord : Draft.dfgwCoordSigma (S := S) Set.univ =
       Draft.dfgwTrajectoryMeasurableSpace (S := S))
     (f : Lp ℝ 2 μ)
     (hint : IntegrableOn (fun t : ℝ => inner ℝ f (transitionOperator hP t.toNNReal f))
-      (Set.Ioi 0)) :
-    ∃ M : ℝ≥0 → C(ℝ, S) → ℝ,
-      Martingale M Draft.dfgwPast P ∧
-      (∀ t, MemLp (M t) 2 P) ∧
+      (Set.Ioi 0)) (Z : ℝ≥0 → Lp ℝ 2 P) (M : ℝ≥0 → C(ℝ, S) → ℝ)
+    (hZ : ∀ t, Tendsto (fun n : ℕ => dynkinIncrementLp hP
+      (transitionResolventDomain hP (reciprocalShift n) f) t) atTop (𝓝 (Z t)))
+    (hrep : ∀ t, M t =ᵐ[P] Z t) :
+    (∀ t, MemLp (M t) 2 P) ∧
       (∀ s t, (fun η => M (s + t) η - M s η) =ᵐ[P]
         fun η => M t (Draft.dfgwShift s η)) ∧
       (∀ t, (∫ η, (M t η) ^ 2 ∂P) = (t : ℝ) * (2 *
@@ -33,7 +35,6 @@ theorem exists_martingale_approximation (hP : Draft.IsDFGWTrajectoryProcess P μ
       Tendsto (fun t : ℝ≥0 => (t : ℝ)⁻¹ *
         ∫ η, ((∫ u in (0 : ℝ)..t, f (η u)) - M t η) ^ 2 ∂P) atTop (𝓝 0) := by
   let : IsProbabilityMeasure P := hP.probability
-  obtain ⟨Z, M, hZ, hrep, hM⟩ := exists_martingale_resolvent_limit hP hcoord f hint
   have hMLp (t : ℝ≥0) : MemLp (M t) 2 P := (memLp_congr_ae (hrep t)).2 (Lp.memLp (Z t))
   have hnorm (t : ℝ≥0) : (∫ η, (M t η) ^ 2 ∂P) = ‖Z t‖ ^ 2 := by
     rw [← real_inner_self_eq_norm_sq, L2.inner_def]
@@ -67,9 +68,29 @@ theorem exists_martingale_approximation (hP : Draft.IsDFGWTrajectoryProcess P μ
     simp only [Pi.sub_apply] at hsη
     rw [hsη, htη, ← hmη]
     simp only [RCLike.inner_apply, starRingEnd_apply, star_trivial, pow_two]
-  refine ⟨M, hM, hMLp, hstationary, ?_, ?_⟩
+  refine ⟨hMLp, hstationary, ?_, ?_⟩
   · intro t
     rw [hnorm, norm_resolvent_martingale_limit_sq hP hcoord f hint Z hZ t]
   · simpa only [hrem] using tendsto_resolvent_remainder_atTop hP hcoord f hint Z hZ
+
+/-- A stationary integrated `L²` observable with integrable autocorrelation has a
+stationary-increment martingale approximation with a sublinear mean-square remainder. -/
+theorem exists_martingale_approximation (hP : Draft.IsDFGWTrajectoryProcess P μ T)
+    (hcoord : Draft.dfgwCoordSigma (S := S) Set.univ =
+      Draft.dfgwTrajectoryMeasurableSpace (S := S))
+    (f : Lp ℝ 2 μ)
+    (hint : IntegrableOn (fun t : ℝ => inner ℝ f (transitionOperator hP t.toNNReal f))
+      (Set.Ioi 0)) :
+    ∃ M : ℝ≥0 → C(ℝ, S) → ℝ,
+      Martingale M Draft.dfgwPast P ∧
+      (∀ t, MemLp (M t) 2 P) ∧
+      (∀ s t, (fun η => M (s + t) η - M s η) =ᵐ[P]
+        fun η => M t (Draft.dfgwShift s η)) ∧
+      (∀ t, (∫ η, (M t η) ^ 2 ∂P) = (t : ℝ) * (2 *
+        ∫ u in Set.Ioi (0 : ℝ), inner ℝ f (transitionOperator hP u.toNNReal f))) ∧
+      Tendsto (fun t : ℝ≥0 => (t : ℝ)⁻¹ *
+        ∫ η, ((∫ u in (0 : ℝ)..t, f (η u)) - M t η) ^ 2 ∂P) atTop (𝓝 0) := by
+  obtain ⟨Z, M, hZ, hrep, hM⟩ := exists_martingale_resolvent_limit hP hcoord f hint
+  exact ⟨M, hM, resolvent_limit_martingale_properties hP hcoord f hint Z M hZ hrep⟩
 
 end EinsteinFull.External.DFGW
