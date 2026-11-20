@@ -24,6 +24,22 @@ noncomputable def gmpBoundedSlabPayoff
   ∫ γ, slabSmoothPayoff i c R (γ ((MarkovProcess.ContinuousPath.exitTimeTop
     (coordinateSlab i c R ∩ Metric.ball y N) γ).untopD 0)) ∂G.pathLaw z
 
+/-- The bounded-slab payoff is measurable in the starting point. -/
+theorem measurable_gmpBoundedSlabPayoff
+    {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
+    {ω : FieldPair d} {hω : IsRegular L ω} {lam : ℝ} {h₀ : 0 ≤ lam} {h₁ : lam ≤ 1}
+    (G : GantertFixedEnvironmentRealization hd L hL ω hω lam h₀ h₁)
+    (i : Fin d) (c : Vec d) (R : ℝ) (y : Vec d) (N : ℝ) :
+    Measurable (gmpBoundedSlabPayoff G i c R y N) := by
+  let : IsMarkovKernel G.pathLaw := G.pathLaw_isMarkovKernel
+  have hF : Measurable (fun γ : Path d => slabSmoothPayoff i c R
+      (γ ((MarkovProcess.ContinuousPath.exitTimeTop
+        (coordinateSlab i c R ∩ Metric.ball y N) γ).untopD 0))) :=
+    (slabSmoothPayoff_smooth i c R).continuous.measurable.comp
+      (MarkovProcess.ContinuousPath.measurable_eval_untopD_exitTimeTop _
+        ((isOpen_coordinateSlab i c R).inter Metric.isOpen_ball))
+  exact hF.stronglyMeasurable.integral_kernel.measurable
+
 /-- The bounded-slab payoff lies in the unit interval at every starting point. -/
 theorem gmpBoundedSlabPayoff_mem_Icc
     {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
