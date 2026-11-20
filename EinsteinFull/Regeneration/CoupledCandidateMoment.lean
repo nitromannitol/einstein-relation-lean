@@ -229,4 +229,160 @@ theorem roundHistoryWeight_succ_le {d : ℕ} (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam 
         mul_assoc]
       gcongr
 
+
+/-- The round time and the history weight after `N` rounds are decided by the observed
+history at the round time, when the start, the weight and the level of the search are
+decided by the history at the start. -/
+theorem roundTime_historyDecided {d : ℕ} (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R b : ℝ)
+    (hlam : 0 < lam) (hR : 0 < R) (i : Fin d)
+    (T₀ : CoupledSample d → ℝ≥0∞)
+    (hgrid₀ : ∀ z, T₀ z ≠ ⊤ → ∃ m : ℕ, T₀ z = (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞))
+    (W₀ : CoupledSample d → ℝ≥0∞) (L₀ : CoupledSample d → ℝ)
+    (hdec₀ : HistoryDecided Δ T₀ (fun z => (W₀ z, L₀ z))) (N : ℕ) {α : Type*} (c : α) :
+    HistoryDecided Δ (roundTime Δ lam R i T₀ L₀ N)
+      (fun z => (roundHistoryWeight Δ lam R b i T₀ W₀ L₀ N z, c)) := by
+  intro m z z' hag hT
+  have hT₀ : T₀ z ≠ ⊤ := by
+    intro htop
+    simp only [roundTime, ite_eq_left htop] at hT
+    exact ENNReal.coe_ne_top hT.symm
+  obtain ⟨k, hk⟩ := hgrid₀ z hT₀
+  set w := sampleTimeShift Δ z (T₀ z).toNNReal with hw
+  have hwk : w = sampleTimeShift Δ z ((k : ℝ≥0) * Δ) := by rw [hw, hk, ENNReal.toNNReal_coe]
+  have hRT : roundTime Δ lam R i T₀ L₀ N z = T₀ z + roundedCandidateSequence Δ lam R (L₀ z) w i N := by
+    simp only [roundTime, ite_eq_right hT₀, hw]
+  have hCfin : roundedCandidateSequence Δ lam R (L₀ z) w i N ≠ ⊤ := by
+    intro htop
+    rw [hRT, htop, add_top] at hT
+    exact ENNReal.coe_ne_top hT.symm
+  obtain ⟨j, hj⟩ := roundedCandidateSequence_mem_grid Δ hΔ lam R (L₀ z) w i N hCfin
+  have hmkj : m = k + j := by
+    have h : (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) = ((((k + j : ℕ) : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := by
+      rw [← hT, hRT, hk, hj, ← ENNReal.coe_add]
+      push_cast
+      ring_nf
+    exact grid_index_unique Δ hΔ h
+  have hkm : k ≤ m := by omega
+  obtain ⟨hT₀', hWL⟩ := hdec₀ k z z' (hag.mono hkm) hk
+  simp only [Prod.mk.injEq] at hWL
+  obtain ⟨hW, hL⟩ := hWL
+  have hagw : HistoryAgree Δ j w (sampleTimeShift Δ z' ((k : ℝ≥0) * Δ)) := by
+    have h := hag.shift hΔ hkm
+    rw [show m - k = j by omega] at h
+    rw [hwk]
+    exact h
+  have hwk' : sampleTimeShift Δ z' (T₀ z').toNNReal = sampleTimeShift Δ z' ((k : ℝ≥0) * Δ) := by
+    rw [hT₀', hk, ENNReal.toNNReal_coe]
+  obtain ⟨hCeq, hFeq⟩ := failedRoundWeight_congr Δ hΔ lam R (L₀ z) b hlam hR i N j w _ hagw
+    (le_of_eq hj)
+  have hRT' : roundTime Δ lam R i T₀ L₀ N z' = roundTime Δ lam R i T₀ L₀ N z := by
+    have hT₀'ne : T₀ z' ≠ ⊤ := hT₀' ▸ hT₀
+    rw [hRT]
+    simp only [roundTime, ite_eq_right hT₀'ne]
+    rw [hwk', hL, hCeq, hT₀']
+  refine ⟨hRT', ?_⟩
+  simp only [Prod.mk.injEq, and_true]
+  have hT₀'ne : T₀ z' ≠ ⊤ := hT₀' ▸ hT₀
+  simp only [roundHistoryWeight]
+  rw [Set.indicator_of_mem (show z' ∈ {z : CoupledSample d | T₀ z ≠ ⊤} from hT₀'ne),
+    Set.indicator_of_mem (show z ∈ {z : CoupledSample d | T₀ z ≠ ⊤} from hT₀), hW, hL, hwk', hFeq]
+
+/-- The history weights of the failed rounds decay geometrically. -/
+theorem lintegral_roundHistoryWeight_le {d : ℕ} (hd : 2 ≤ d)
+    {Λ₀ r₀ : ℝ} (Q : EnvironmentLaw d Λ₀ r₀) (lam : ℝ)
+    (h0 : 0 < lam) (h1 : lam ≤ 1) (l δ : ℝ) (hl : 0 < l)
+    (hsep : r₀ < 2 * l) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
+    (hK : IsRegenerationCoupling hd Q lam l δ h0.le h1 P K)
+    (R b D ρ : ℝ) (hR : 0 < R) (i : Fin d)
+    (h1st : ∀ᵐ q ∂annealedCoupledLaw Q.measure K, ∀ (m : ℕ) (L : ℝ), 0 ≤ L →
+      ∫⁻ w, failedRoundWeight (Renewal.regenDelta lam) lam R L b i 0 w
+        ∂K (q.2.1 ((m : ℝ≥0) * Renewal.regenDelta lam), q.1) ≤ ENNReal.ofReal D)
+    (hcoin : ∀ᵐ q ∂annealedCoupledLaw Q.measure K, ∀ m : ℕ,
+      ∫⁻ v, failedCoinWeight (Renewal.regenDelta lam) lam R b i v
+        ∂K (q.2.1 ((m : ℝ≥0) * Renewal.regenDelta lam), q.1) ≤ ENNReal.ofReal ρ)
+    (T₀ : CoupledSample d → ℝ≥0∞) (hT₀ : Measurable T₀)
+    (hgrid₀ : ∀ z, T₀ z ≠ ⊤ → ∃ m : ℕ,
+      T₀ z = (((m : ℝ≥0) * Renewal.regenDelta lam : ℝ≥0) : ℝ≥0∞))
+    (W₀ : CoupledSample d → ℝ≥0∞) (hW₀ : Measurable W₀)
+    (L₀ : CoupledSample d → ℝ) (hL₀m : Measurable L₀) (hL₀ : ∀ z, 0 ≤ L₀ z)
+    (hdec₀ : HistoryDecided (Renewal.regenDelta lam) T₀ (fun z => (W₀ z, L₀ z))) (N : ℕ) :
+    ∫⁻ q, roundHistoryWeight (Renewal.regenDelta lam) lam R b i T₀ W₀ L₀ N q.2
+        ∂annealedCoupledLaw Q.measure K ≤
+      ENNReal.ofReal ρ ^ N * ENNReal.ofReal D *
+        ∫⁻ q, {q : FieldPair d × CoupledSample d | T₀ q.2 ≠ ⊤}.indicator (fun q => W₀ q.2) q
+          ∂annealedCoupledLaw Q.measure K := by
+  let Δ := Renewal.regenDelta lam
+  have hΔ : 0 < Δ := EinsteinRelation.regenDelta_pos h0
+  induction N with
+  | zero =>
+    have h := lintegral_grid_stopping_le_of_decided hd Q lam h0 h1 l δ hl hsep hδ0 hδ1 P K hK
+      T₀ hT₀ hgrid₀ W₀ hW₀
+      (fun p => failedRoundWeight Δ lam R (L₀ p.1) b i 0 p.2)
+      ((measurable_failedRoundWeight_joint Δ lam R b i 0).comp
+        ((hL₀m.comp measurable_fst).prodMk measurable_snd))
+      (by
+        intro m z z' hag hz
+        obtain ⟨hT, hWL⟩ := hdec₀ m z z' hag hz
+        simp only [Prod.mk.injEq] at hWL
+        refine ⟨hT, ?_⟩
+        simp only [hWL.1, hWL.2])
+      (ENNReal.ofReal D)
+      (by
+        filter_upwards [h1st] with q hq m _
+        exact hq m (L₀ q.2) (hL₀ q.2))
+    simp only [pow_zero, one_mul]
+    exact h
+  | succ N ih =>
+    let TN := roundTime Δ lam R i T₀ L₀ N
+    let WN := roundHistoryWeight Δ lam R b i T₀ W₀ L₀ N
+    have hTN : Measurable TN := measurable_roundTime Δ lam R i T₀ hT₀ L₀ hL₀m N
+    have hWN : Measurable WN := measurable_roundHistoryWeight Δ lam R b i T₀ hT₀ W₀ hW₀ L₀ hL₀m N
+    have hgridN : ∀ z, TN z ≠ ⊤ → ∃ m : ℕ, TN z = (((m : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) := by
+      intro z hz
+      have hT₀z : T₀ z ≠ ⊤ := by
+        intro htop
+        apply hz
+        simp only [TN, roundTime, ite_eq_left htop]
+      obtain ⟨k, hk⟩ := hgrid₀ z hT₀z
+      have hRT : TN z = T₀ z + roundedCandidateSequence Δ lam R (L₀ z)
+          (sampleTimeShift Δ z (T₀ z).toNNReal) i N := by
+        simp only [TN, roundTime, ite_eq_right hT₀z]
+      have hCfin : roundedCandidateSequence Δ lam R (L₀ z)
+          (sampleTimeShift Δ z (T₀ z).toNNReal) i N ≠ ⊤ := by
+        intro htop
+        apply hz
+        rw [hRT, htop, add_top]
+      obtain ⟨j, hj⟩ := roundedCandidateSequence_mem_grid Δ hΔ lam R (L₀ z) _ i N hCfin
+      refine ⟨k + j, ?_⟩
+      rw [hRT, hj, hk, ← ENNReal.coe_add]
+      congr 1
+      push_cast
+      simp only [Δ]
+      ring
+    have hdecN := roundTime_historyDecided Δ hΔ lam R b h0 hR i T₀ hgrid₀ W₀ L₀ hdec₀ N
+      (fun w : CoupledSample d => failedCoinWeight Δ lam R b i w)
+    have hrest := lintegral_grid_stopping_le_of_decided hd Q lam h0 h1 l δ hl hsep hδ0 hδ1 P K hK
+      TN hTN hgridN WN hWN (fun p => failedCoinWeight Δ lam R b i p.2)
+      ((measurable_failedCoinWeight Δ lam R b i).comp measurable_snd) hdecN (ENNReal.ofReal ρ)
+      (by
+        filter_upwards [hcoin] with q hq m _
+        exact hq m)
+    calc ∫⁻ q, roundHistoryWeight Δ lam R b i T₀ W₀ L₀ (N + 1) q.2 ∂annealedCoupledLaw Q.measure K
+        ≤ ∫⁻ q, {q : FieldPair d × CoupledSample d | TN q.2 ≠ ⊤}.indicator
+            (fun q => WN q.2 * failedCoinWeight Δ lam R b i
+              (sampleTimeShift Δ q.2 (TN q.2).toNNReal)) q ∂annealedCoupledLaw Q.measure K := by
+          apply lintegral_mono
+          intro q
+          exact roundHistoryWeight_succ_le Δ hΔ lam R b i T₀ hgrid₀ W₀ L₀ N q.2
+      _ ≤ ENNReal.ofReal ρ * ∫⁻ q, {q : FieldPair d × CoupledSample d | TN q.2 ≠ ⊤}.indicator
+            (fun q => WN q.2) q ∂annealedCoupledLaw Q.measure K := hrest
+      _ ≤ ENNReal.ofReal ρ * ∫⁻ q, WN q.2 ∂annealedCoupledLaw Q.measure K := by
+          gcongr with q
+          exact Set.indicator_le_self _ _ q
+      _ ≤ ENNReal.ofReal ρ * (ENNReal.ofReal ρ ^ N * ENNReal.ofReal D *
+            ∫⁻ q, {q : FieldPair d × CoupledSample d | T₀ q.2 ≠ ⊤}.indicator (fun q => W₀ q.2) q
+              ∂annealedCoupledLaw Q.measure K) := by gcongr
+      _ = _ := by ring
+
 end EinsteinFull.Regeneration
