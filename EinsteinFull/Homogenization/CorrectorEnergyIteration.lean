@@ -816,4 +816,107 @@ theorem exists_energy_bound (d : ℕ) [NeZero d] (K : ℝ) (hK : 1 ≤ K) :
     linarith only [h1, h2, h3]
   exact hiter.trans (hdiv.trans hfin)
 
+theorem amplitude_factor_le {m d q L : ℕ} {γ : ℝ} (hγ : 1 ≤ γ) (hmq : q * m ≤ L)
+    (hq : (3 : ℝ) ^ (6 + d) ≤ γ ^ (2 * q)) :
+    (m + 1 : ℝ) * 9 ^ m * Real.sqrt ((3 : ℝ) ^ (m * d)) ≤ γ ^ L := by
+  have hm1 : (m + 1 : ℝ) ≤ 3 ^ m := by
+    have h := one_add_le_pow_of_two_add_nonneg (show (0 : ℝ) ≤ 2 + 2 by norm_num) m
+    norm_num at h
+    nlinarith
+  have hsq : ((m + 1 : ℝ) * 9 ^ m * Real.sqrt ((3 : ℝ) ^ (m * d))) ^ 2 ≤ (γ ^ L) ^ 2 := by
+    have h1 : ((m + 1 : ℝ) * 9 ^ m * Real.sqrt ((3 : ℝ) ^ (m * d))) ^ 2 =
+        (m + 1 : ℝ) ^ 2 * 81 ^ m * (3 : ℝ) ^ (m * d) := by
+      rw [mul_pow, mul_pow, Real.sq_sqrt (by positivity), ← pow_mul,
+        show (9 : ℝ) ^ (m * 2) = 81 ^ m by rw [mul_comm, pow_mul]; norm_num]
+    have h2 : (m + 1 : ℝ) ^ 2 ≤ 9 ^ m := by
+      calc (m + 1 : ℝ) ^ 2 ≤ (3 ^ m) ^ 2 := pow_le_pow_left₀ (by positivity) hm1 2
+        _ = 9 ^ m := by rw [← pow_mul, mul_comm, pow_mul]; norm_num
+    have h3 : (9 : ℝ) ^ m * 81 ^ m * (3 : ℝ) ^ (m * d) = ((3 : ℝ) ^ (6 + d)) ^ m := by
+      rw [show (9 : ℝ) = 3 ^ 2 by norm_num, show (81 : ℝ) = 3 ^ 4 by norm_num, ← pow_mul,
+        ← pow_mul, ← pow_mul, ← pow_add, ← pow_add]
+      congr 1
+      ring
+    have h4 : ((3 : ℝ) ^ (6 + d)) ^ m ≤ (γ ^ (2 * q)) ^ m :=
+      pow_le_pow_left₀ (by positivity) hq m
+    have h5 : (γ ^ (2 * q)) ^ m ≤ (γ ^ L) ^ 2 := by
+      rw [← pow_mul, ← pow_mul]
+      exact pow_le_pow_right₀ hγ (by nlinarith)
+    calc ((m + 1 : ℝ) * 9 ^ m * Real.sqrt ((3 : ℝ) ^ (m * d))) ^ 2
+        = (m + 1 : ℝ) ^ 2 * 81 ^ m * (3 : ℝ) ^ (m * d) := h1
+      _ ≤ 9 ^ m * 81 ^ m * (3 : ℝ) ^ (m * d) := by gcongr
+      _ = ((3 : ℝ) ^ (6 + d)) ^ m := h3
+      _ ≤ (γ ^ L) ^ 2 := h4.trans h5
+  exact (pow_le_pow_iff_left₀ (by positivity) (by positivity) two_ne_zero).mp hsq
+
+/-- **Oscillation decay.** If the corrector energy is bounded at the scale `3ᴺ` with
+`N = n₀ + L` and the pairing amplitude there decays like `γ^(-2L)`, the oscillation of the
+corrector on the origin cube of side `3ᴺ`, divided by `3ᴺ`, is bounded by `3^(-N)`,
+`3^(-L/q)` and `γ^(-L)` when `3^(6+d) ≤ γ^(2q)`. -/
+theorem exists_oscillation_decay (d : ℕ) [NeZero d] :
+    ∃ C₀ : ℝ, 0 ≤ C₀ ∧ ∀ {K : ℝ} (s : EllipticWholeSpaceSolution d K) (e : Vec d)
+      (cμ Ē D γ : ℝ) (q n₀ L : ℕ), 0 ≤ cμ → 0 ≤ Ē → 0 ≤ D → 1 ≤ γ → 1 ≤ q →
+      (3 : ℝ) ^ (6 + d) ≤ γ ^ (2 * q) →
+      (∀ m ≤ n₀ + L, s.PairingBound e (D * (γ ^ L) ⁻¹ ^ 2) cμ (n₀ + L) m) →
+      cubeAverage (originCube d ((n₀ + L : ℕ) : ℤ))
+        (fun x => vecNormSq (s.correctorGrad e x)) ≤ Ē →
+      cubeBesovOscillation (originCube d ((n₀ + L : ℕ) : ℤ)) 2 (s.corrector e) ≤
+        C₀ * (3 : ℝ) ^ (n₀ + L) * (Real.sqrt Ē * (((3 : ℝ) ^ (n₀ + L))⁻¹ +
+          5 / 4 * ((3 : ℝ) ^ (L / q))⁻¹) + 16 * (1 + cμ) * D * (γ ^ L)⁻¹) := by
+  obtain ⟨C₀, hC₀, hosc⟩ := exists_normalized_oscillation_bound d
+  refine ⟨C₀, hC₀, ?_⟩
+  intro K s e cμ Ē D γ q n₀ L hcμ hĒ hD hγ hq1 hq hpair hE
+  set m := L / q with hm
+  have hmL : m ≤ n₀ + L := (Nat.div_le_self L q).trans (Nat.le_add_left L n₀)
+  have hqm : q * m ≤ L := Nat.mul_div_le L q
+  set τ := ((3 : ℝ) ^ m)⁻¹ ^ 2 / 16 with hτ
+  have h3m : (0 : ℝ) < (3 : ℝ) ^ m := by positivity
+  have hτ0 : 0 < τ := by positivity
+  have hinv1 : ((3 : ℝ) ^ m)⁻¹ ≤ 1 := inv_le_one_of_one_le₀ (one_le_pow₀ (by norm_num))
+  have hτ' : τ ≤ 1 / 4 := by
+    rw [hτ]
+    have : ((3 : ℝ) ^ m)⁻¹ ^ 2 ≤ 1 := pow_le_one₀ (by positivity) hinv1
+    linarith
+  have hsqτ : Real.sqrt τ = ((3 : ℝ) ^ m)⁻¹ / 4 := by
+    rw [hτ, show ((3 : ℝ) ^ m)⁻¹ ^ 2 / 16 = (((3 : ℝ) ^ m)⁻¹ / 4) ^ 2 by ring,
+      Real.sqrt_sq (by positivity)]
+  have hτinv : τ⁻¹ = 16 * 9 ^ m := by
+    have h1 : τ⁻¹ = 16 * ((3 : ℝ) ^ m) ^ 2 := by
+      rw [hτ]
+      field_simp
+    rw [h1, ← pow_mul, mul_comm m 2, pow_mul]
+    norm_num
+  have hδ0 : 0 ≤ D * (γ ^ L)⁻¹ ^ 2 := by positivity
+  have h := hosc s e (n₀ + L) m hmL τ hτ0 hτ' (D * (γ ^ L)⁻¹ ^ 2) cμ hδ0 hcμ (hpair m hmL)
+  have hfac := amplitude_factor_le (d := d) hγ hqm hq
+  have hγL : (0 : ℝ) < γ ^ L := by positivity
+  have hEs : Real.sqrt (cubeAverage (originCube d ((n₀ + L : ℕ) : ℤ))
+      (fun x => vecNormSq (s.correctorGrad e x))) ≤ Real.sqrt Ē := Real.sqrt_le_sqrt hE
+  have hpos : 0 ≤ C₀ * (3 : ℝ) ^ (n₀ + L) := by positivity
+  refine h.trans (mul_le_mul_of_nonneg_left ?_ hpos)
+  rw [hsqτ, hτinv]
+  have hterm1 : Real.sqrt (cubeAverage (originCube d ((n₀ + L : ℕ) : ℤ))
+      (fun x => vecNormSq (s.correctorGrad e x))) *
+      (((3 : ℝ) ^ (n₀ + L))⁻¹ + ((3 : ℝ) ^ m)⁻¹ + ((3 : ℝ) ^ m)⁻¹ / 4) ≤
+      Real.sqrt Ē * (((3 : ℝ) ^ (n₀ + L))⁻¹ + 5 / 4 * ((3 : ℝ) ^ m)⁻¹) := by
+    have heq : ((3 : ℝ) ^ (n₀ + L))⁻¹ + ((3 : ℝ) ^ m)⁻¹ + ((3 : ℝ) ^ m)⁻¹ / 4 =
+        ((3 : ℝ) ^ (n₀ + L))⁻¹ + 5 / 4 * ((3 : ℝ) ^ m)⁻¹ := by ring
+    rw [heq]
+    exact mul_le_mul_of_nonneg_right hEs (by positivity)
+  have hterm2 : (m + 1 : ℝ) * (D * (γ ^ L)⁻¹ ^ 2) * (16 * 9 ^ m + cμ) *
+      Real.sqrt ((3 : ℝ) ^ (m * d)) ≤ 16 * (1 + cμ) * D * (γ ^ L)⁻¹ := by
+    have h9 : (1 : ℝ) ≤ 9 ^ m := one_le_pow₀ (by norm_num)
+    have hcm : 16 * 9 ^ m + cμ ≤ 16 * (1 + cμ) * 9 ^ m := by nlinarith
+    have hA : 0 ≤ (m + 1 : ℝ) * (D * (γ ^ L)⁻¹ ^ 2) := by positivity
+    have hS : 0 ≤ Real.sqrt ((3 : ℝ) ^ (m * d)) := Real.sqrt_nonneg _
+    calc (m + 1 : ℝ) * (D * (γ ^ L)⁻¹ ^ 2) * (16 * 9 ^ m + cμ) * Real.sqrt ((3 : ℝ) ^ (m * d))
+        ≤ (m + 1 : ℝ) * (D * (γ ^ L)⁻¹ ^ 2) * (16 * (1 + cμ) * 9 ^ m) *
+            Real.sqrt ((3 : ℝ) ^ (m * d)) := by gcongr
+      _ = 16 * (1 + cμ) * D * (γ ^ L)⁻¹ ^ 2 *
+            ((m + 1 : ℝ) * 9 ^ m * Real.sqrt ((3 : ℝ) ^ (m * d))) := by ring
+      _ ≤ 16 * (1 + cμ) * D * (γ ^ L)⁻¹ ^ 2 * γ ^ L :=
+          mul_le_mul_of_nonneg_left hfac (by positivity)
+      _ = 16 * (1 + cμ) * D * (γ ^ L)⁻¹ := by
+          field_simp
+  linarith [hterm1, hterm2]
+
 end EinsteinFull.Homogenization
