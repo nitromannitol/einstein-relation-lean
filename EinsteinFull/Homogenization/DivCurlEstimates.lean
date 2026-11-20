@@ -122,7 +122,7 @@ theorem sq_le_of_approx {q P c : ℝ} (hq : 0 ≤ q) (hP : 0 ≤ P) (hc : 0 < c)
       have hPs2 : P * s * ε ≤ P * ε := mul_le_mul_of_nonneg_right hPs1 hε.le
       have hexp : (P * s - ε) ^ 2 = P ^ 2 * s ^ 2 - 2 * (P * s * ε) + ε ^ 2 := by ring
       nlinarith [sq_nonneg ε]
-    · push_neg at hneg
+    · push Not at hneg
       have hPs : P * s < ε := by linarith
       have : (P * s) ^ 2 ≤ ε ^ 2 := pow_le_pow_left₀ (by positivity) hPs.le 2
       have hqs : 0 ≤ q * s ^ 2 := by positivity
@@ -174,7 +174,7 @@ theorem le_sq_mul_of_approx {q P K c : ℝ} (hq : 0 ≤ q) (hP : 0 ≤ P) (hK : 
               (2 * q + 2 * K ^ 2 * P ^ 2) * ε) := by nlinarith
           exact le_of_mul_le_mul_left h6 hs0
         nlinarith
-      · push_neg at hneg
+      · push Not at hneg
         have hqs : q * s < ε := by linarith
         have h7 : q * (q * s) ≤ q * ε := mul_le_mul_of_nonneg_left hqs.le hq
         have h8 : 0 ≤ K ^ 2 * P ^ 2 * q * s := by positivity
@@ -259,6 +259,7 @@ variable [NeZero d] (N : ℕ) {η : Vec d → ℝ} (hηc : Continuous η) (hη0 
   (hη1 : ∀ x, η x ≤ 1)
 include hηc hη0 hη1
 
+omit [NeZero d] in
 theorem memLp_normalized_cutoff :
     MemLp η 2 (normalizedCubeMeasure (originCube d (N : ℤ))) :=
   memLp_normalizedCubeMeasure_of_bound _ hηc.aestronglyMeasurable
