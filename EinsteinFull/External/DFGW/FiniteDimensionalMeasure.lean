@@ -12,12 +12,12 @@ open scoped Topology
 
 namespace EinsteinFull.External.DFGW
 
-variable {Ω ι J : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsFiniteMeasure P]
+variable {Ω ι J E : Type*} [NormedAddCommGroup E] [MeasurableSpace Ω] {P : Measure Ω} [IsFiniteMeasure P]
 variable [Fintype J] {l : Filter ι}
 
-/-- A finite vector of real random variables converges to zero in measure if each coordinate
+/-- A finite vector of random variables converges to zero in measure if each coordinate
 does. -/
-theorem tendstoInMeasure_pi_zero (F : ι → Ω → J → ℝ)
+theorem tendstoInMeasure_pi_zero (F : ι → Ω → J → E)
     (hF : ∀ j, TendstoInMeasure P (fun i ω => F i ω j) l (fun _ => 0)) :
     TendstoInMeasure P F l (fun _ => 0) := by
   classical
