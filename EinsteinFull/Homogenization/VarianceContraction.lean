@@ -102,4 +102,34 @@ theorem variance_add_le_weighted {Ω : Type*} [MeasurableSpace Ω]
       _ = _ := by field_simp
   linarith
 
+/-- An additive error preserves a strict variance contraction, at the cost of
+an explicit multiple of its variance. -/
+theorem variance_add_le_of_contracting {Ω : Type*} [MeasurableSpace Ω]
+    (P : Measure Ω) [IsProbabilityMeasure P] {X Y : Ω → ℝ}
+    (hX : MemLp X 2 P) (hY : MemLp Y 2 P) (t V B : ℝ)
+    (ht1 : t < 1) (hV : 0 ≤ V)
+    (hXbound : ProbabilityTheory.variance X P ≤ t * V)
+    (hYbound : ProbabilityTheory.variance Y P ≤ B) :
+    ProbabilityTheory.variance (X + Y) P ≤
+      ((1 + t) / 2) * V + (1 + 2 / (1 - t)) * B := by
+  let δ := (1 - t) / 2
+  have hδ : 0 < δ := by dsimp [δ]; linarith
+  have hδinv : δ⁻¹ = 2 / (1 - t) := by
+    dsimp [δ]
+    field_simp
+  have hfactor : (1 + δ) * t ≤ (1 + t) / 2 := by
+    dsimp [δ]
+    nlinarith [sq_nonneg (1 - t)]
+  calc
+    _ ≤ (1 + δ) * ProbabilityTheory.variance X P +
+        (1 + δ⁻¹) * ProbabilityTheory.variance Y P :=
+      variance_add_le_weighted P hX hY δ hδ
+    _ ≤ (1 + δ) * (t * V) + (1 + δ⁻¹) * B :=
+      add_le_add (mul_le_mul_of_nonneg_left hXbound (by linarith))
+        (mul_le_mul_of_nonneg_left hYbound (by positivity))
+    _ ≤ _ := by
+      rw [hδinv]
+      have hm := mul_le_mul_of_nonneg_right hfactor hV
+      nlinarith
+
 end EinsteinFull.Homogenization
