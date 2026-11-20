@@ -80,4 +80,26 @@ theorem variance_average_le_of_independent_pair {Ω ι : Type*} [MeasurableSpace
         (sq_nonneg _)
     _ = _ := by field_simp
 
+/-- A weighted variance triangle inequality, with an adjustable coefficient on
+both terms. -/
+theorem variance_add_le_weighted {Ω : Type*} [MeasurableSpace Ω]
+    (P : Measure Ω) [IsProbabilityMeasure P] {X Y : Ω → ℝ}
+    (hX : MemLp X 2 P) (hY : MemLp Y 2 P) (δ : ℝ) (hδ : 0 < δ) :
+    ProbabilityTheory.variance (X + Y) P ≤
+      (1 + δ) * ProbabilityTheory.variance X P +
+        (1 + δ⁻¹) * ProbabilityTheory.variance Y P := by
+  have hn := ProbabilityTheory.variance_nonneg (δ • X - Y) P
+  rw [ProbabilityTheory.variance_sub (hX.const_smul δ) hY,
+    ProbabilityTheory.variance_smul, ProbabilityTheory.covariance_smul_left] at hn
+  rw [ProbabilityTheory.variance_add hX hY]
+  have hi : 0 ≤ δ⁻¹ := inv_nonneg.mpr hδ.le
+  have hmul := mul_nonneg hi hn
+  have hmul' : 0 ≤ δ * ProbabilityTheory.variance X P -
+      2 * ProbabilityTheory.covariance X Y P + δ⁻¹ * ProbabilityTheory.variance Y P := by
+    calc
+      0 ≤ δ⁻¹ * (δ ^ 2 * ProbabilityTheory.variance X P -
+          2 * (δ * ProbabilityTheory.covariance X Y P) + ProbabilityTheory.variance Y P) := hmul
+      _ = _ := by field_simp
+  linarith
+
 end EinsteinFull.Homogenization
