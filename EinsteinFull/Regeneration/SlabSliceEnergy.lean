@@ -49,4 +49,22 @@ theorem slab_energy_lower_of_slice_integrals {Z : Type*} [MeasurableSpace Z]
     _ = L * ∫ p, g p ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν) := by
       rw [integral_const_mul, integral_prod_symm _ hg2]
 
+/-- A coercive energy density inherits the lower bound supplied by the line integrals. -/
+theorem slab_coercive_energy_lower_of_slice_integrals {Z : Type*} [MeasurableSpace Z]
+    (ν : Measure Z) [IsFiniteMeasure ν] (L c lam : ℝ)
+    (hL : 0 ≤ L) (hc : 0 ≤ c) (hlam : 0 ≤ lam)
+    (g ρ : ℝ × Z → ℝ)
+    (hg : Integrable g ((volume.restrict (Ioc 0 L)).prod ν))
+    (hg2 : Integrable (fun p => g p ^ 2) ((volume.restrict (Ioc 0 L)).prod ν))
+    (hρ : Integrable ρ ((volume.restrict (Ioc 0 L)).prod ν))
+    (hbound : ∀ᵐ z ∂ν, c ≤ |∫ t in Ioc 0 L, g (t, z)|)
+    (hcoercive : ∀ᵐ p ∂((volume.restrict (Ioc 0 L)).prod ν), lam * g p ^ 2 ≤ ρ p) :
+    lam * (c ^ 2 * ν.real univ) ≤ L * ∫ p, ρ p ∂((volume.restrict (Ioc 0 L)).prod ν) := by
+  have hslice := slab_energy_lower_of_slice_integrals ν L c hL hc g hg hg2 hbound
+  have henergy := integral_mono_ae (hg2.const_mul lam) hρ hcoercive
+  rw [integral_const_mul] at henergy
+  have h1 := mul_le_mul_of_nonneg_left hslice hlam
+  have h2 := mul_le_mul_of_nonneg_left henergy hL
+  nlinarith
+
 end EinsteinFull.Regeneration
