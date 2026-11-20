@@ -22,6 +22,19 @@ noncomputable def gmpScaledSlabPayoff
     (i : Fin d) (c : Vec d) (l μ : ℝ) (y : Vec d) (N : ℝ) (z : Vec d) : ℝ :=
   gmpBoundedSlabPayoff G i c (l / μ) y N (c + μ⁻¹ • z)
 
+/-- The rescaled bounded-slab payoff is measurable. -/
+theorem measurable_gmpScaledSlabPayoff
+    {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
+    {ω : FieldPair d} {hω : IsRegular L ω} {lam : ℝ} {h₀ : 0 ≤ lam} {h₁ : lam ≤ 1}
+    (G : GantertFixedEnvironmentRealization hd L hL ω hω lam h₀ h₁)
+    (i : Fin d) (c : Vec d) (l μ : ℝ) (y : Vec d) (N : ℝ) :
+    Measurable (gmpScaledSlabPayoff G i c l μ y N) := by
+  have hscale : Continuous (fun z : Vec d => μ⁻¹ • z) := by
+    change Continuous ((fun _ : Vec d => μ⁻¹) • (fun z : Vec d => z))
+    exact continuous_const.smul continuous_id
+  exact (measurable_gmpBoundedSlabPayoff G i c (l / μ) y N).comp
+    (continuous_const.add hscale).measurable
+
 /-- The rescaled payoff remains in the unit interval. -/
 theorem gmpScaledSlabPayoff_mem_Icc
     {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
@@ -30,6 +43,20 @@ theorem gmpScaledSlabPayoff_mem_Icc
     (i : Fin d) (c : Vec d) (l μ : ℝ) (y : Vec d) (N : ℝ) (z : Vec d) :
     gmpScaledSlabPayoff G i c l μ y N z ∈ Set.Icc (0 : ℝ) 1 :=
   gmpBoundedSlabPayoff_mem_Icc G i c (l / μ) y N (c + μ⁻¹ • z)
+
+/-- On a finite-volume set, the rescaled payoff is square-integrable. -/
+theorem gmpScaledSlabPayoff_memL2
+    {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
+    {ω : FieldPair d} {hω : IsRegular L ω} {lam : ℝ} {h₀ : 0 ≤ lam} {h₁ : lam ≤ 1}
+    (G : GantertFixedEnvironmentRealization hd L hL ω hω lam h₀ h₁)
+    (i : Fin d) (c : Vec d) (l μ : ℝ) (y : Vec d) (N : ℝ) (U : Set (Vec d))
+    [IsFiniteMeasure (volume.restrict U : Measure (Vec d))] :
+    MemLp (gmpScaledSlabPayoff G i c l μ y N) 2 (volume.restrict U) := by
+  apply MemLp.of_bound (measurable_gmpScaledSlabPayoff G i c l μ y N).aestronglyMeasurable 1
+  filter_upwards with z
+  have hz := gmpScaledSlabPayoff_mem_Icc G i c l μ y N z
+  rw [Real.norm_eq_abs, abs_of_nonneg hz.1]
+  exact hz.2
 
 /-- The rescaled payoff vanishes on the lower force face. -/
 theorem gmpScaledSlabPayoff_lower
