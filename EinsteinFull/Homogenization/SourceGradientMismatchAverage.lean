@@ -26,21 +26,21 @@ theorem sq_descendantsAverage_le {d : ℕ} (Q : TriadicCube d) (j : ℕ)
     (s := descendantsAtDepth Q j) (f := f)
   simpa [descendantsAverage, div_eq_mul_inv, mul_comm] using h
 
-/-- The squared difference between the parent optimizer gradient and the
-average of descendant optimizer gradients is bounded by the response defect. -/
-theorem sq_sourceGradientAverage_sub_descendantsAverage_le_defect
+/-- The squared difference of parent and descendant-averaged gradients is
+bounded by the mean squared gradient mismatch. -/
+theorem sq_sourceGradientAverage_sub_descendantsAverage_le_meanMismatch
     {d : ℕ} [NeZero d] {K : ℝ} (a : Coefficient d K) (Q : TriadicCube d)
-    (j k : ℕ) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d) (i : Fin d) :
+    (j : ℕ) (p q : Vec d) (i : Fin d) :
     (Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q Q p q
         (regularCoefficient a).toFun i -
       descendantsAverage Q j (fun R =>
         Book.Ch04.canonicalScalarResponseGradientAverageCubeSet R R p q
           (regularCoefficient a).toFun i)) ^ 2 ≤
-    (4 * d) *
-      (descendantsAverage Q j (fun R => Book.Ch02.responseJ (Book.Ch02.cubeDomain R)
-        (sourceCoeffOn a (Book.Ch02.cubeDomain R) k hk) p q) -
-       Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
-        (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) p q) := by
+    descendantsAverage Q j (fun R =>
+      vecNormSq (Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q R p q
+          (regularCoefficient a).toFun -
+        Book.Ch04.canonicalScalarResponseGradientAverageCubeSet R R p q
+          (regularCoefficient a).toFun)) := by
   classical
   let f : TriadicCube d → ℝ := fun R =>
     (Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q R p q
@@ -67,6 +67,23 @@ theorem sq_sourceGradientAverage_sub_descendantsAverage_le_defect
       unfold f vecNormSq vecDot
       rw [sq]
       exact Finset.single_le_sum (fun l _ => mul_self_nonneg _) (Finset.mem_univ i)
-    _ ≤ _ := descendantsAverage_sourceGradientMismatch_le_four_mul_dim_mul_defect a Q j k hk p q
+
+/-- The squared difference between the parent optimizer gradient and the
+average of descendant optimizer gradients is bounded by the response defect. -/
+theorem sq_sourceGradientAverage_sub_descendantsAverage_le_defect
+    {d : ℕ} [NeZero d] {K : ℝ} (a : Coefficient d K) (Q : TriadicCube d)
+    (j k : ℕ) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d) (i : Fin d) :
+    (Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q Q p q
+        (regularCoefficient a).toFun i -
+      descendantsAverage Q j (fun R =>
+        Book.Ch04.canonicalScalarResponseGradientAverageCubeSet R R p q
+          (regularCoefficient a).toFun i)) ^ 2 ≤
+    (4 * d) *
+      (descendantsAverage Q j (fun R => Book.Ch02.responseJ (Book.Ch02.cubeDomain R)
+        (sourceCoeffOn a (Book.Ch02.cubeDomain R) k hk) p q) -
+       Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
+        (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) p q) := by
+  exact (sq_sourceGradientAverage_sub_descendantsAverage_le_meanMismatch a Q j p q i).trans
+    (descendantsAverage_sourceGradientMismatch_le_four_mul_dim_mul_defect a Q j k hk p q)
 
 end EinsteinFull.Homogenization
