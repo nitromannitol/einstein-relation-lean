@@ -1,4 +1,4 @@
-import EinsteinFull.External.DFGW.ResolventRemainder
+import EinsteinFull.External.DFGW.ResolventRemainderBound
 
 /-! # Sublinear resolvent remainder on comparable scales
 
@@ -43,51 +43,7 @@ theorem tendsto_resolvent_remainder_comparable (hP : Draft.IsDFGWTrajectoryProce
   · intro n
     exact mul_nonneg (inv_nonneg.mpr (q n).coe_nonneg) (sq_nonneg _)
   · intro n
-    let t := q n
-    let a := reciprocalShift n
-    let U := timeIntegralLp hP f t
-    let D := dynkinIncrementLp hP (transitionResolventDomain hP a f) t
-    let Q := transitionResolvent hP a f
-    have ha : 0 < (a : ℝ) := a.2
-    have hlo : (1 / 2 : ℝ) ≤ (a : ℝ) * t := hlower n
-    have hhi : (a : ℝ) * t ≤ 1 := hupper n
-    have ht : 0 < (t : ℝ) := by
-      by_contra h
-      have hzero : (t : ℝ) = 0 := le_antisymm (le_of_not_gt h) t.coe_nonneg
-      simp only [hzero, mul_zero] at hlo
-      norm_num at hlo
-    have hinv : (t : ℝ)⁻¹ ≤ 2 * (a : ℝ) := by
-      apply (inv_le_iff_one_le_mul₀ ht).2
-      nlinarith
-    have hbound := norm_timeIntegralLp_sub_resolvent_martingale_le hP f a t
-    change ‖U - D‖ ≤ (2 + (a : ℝ) * t) * ‖Q‖ at hbound
-    have hbound' : ‖U - D‖ ≤ 3 * ‖Q‖ := by nlinarith [norm_nonneg Q]
-    have htriangle : ‖U - Z t‖ ≤ ‖U - D‖ + ‖D - Z t‖ := by
-      calc
-        ‖U - Z t‖ = ‖(U - D) + (D - Z t)‖ := by congr 1 <;> abel
-        _ ≤ _ := norm_add_le _ _
-    have hsq : ‖U - Z t‖ ^ 2 ≤ 18 * ‖Q‖ ^ 2 + 2 * ‖D - Z t‖ ^ 2 := by
-      have h1 := norm_nonneg (U - Z t)
-      have h2 := norm_nonneg (U - D)
-      have h3 := norm_nonneg (D - Z t)
-      have h4 := norm_nonneg Q
-      nlinarith [sq_nonneg (3 * ‖Q‖ - ‖D - Z t‖)]
-    have hvar := norm_resolvent_martingale_sub_limit_sq hP hcoord f Z hZ n t
-    change ‖D - Z t‖ ^ 2 = (t : ℝ) * E n at hvar
-    have hscaled := mul_le_mul_of_nonneg_left hsq ha.le
-    rw [hvar] at hscaled
-    have hscale : (a : ℝ) * ‖U - Z t‖ ^ 2 ≤ 18 * R n + 2 * E n := by
-      have hE0 : 0 ≤ E n := sq_nonneg _
-      have hprod : ((a : ℝ) * (t : ℝ)) * E n ≤ E n := by nlinarith
-      dsimp only [R]
-      change (a : ℝ) * ‖U - Z t‖ ^ 2 ≤ 18 * ((a : ℝ) * ‖Q‖ ^ 2) + 2 * E n
-      calc
-        _ ≤ (a : ℝ) * (18 * ‖Q‖ ^ 2 + 2 * ((t : ℝ) * E n)) := hscaled
-        _ = 18 * ((a : ℝ) * ‖Q‖ ^ 2) + 2 * (((a : ℝ) * t) * E n) := by ring
-        _ ≤ _ := by linarith
-    have hratio := mul_le_mul_of_nonneg_right hinv (sq_nonneg ‖U - Z t‖)
-    change (t : ℝ)⁻¹ * ‖U - Z t‖ ^ 2 ≤ 36 * R n + 4 * E n
-    nlinarith
+    exact norm_resolvent_remainder_le hP hcoord f Z hZ n (q n) (hlower n) (hupper n)
   · exact hlim
 
 end EinsteinFull.External.DFGW
