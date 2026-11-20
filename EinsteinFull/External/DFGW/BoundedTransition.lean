@@ -17,7 +17,7 @@ variable {P : Measure C(ℝ, S)} {μ : Measure S} {T : ℝ≥0 → Kernel S S}
 theorem transitionSemigroup_ae_norm_le (hP : Draft.IsDFGWTrajectoryProcess P μ T)
     (t : ℝ≥0) (f : Lp ℝ 2 μ) (C : ℝ) (hf : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
     ∀ᵐ x ∂μ, ‖transitionSemigroup hP t f x‖ ≤ C := by
-  letI : IsMarkovKernel (T t) := hP.markov_kernel t
+  let : IsMarkovKernel (T t) := hP.markov_kernel t
   have hker := MarkovProcess.ae_ae_kernel_of_comp_le (le_of_eq (kernel_comp_eq hP t)) hf
   filter_upwards [transitionSemigroup_ae_eq hP t f, hker] with x heq hx
   rw [heq]
