@@ -55,4 +55,42 @@ theorem gmp_slab_exit_event_tendsto_ball
     (isOpen_coordinateSlab _ _ _) hB y
     (gmp_ae_source_slab_exit_ne_top d hd Λ r l hl Q μ hμ hμ1 ω hω G c x)
 
+/-- Bounded-domain exit probabilities converge to the literal positive slab-exit probability. -/
+theorem gmp_positive_slab_exit_tendsto_ball
+    (d : ℕ) (hd : 2 ≤ d) (Λ r l : ℝ) (hl : 1 ≤ l)
+    (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+    (ω : FieldPair d) (hω : IsRegular (sourceReducedBound Λ) (zeroPotentialReducedPair ω))
+    (G : GantertFixedEnvironmentRealization hd (sourceReducedBound Λ)
+      (one_le_sourceReducedBound Q.ellipticity_parameter) (zeroPotentialReducedPair ω)
+      hω μ hμ.le hμ1) (x y : Vec d) :
+    let i := Renewal.forceCoord hd
+    let B : Set (Vec d) := {z | z i - x i = l / μ}
+    Tendsto (fun n : ℕ => G.pathLaw x (finiteExitEvent
+      (coordinateSlab i x (l / μ) ∩ Metric.ball y n) B)) atTop
+      (𝓝 (G.pathLaw x {γ | coordinateSlabExit γ i (l / μ) ≠ ⊤ ∧
+        γ (coordinateSlabExit γ i (l / μ)).toNNReal i - γ 0 i = l / μ})) := by
+  dsimp only
+  let i := Renewal.forceCoord hd
+  let B : Set (Vec d) := {z | z i - x i = l / μ}
+  have hB : MeasurableSet B :=
+    (isClosed_eq ((continuous_apply i).sub continuous_const) continuous_const).measurableSet
+  have hlim := gmp_slab_exit_event_tendsto_ball d hd Λ r l hl Q μ hμ hμ1 ω hω G x x y B hB
+  have hae : finiteExitEvent (coordinateSlab i x (l / μ)) B =ᵐ[G.pathLaw x]
+      {γ | coordinateSlabExit γ i (l / μ) ≠ ⊤ ∧
+        γ (coordinateSlabExit γ i (l / μ)).toNNReal i - γ 0 i = l / μ} := by
+    filter_upwards [G.pathLaw_starts_at x] with γ hstart
+    change γ 0 = x at hstart
+    have heq : coordinateSlabExit γ i (l / μ) =
+        MarkovProcess.ContinuousPath.exitTime (coordinateSlab i x (l / μ)) γ := by
+      simp only [coordinateSlabExit, hstart]
+    by_cases hfin : MarkovProcess.ContinuousPath.exitTime (coordinateSlab i x (l / μ)) γ = ⊤
+    · simp [finiteExitEvent, heq, hfin]
+    · have htime := MarkovProcess.ContinuousPath.untopD_exitTimeTop_eq_toNNReal
+        (coordinateSlab i x (l / μ)) γ hfin
+      simp only [finiteExitEvent, Set.mem_ofPred_eq, lt_top_iff_ne_top, htime,
+        heq, B, hstart]
+  have hevent := measure_congr hae
+  rw [hevent] at hlim
+  exact hlim
+
 end EinsteinFull.Regeneration
