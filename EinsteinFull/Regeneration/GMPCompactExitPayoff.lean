@@ -1,4 +1,5 @@
 import EinsteinFull.Regeneration.GMPExitSmoothPayoff
+import EinsteinFull.Regeneration.GMPDiscountedPayoff
 import EinsteinFull.Regeneration.SlabCompactPayoff
 
 /-!
@@ -28,6 +29,51 @@ theorem exit_payoff_eq_of_eqOn_closedBall {α : Type*} [PseudoMetricSpace α]
     closure_minimal (hsub.trans Metric.ball_subset_closedBall) Metric.isClosed_closedBall hfront.1
   rw [MarkovProcess.ContinuousPath.untopD_exitTimeTop_eq_toNNReal U γ hfin]
   exact hfg hclosed
+
+/-- Discounted finite-exit payoffs agree when their boundary values agree. -/
+theorem discounted_exit_payoff_eq_of_eqOn_closedBall {α : Type*} [PseudoMetricSpace α]
+    (U : Set α) (hU : IsOpen U) (y : α) (N a : ℝ) (hsub : U ⊆ Metric.ball y N)
+    (f g : α → ℝ) (hfg : Set.EqOn f g (Metric.closedBall y N))
+    (γ : MarkovProcess.ContinuousPath α) (hstart : γ 0 ∈ U) :
+    {γ | MarkovProcess.ContinuousPath.exitTime U γ < ⊤}.indicator
+      (fun γ => Real.exp (-(a * (MarkovProcess.ContinuousPath.exitTime U γ).toReal)) *
+        f (γ ((MarkovProcess.ContinuousPath.exitTimeTop U γ).untopD 0))) γ =
+    {γ | MarkovProcess.ContinuousPath.exitTime U γ < ⊤}.indicator
+      (fun γ => Real.exp (-(a * (MarkovProcess.ContinuousPath.exitTime U γ).toReal)) *
+        g (γ ((MarkovProcess.ContinuousPath.exitTimeTop U γ).untopD 0))) γ := by
+  by_cases hfin : MarkovProcess.ContinuousPath.exitTime U γ < ⊤
+  · have hm : γ ∈ {γ | MarkovProcess.ContinuousPath.exitTime U γ < ⊤} := hfin
+    rw [Set.indicator_of_mem hm, Set.indicator_of_mem hm,
+      exit_payoff_eq_of_eqOn_closedBall U hU y N hsub f g hfg γ hstart
+        (lt_top_iff_ne_top.mp hfin)]
+  · have hm : γ ∉ {γ | MarkovProcess.ContinuousPath.exitTime U γ < ⊤} := hfin
+    simp only [Set.indicator_of_notMem hm]
+
+/-- One compact extension represents every discounted exit payoff from the bounded slab. -/
+theorem exists_compact_smooth_gmp_discounted_exit_payoff
+    {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
+    {ω : FieldPair d} {hω : IsRegular L ω} {lam : ℝ} {h₀ : 0 ≤ lam} {h₁ : lam ≤ 1}
+    (G : GantertFixedEnvironmentRealization hd L hL ω hω lam h₀ h₁)
+    (i : Fin d) (c : Vec d) (R : ℝ) (y : Vec d) (N : ℝ) :
+    let U := coordinateSlab i c R ∩ Metric.ball y N
+    ∃ f : Vec d → ℝ, ContDiff ℝ (⊤ : ℕ∞) f ∧ HasCompactSupport f ∧
+      (∀ z, f z ∈ Icc (0 : ℝ) 1) ∧
+      ∀ (a : ℝ) (z : Vec d), z ∈ U → gmpDiscountedSlabPayoff G i c R y N a z =
+        ∫ γ, {γ | MarkovProcess.ContinuousPath.exitTime U γ < ⊤}.indicator
+          (fun γ => Real.exp (-(a * (MarkovProcess.ContinuousPath.exitTime U γ).toReal)) *
+            f (γ ((MarkovProcess.ContinuousPath.exitTimeTop U γ).untopD 0))) γ ∂G.pathLaw z := by
+  dsimp only
+  let U := coordinateSlab i c R ∩ Metric.ball y N
+  obtain ⟨f, hf, hc, hb, heq⟩ := exists_compact_smooth_slabPayoff i c y R N
+  refine ⟨f, hf, hc, hb, ?_⟩
+  intro a z hz
+  unfold gmpDiscountedSlabPayoff
+  apply integral_congr_ae
+  filter_upwards [G.pathLaw_starts_at z] with γ hstart
+  change γ 0 = z at hstart
+  exact (discounted_exit_payoff_eq_of_eqOn_closedBall U
+    ((isOpen_coordinateSlab i c R).inter Metric.isOpen_ball) y N a inter_subset_right
+    f (slabSmoothPayoff i c R) heq γ (hstart ▸ hz)).symm
 
 /-- A compact smooth payoff gives the same bounded-domain exit expectation. -/
 theorem exists_compact_smooth_gmp_exit_payoff
