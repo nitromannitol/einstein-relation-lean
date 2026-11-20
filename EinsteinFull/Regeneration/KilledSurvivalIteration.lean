@@ -70,19 +70,21 @@ theorem gmp_survival_le_pow {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
     (isFiniteKernel_gmpKilledEndpointKernel G U hU)
     (gmpKilledEndpointKernel_add G U hU) hzero τ q hs n x
 
-/-- A uniform positive one-step escape probability yields a uniformly small survival mass. -/
-theorem exists_gmp_survival_le {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
-    {ω : FieldPair d} {hω : IsRegular L ω} {lam : ℝ} {h₀ : 0 ≤ lam} {h₁ : lam ≤ 1}
-    (G : GantertFixedEnvironmentRealization hd L hL ω hω lam h₀ h₁)
-    (U : Set (Vec d)) (hU : IsOpen U) (τ : ℝ≥0) (ε η : ℝ)
-    (hε : 0 < ε) (hε1 : ε ≤ 1) (hη : 0 < η)
-    (hstep : ∀ x, G.pathLaw x {γ : Path d | ∀ t : ℝ≥0, t ≤ τ → γ t ∈ U} ≤
-      ENNReal.ofReal (1 - ε)) :
-    ∃ n : ℕ, ∀ x, G.pathLaw x
-      {γ : Path d | ∀ t : ℝ≥0, t ≤ (n : ℝ≥0) * τ → γ t ∈ U} ≤ ENNReal.ofReal η := by
+/-- A uniform positive one-step escape probability yields a uniformly small survival mass.
+The number of steps is chosen before the realization, domain, and step length. -/
+theorem exists_gmp_survival_le (ε η : ℝ) (hε : 0 < ε) (hε1 : ε ≤ 1) (hη : 0 < η) :
+    ∃ n : ℕ, ∀ {d : ℕ} {hd : 2 ≤ d} {L : ℝ} {hL : 1 ≤ L}
+      {ω : FieldPair d} {hω : IsRegular L ω} {lam : ℝ} {h₀ : 0 ≤ lam} {h₁ : lam ≤ 1}
+      (G : GantertFixedEnvironmentRealization hd L hL ω hω lam h₀ h₁)
+      (U : Set (Vec d)) (_hU : IsOpen U) (τ : ℝ≥0),
+      (∀ x, G.pathLaw x {γ : Path d | ∀ t : ℝ≥0, t ≤ τ → γ t ∈ U} ≤
+        ENNReal.ofReal (1 - ε)) →
+      ∀ x, G.pathLaw x {γ : Path d |
+        ∀ t : ℝ≥0, t ≤ (n : ℝ≥0) * τ → γ t ∈ U} ≤ ENNReal.ofReal η := by
   have hq : 1 - ε < 1 := by linarith
   obtain ⟨n, hn⟩ := exists_pow_lt_of_lt_one hη hq
-  refine ⟨n, fun x => ?_⟩
+  refine ⟨n, ?_⟩
+  intro d hd L hL ω hω lam h₀ h₁ G U hU τ hstep x
   calc
     _ ≤ ENNReal.ofReal (1 - ε) ^ n := gmp_survival_le_pow G U hU τ _ hstep n x
     _ = ENNReal.ofReal ((1 - ε) ^ n) := (ENNReal.ofReal_pow (sub_nonneg.mpr hε1) n).symm
