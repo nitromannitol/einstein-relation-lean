@@ -109,4 +109,57 @@ theorem sourceResponseTau_le_sum_decrements {d : ℕ} [NeZero d] {K : ℝ}
   rw [Finset.sum_add_distrib, mul_add]
   linarith
 
+private theorem summable_decrements_of_tendsto (f : ℕ → ℝ) (l : ℝ)
+    (hmono : ∀ n, f (n + 1) ≤ f n) (hlim : Tendsto f atTop (𝓝 l)) :
+    Summable (fun n => f n - f (n + 1)) := by
+  apply HasSum.summable (a := f 0 - l)
+  rw [hasSum_iff_tendsto_nat_of_nonneg (fun n => sub_nonneg.mpr (hmono n))]
+  have h := (tendsto_const_nhds (x := f 0)).sub hlim
+  refine h.congr' (Eventually.of_forall fun n => ?_)
+  have hsum := Finset.sum_range_sub f n
+  simp only [Finset.sum_sub_distrib] at hsum ⊢
+  linarith
+
+/-- The consecutive expected Dirichlet-energy decrements are summable. -/
+theorem summable_sourceDirichletDecrement {d : ℕ} [NeZero d] {K : ℝ}
+    (hK : 0 ≤ K) (P : Measure (Coefficient d K)) [IsProbabilityMeasure P]
+    (hstat : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
+    (p : Vec d) : Summable (fun n => sourceDirichletDecrement P n p) := by
+  exact summable_decrements_of_tendsto _ _
+    (fun n => expected_sourceDirichletEnergy_succ_le hK P hstat p n)
+    (tendsto_expected_sourceDirichletEnergy hK P hstat p)
+
+/-- The consecutive expected dual-energy decrements are summable. -/
+theorem summable_sourceDualDecrement {d : ℕ} [NeZero d] {K : ℝ}
+    (P : Measure (Coefficient d K)) [IsProbabilityMeasure P]
+    (hstat : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
+    (q : Vec d) : Summable (fun n => sourceDualDecrement P n q) := by
+  exact summable_decrements_of_tendsto _ _
+    (fun n => expected_sourceDualEnergy_succ_le P hstat q n)
+    (tendsto_expected_sourceDualEnergy P hstat q)
+
+/-- Uniform response decrements are summable under stationarity. -/
+theorem summable_sourceResponseTau {d : ℕ} [NeZero d] {K : ℝ}
+    (hK : 0 ≤ K) (P : Measure (Coefficient d K)) [IsProbabilityMeasure P]
+    (hstat : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
+    (k : ℕ) (hk : K ≤ (k : ℝ) + 1) : Summable (fun n => sourceResponseTau P n k hk) := by
+  have hs : Summable (fun n : ℕ => ∑ i : Fin d,
+      (sourceDirichletDecrement P n (Pi.single i 1) +
+        sourceDualDecrement P n (Pi.single i 1))) := by
+    apply summable_sum
+    intro i _
+    exact (summable_sourceDirichletDecrement hK P hstat _).add
+      (summable_sourceDualDecrement P hstat _)
+  exact (hs.mul_left ((2 : ℝ) ^ d)).of_nonneg_of_le
+    (fun n => sourceResponseTau_nonneg hK P n k hk)
+    (fun n => sourceResponseTau_le_sum_decrements hK P hstat n k hk)
+
+/-- Uniform response decrements converge to zero under stationarity. -/
+theorem tendsto_sourceResponseTau_zero {d : ℕ} [NeZero d] {K : ℝ}
+    (hK : 0 ≤ K) (P : Measure (Coefficient d K)) [IsProbabilityMeasure P]
+    (hstat : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
+    (k : ℕ) (hk : K ≤ (k : ℝ) + 1) :
+    Tendsto (fun n => sourceResponseTau P n k hk) atTop (𝓝 0) :=
+  (summable_sourceResponseTau hK P hstat k hk).tendsto_atTop_zero
+
 end EinsteinFull.Homogenization
