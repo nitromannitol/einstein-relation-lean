@@ -35,7 +35,7 @@ theorem scaledClosedCubeSet_eq_pi (R : TriadicCube d) (ρ : ℝ) :
     scaledClosedCubeSet R ρ = Set.univ.pi fun i =>
       Set.Icc (cubeCenter R i - ρ * cubeRadius R) (cubeCenter R i + ρ * cubeRadius R) := by
   ext x
-  simp only [scaledClosedCubeSet, Set.mem_setOf_eq, Set.mem_pi, Set.mem_univ, true_implies,
+  simp only [scaledClosedCubeSet, Set.mem_ofPred_eq, Set.mem_pi, Set.mem_univ, true_implies,
     Set.mem_Icc, abs_sub_le_iff]
   refine forall_congr' fun i => ?_
   constructor <;> rintro ⟨h1, h2⟩ <;> constructor <;> linarith
@@ -209,7 +209,7 @@ theorem abs_cubeAverage_le_innerCubeCutoff (R : TriadicCube d) (hτ : 0 < τ) (h
     {g : Vec d → ℝ} (hg : MemLp g 2 (normalizedCubeMeasure R)) :
     |cubeAverage R g| ≤ (cubeVolume R)⁻¹ * |∫ x, innerCubeCutoff R τ x * g x| +
       Real.sqrt (2 * d * τ) * Real.sqrt (cubeAverage R (fun x => g x ^ 2)) := by
-  haveI : IsProbabilityMeasure (normalizedCubeMeasure R) := ⟨normalizedCubeMeasure_apply_univ R⟩
+  have : IsProbabilityMeasure (normalizedCubeMeasure R) := ⟨normalizedCubeMeasure_apply_univ R⟩
   set η := innerCubeCutoff R τ
   have hηc : Continuous η := (innerCubeCutoff_smooth R hτ hτ').continuous
   have h1η : MemLp (fun x => 1 - η x) 2 (normalizedCubeMeasure R) :=
@@ -266,7 +266,7 @@ theorem cubeAverage_vecNormSq_eq_sum (R : TriadicCube d) {G : Vec d → Vec d}
     (hG : ∀ i, MemLp (fun x => G x i) 2 (normalizedCubeMeasure R)) :
     cubeAverage R (fun x => vecNormSq (G x)) = ∑ i, cubeAverage R (fun x => G x i ^ 2) := by
   simp only [cubeAverage_eq_integral_normalizedCubeMeasure]
-  rw [← integral_finset_sum _ fun i _ => (hG i).integrable_sq]
+  rw [← integral_finsetSum _ fun i _ => (hG i).integrable_sq]
   congr 1
   funext x
   simp [vecNormSq, vecDot, sq]
@@ -358,10 +358,10 @@ theorem sum_range_ite_lt_three_pow_sub_le (m : ℕ) :
       · ring
     rw [h]
     by_cases hmn : m ≤ n
-    · rw [if_pos (by omega), Nat.sub_self, pow_zero, show n + 1 - m = n - m + 1 by omega,
+    · rw [ite_eq_left (by omega), Nat.sub_self, pow_zero, show n + 1 - m = n - m + 1 by omega,
         pow_succ]
       linarith
-    · rw [if_neg (by omega), show n + 1 - m = 0 by omega, show n - m = 0 by omega] at *
+    · rw [ite_eq_right (by omega), show n + 1 - m = 0 by omega, show n - m = 0 by omega] at *
       norm_num at ih ⊢
       linarith
 
@@ -369,12 +369,12 @@ theorem sum_range_ite_le_const (m n : ℕ) (hmn : m ≤ n) (T : ℝ) :
     ∑ j ∈ Finset.range (n + 1), (if j ≤ m then T else 0) = (m + 1) * T := by
   rw [show n + 1 = (m + 1) + (n - m) by omega, Finset.sum_range_add]
   have h1 : ∑ j ∈ Finset.range (m + 1), (if j ≤ m then T else 0) = (m + 1) * T := by
-    rw [Finset.sum_congr rfl fun j hj => if_pos (Nat.lt_succ_iff.mp (Finset.mem_range.mp hj)),
+    rw [Finset.sum_congr rfl fun j hj => ite_eq_left (Nat.lt_succ_iff.mp (Finset.mem_range.mp hj)),
       Finset.sum_const, Finset.card_range, nsmul_eq_mul]
     push_cast
     ring
   have h2 : ∑ k ∈ Finset.range (n - m), (if m + 1 + k ≤ m then T else 0) = 0 :=
-    Finset.sum_eq_zero fun k _ => if_neg (by omega)
+    Finset.sum_eq_zero fun k _ => ite_eq_right (by omega)
   rw [h1, h2, add_zero]
 
 end GeometricSums
@@ -422,7 +422,7 @@ theorem descendantsAverage_cubeAverage_vecNormSq_grad {n : ℕ}
   have hEint : IntegrableOn (fun x => vecNormSq (u.grad x))
       (cubeSet (originCube d (n : ℤ))) volume := by
     refine integrableOn_cubeSet_of_integrable_normalized _ ?_
-    have h := integrable_finset_sum (μ := normalizedCubeMeasure (originCube d (n : ℤ)))
+    have h := integrable_finsetSum (μ := normalizedCubeMeasure (originCube d (n : ℤ)))
       Finset.univ fun i _ => (u.grad_coord_memL2_normalizedCubeMeasure i).integrable_sq
     refine h.congr (Filter.Eventually.of_forall fun x => ?_)
     simp [vecNormSq, vecDot, sq]
@@ -658,10 +658,10 @@ theorem exists_cubeBesovOscillation_le_of_pairing (d : ℕ) [NeZero d] :
     intro j hj
     have hjn : j ≤ n := Nat.lt_succ_iff.mp (Finset.mem_range.mp hj)
     by_cases hjm : j ≤ m
-    · rw [if_pos hjm, if_neg (by omega), add_zero]
+    · rw [ite_eq_left hjm, ite_eq_right (by omega), add_zero]
       exact three_pow_mul_sqrt_descendantsAverage_le_of_pairing hjn hjm hmn hτ hτ' hN hμ u
         (hpair j hjm)
-    · rw [if_neg hjm, if_pos (by omega), add_zero]
+    · rw [ite_eq_right hjm, ite_eq_left (by omega), add_zero]
       have h1 : (3 : ℝ) ^ (n - j) * Real.sqrt (descendantsAverage (originCube d (n : ℤ)) j
           (fun R => vecNormSq (fun i => cubeAverage R (fun x => u.grad x i)))) ≤
           (3 : ℝ) ^ (n - j) * sE :=
