@@ -139,4 +139,21 @@ theorem slab_coercive_energy_lower_of_weak_slices_of_memLp
     · rwa [← Measure.restrict_congr_set Ioc_ae_eq_Icc]
   · exact hcoercive
 
+/-- Endpoint increments and gaps imply the coercive slab energy bound. -/
+theorem slab_coercive_energy_lower_of_increments {Z : Type*} [MeasurableSpace Z]
+    (ν : Measure Z) [IsFiniteMeasure ν] (L c lam : ℝ)
+    (hL : 0 ≤ L) (hc : 0 ≤ c) (hlam : 0 ≤ lam)
+    (u g ρ : ℝ × Z → ℝ)
+    (hg : MemLp g 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hρ : Integrable ρ ((volume.restrict (Ioc 0 L)).prod ν))
+    (hinc : ∀ᵐ z ∂ν, u (L, z) - u (0, z) = ∫ t in (0 : ℝ)..L, g (t, z))
+    (hgap : ∀ᵐ z ∂ν, c ≤ |u (L, z) - u (0, z)|)
+    (hcoercive : ∀ᵐ p ∂((volume.restrict (Ioc 0 L)).prod ν), lam * g p ^ 2 ≤ ρ p) :
+    lam * (c ^ 2 * ν.real univ) ≤ L * ∫ p, ρ p ∂((volume.restrict (Ioc 0 L)).prod ν) := by
+  apply slab_coercive_energy_lower_of_L2_slices ν L c lam hL hc hlam g ρ hg hρ
+  · filter_upwards [hinc, hgap] with z hz hgapz
+    rw [intervalIntegral.integral_of_le hL] at hz
+    simpa only [← hz] using hgapz
+  · exact hcoercive
+
 end EinsteinFull.Regeneration
