@@ -118,4 +118,51 @@ theorem sum_pow_three_mul_geometric_defects_le
       intro l _
       ring
 
+/-- Every lower-scale power of three is bounded by the final-scale power
+times the geometric decay factor. -/
+theorem pow_three_le_last_mul_geometric (θ : ℝ) (hθ : (1 / 2 : ℝ) ≤ θ)
+    (N l : ℕ) (hl : l ≤ N) :
+    (3 : ℝ) ^ l ≤ 3 ^ N * θ ^ (N - l) := by
+  have hx : (1 : ℝ) ≤ 3 * θ := by linarith
+  have hp : (1 : ℝ) ≤ (3 * θ) ^ (N - l) := one_le_pow₀ hx
+  have hmul := mul_le_mul_of_nonneg_left hp (show (0 : ℝ) ≤ 3 ^ l by positivity)
+  have heq : (3 : ℝ) ^ l * (3 * θ) ^ (N - l) = 3 ^ N * θ ^ (N - l) := by
+    rw [mul_pow, ← mul_assoc, ← pow_add, Nat.add_sub_of_le hl]
+  simpa only [mul_one, heq] using hmul
+
+/-- Weighted tails of nonnegative defects are bounded by a single final-scale
+geometric convolution. -/
+theorem sum_pow_three_mul_tail_le_geometric
+    (θ : ℝ) (hθ : (1 / 2 : ℝ) ≤ θ) (N : ℕ) (τ : ℕ → ℝ)
+    (hτ : ∀ l, 0 ≤ τ l) :
+    (∑ m ∈ Finset.range N, (3 : ℝ) ^ m * ∑ l ∈ Finset.Ico m N, τ l) ≤
+      (3 / 2 : ℝ) * 3 ^ N *
+        ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l := by
+  have hθ0 : 0 ≤ θ := by linarith
+  have hsum : (∑ l ∈ Finset.range N, (3 : ℝ) ^ l * τ l) ≤
+      3 ^ N * ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l := by
+    calc
+      _ ≤ ∑ l ∈ Finset.range N, (3 ^ N * θ ^ (N - l)) * τ l := by
+        apply Finset.sum_le_sum
+        intro l hl
+        have hlN : l ≤ N := (Finset.mem_range.mp hl).le
+        exact mul_le_mul_of_nonneg_right (pow_three_le_last_mul_geometric θ hθ N l hlN) (hτ l)
+      _ = 3 ^ N * ∑ l ∈ Finset.range N, θ ^ (N - l) * τ l := by
+        rw [Finset.mul_sum]
+        apply Finset.sum_congr rfl
+        intro l _
+        ring
+      _ ≤ _ := by
+        apply mul_le_mul_of_nonneg_left _ (by positivity)
+        apply Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_mono (Nat.le_succ N))
+        intro l _ _
+        exact mul_nonneg (pow_nonneg hθ0 _) (hτ l)
+  calc
+    _ ≤ (3 / 2 : ℝ) * ∑ l ∈ Finset.range N, (3 : ℝ) ^ l * τ l :=
+      sum_pow_three_mul_tail_le N τ hτ
+    _ ≤ (3 / 2 : ℝ) * (3 ^ N *
+        ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l) :=
+      mul_le_mul_of_nonneg_left hsum (by norm_num)
+    _ = _ := by ring
+
 end EinsteinFull.Homogenization
