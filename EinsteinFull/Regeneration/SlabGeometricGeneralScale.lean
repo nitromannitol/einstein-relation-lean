@@ -27,4 +27,23 @@ theorem slabGeometricRadius_gradient_le_of_lt (n N : ℕ) (s L : ℝ) (j : ℕ)
   rw [heq]
   nlinarith
 
+/-- Every fixed geometric radius eventually exceeds one. -/
+theorem exists_large_slabGeometricRadius (n N : ℕ) (s : ℝ) (hs : 0 < s) :
+    ∃ L₀ : ℝ, 0 < L₀ ∧ ∀ L : ℝ, L₀ ≤ L → 1 < slabGeometricRadius n s L N := by
+  let d : ℝ := n + 1
+  let M : ℝ := (2 : ℝ) ^ N
+  have hd : 0 < d := by dsimp [d]; positivity
+  have hM : 0 < M := by dsimp [M]; positivity
+  refine ⟨max 1 (M * d / s), by positivity, ?_⟩
+  intro L hL
+  have hLbound : M * d / s ≤ L := (le_max_right _ _).trans hL
+  have hscale : M ≤ s * L / d := by
+    apply (le_div_iff₀ hd).2
+    have h := (div_le_iff₀ hs).1 hLbound
+    nlinarith
+  have hexp := Real.add_one_le_exp (s * L / d)
+  change 1 < Real.exp (s * L / d) / M
+  apply (lt_div_iff₀ hM).2
+  nlinarith
+
 end EinsteinFull.Regeneration
