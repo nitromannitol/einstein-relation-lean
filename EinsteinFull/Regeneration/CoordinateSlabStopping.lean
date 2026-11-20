@@ -23,7 +23,7 @@ theorem coordinateSlabExit_le_iff_of_prefix {d : ℕ} (γ η : Path d) (i : Fin 
     (isOpen_coordinateSlab i 0 r),
     MarkovProcess.ContinuousPath.exitTime_le_iff_mem_hitsSetBy _
     (isOpen_coordinateSlab i 0 r)]
-  simp only [MarkovProcess.ContinuousPath.hitsSetBy, Set.mem_setOf_eq]
+  simp only [MarkovProcess.ContinuousPath.hitsSetBy, Set.mem_ofPred_eq]
   have hzero : γ 0 = η 0 := hprefix 0 (by positivity)
   constructor <;> rintro ⟨s, hs⟩ <;> refine ⟨s, ?_⟩
   · simpa only [initialRecenteredPath, ContinuousMap.coe_mk, hprefix s s.property, hzero] using hs
@@ -34,7 +34,7 @@ theorem measurable_stoppedPath_canonicalHistory {d : ℕ} (T : ℝ≥0) :
     @Measurable (Path d) (Path d)
       (MarkovProcess.ContinuousPath.canonicalFiltration (alpha := Vec d) T)
       (borel (Path d)) (MarkovProcess.ContinuousPath.stoppedPath T) := by
-  letI : MeasurableSpace (Path d) :=
+  let : MeasurableSpace (Path d) :=
     MarkovProcess.ContinuousPath.canonicalFiltration (alpha := Vec d) T
   apply ContinuousMap.measurable_iff_eval.mpr
   intro t
