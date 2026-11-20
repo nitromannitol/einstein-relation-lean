@@ -189,6 +189,10 @@ theorem exists_originCube_superset_of_isCompact {k : Set (Vec d)} (hk : IsCompac
   · have := le_abs_self (x i)
     linarith
 
+theorem cubeVolume_originCube (n : ℕ) :
+    cubeVolume (originCube d (n : ℤ)) = ((3 : ℝ) ^ n) ^ d := by
+  rw [cubeVolume_eq_scaleFactor_pow, cubeScaleFactor_originCube]
+
 /-- A whole-space weak solution of a divergence-form equation whose coefficient is measurable
 and `(1, K)`-elliptic at every point, with locally square integrable value and gradient. -/
 structure EllipticWholeSpaceSolution (d : ℕ) (K : ℝ) where
@@ -322,10 +326,6 @@ def cubeH1 [NeZero d] (e : Vec d) (n : ℕ) : H1Function (openCubeSet (originCub
     exact h.sub (memLp_const (e i))
   hasWeakGradient := (s.hasWeakGradientOn_corrector e).restrict (isOpen_openCubeSet _)
     (Set.subset_univ _)
-
-theorem cubeVolume_originCube (n : ℕ) :
-    cubeVolume (originCube d (n : ℤ)) = ((3 : ℝ) ^ n) ^ d := by
-  rw [cubeVolume_eq_scaleFactor_pow, cubeScaleFactor_originCube]
 
 /-- The normalized Caccioppoli inequality on origin cubes. -/
 theorem cubeAverage_Dv_le [NeZero d] (hK : 1 ≤ K) (n : ℕ) (k : ℝ) :
