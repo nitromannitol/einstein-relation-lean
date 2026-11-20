@@ -34,4 +34,25 @@ theorem ae_tendsto_slab_slice_sq_of_summable {Z : Type*} [MeasurableSpace Z]
   filter_upwards [PDE.ae_summable_of_summable_integral_norm hE hs] with z hz
   exact hz.tendsto_atTop_zero
 
+/-- Dyadically summable product errors vanish on almost every closed line segment. -/
+theorem ae_tendsto_slab_slice_sq_of_summable_dyadic {Z : Type*} [MeasurableSpace Z]
+    (ν : Measure Z) [IsFiniteMeasure ν] (L : ℝ) (f : ℕ → ℝ × Z → ℝ)
+    (hf : ∀ n, MemLp (f n) 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hsum : Summable fun n => (2 : ℝ) ^ n *
+      ∫ p, (f n p) ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν)) :
+    ∀ᵐ z ∂ν, Tendsto (fun n => ∫ t in Icc 0 L, (f n (t, z)) ^ 2)
+      atTop (𝓝 0) := by
+  have hs : Summable fun n => ∫ p, (f n p) ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν) := by
+    refine Summable.of_nonneg_of_le (fun _ => integral_nonneg fun _ => sq_nonneg _) ?_ hsum
+    intro n
+    calc
+      (∫ p, (f n p) ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν)) =
+          1 * ∫ p, (f n p) ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν) := by ring
+      _ ≤ (2 : ℝ) ^ n *
+          ∫ p, (f n p) ^ 2 ∂((volume.restrict (Ioc 0 L)).prod ν) :=
+        mul_le_mul_of_nonneg_right (one_le_pow₀ (by norm_num))
+          (integral_nonneg fun _ => sq_nonneg _)
+  filter_upwards [ae_tendsto_slab_slice_sq_of_summable ν L f hf hs] with z hz
+  simpa only [integral_Icc_eq_integral_Ioc] using hz
+
 end EinsteinFull.Regeneration
