@@ -49,4 +49,25 @@ theorem integral_mul_kernel_eq_inner (hP : Draft.IsDFGWTrajectoryProcess P μ T)
   rw [hx]
   simp only [RCLike.inner_apply, starRingEnd_apply, star_trivial, mul_comm]
 
+/-- Kernel correlations are symmetric for square-integrable observables. -/
+theorem integral_mul_kernel_comm (hP : Draft.IsDFGWTrajectoryProcess P μ T) (t : ℝ≥0)
+    (f g : S → ℝ) (hf : MemLp f 2 μ) (hg : MemLp g 2 μ) :
+    (∫ x, f x * ∫ y, g y ∂T t x ∂μ) = ∫ x, g x * ∫ y, f y ∂T t x ∂μ := by
+  rw [integral_mul_kernel_eq_inner hP t f g hf hg,
+    integral_mul_kernel_eq_inner hP t g f hg hf]
+  rw [← inner_transitionOperator hP t (hf.toLp f) (hg.toLp g), real_inner_comm]
+
+/-- Diagonal kernel correlations control absolute integrability of the mixed correlation. -/
+theorem integrableOn_kernel_correlation_of_diagonal (hP : Draft.IsDFGWTrajectoryProcess P μ T)
+    (f g : S → ℝ) (hf : MemLp f 2 μ) (hg : MemLp g 2 μ)
+    (hff : IntegrableOn (fun t : ℝ => ∫ x, f x * ∫ y, f y ∂T t.toNNReal x ∂μ)
+      (Set.Ioi 0))
+    (hgg : IntegrableOn (fun t : ℝ => ∫ x, g x * ∫ y, g y ∂T t.toNNReal x ∂μ)
+      (Set.Ioi 0)) :
+    IntegrableOn (fun t : ℝ => ∫ x, f x * ∫ y, g y ∂T t.toNNReal x ∂μ) (Set.Ioi 0) := by
+  simp_rw [integral_mul_kernel_eq_inner hP _ f f hf hf] at hff
+  simp_rw [integral_mul_kernel_eq_inner hP _ g g hg hg] at hgg
+  simp_rw [integral_mul_kernel_eq_inner hP _ f g hf hg]
+  exact integrableOn_mixed_correlation hP (hf.toLp f) (hg.toLp g) hff hgg
+
 end EinsteinFull.External.DFGW
