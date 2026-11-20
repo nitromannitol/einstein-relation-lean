@@ -1,5 +1,6 @@
 import EinsteinFull.Homogenization.OpenCubeEnergyMeasurability
 import EinsteinFull.Homogenization.SourceDirichletTranslation
+import Homogenization.Geometry.TriadicCubeTranslation
 
 /-!
 # Stationary Dirichlet energies
@@ -54,5 +55,34 @@ theorem sourceDirichletEnergy_stationary_expectation {d : ℕ} [NeZero d] {K : �
           (by rw [hmp.map_eq]; exact hf.aestronglyMeasurable)
         rw [hmp.map_eq] at hmap
         exact hmap.symm
+
+/-- At a nonnegative scale, every triadic cube is an integer translate of the
+centered source cube at that scale. -/
+theorem openCubeSet_eq_latticeTranslate_sourceTriadicCube {d : ℕ}
+    (Q : TriadicCube d) (n : ℕ) (hscale : Q.scale = n) :
+    openCubeSet Q = translateSet
+      (latticeShift (fun i => Q.index i * (3 : ℤ) ^ n))
+      (EinsteinRelation.External.AKM.sourceTriadicCube d n) := by
+  rw [sourceTriadicCube_eq_openCubeSet, ← hscale,
+    openCubeSet_eq_translateSet_originCube_of_triadicCube]
+  congr 1
+  funext i
+  simp [latticeShift, triadicCubeShift, cubeScaleFactor, hscale, zpow_natCast]
+
+/-- Stationarity makes expected Dirichlet energies independent of the cube
+position at every nonnegative triadic scale. -/
+theorem sourceDirichletEnergy_expected_eq_origin {d : ℕ} [NeZero d] {K : ℝ}
+    (hK : 0 ≤ K) (P : Measure (Coefficient d K)) [IsFiniteMeasure P]
+    (hP : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
+    (Q : TriadicCube d) (n : ℕ) (hscale : Q.scale = n) (e : Vec d) :
+    (∫ a, EinsteinRelation.External.AKM.sourceDirichletEnergy a (openCubeSet Q) e ∂P) =
+      ∫ a, EinsteinRelation.External.AKM.sourceDirichletEnergy a
+        (EinsteinRelation.External.AKM.sourceTriadicCube d n) e ∂P := by
+  let z : LatticeIndex d := fun i => Q.index i * (3 : ℤ) ^ n
+  have h := sourceDirichletEnergy_stationary_expectation hK P z (hP z)
+    (originCube d (n : ℤ)) e
+  rw [← sourceTriadicCube_eq_openCubeSet d n] at h
+  rw [openCubeSet_eq_latticeTranslate_sourceTriadicCube Q n hscale]
+  exact h.2
 
 end EinsteinFull.Homogenization
