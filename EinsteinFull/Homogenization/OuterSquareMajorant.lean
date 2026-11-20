@@ -1,9 +1,9 @@
 import EinsteinFull.Homogenization.SourceOptimizerFlatnessGeometric
 
 /-!
-# Outer second moments from measurable majorants
+# Lower second moments from measurable majorants
 
-A square-integrable majorant bounds the extended nonnegative integral of a
+A square-integrable majorant bounds the lower Lebesgue integral of a
 nonnegative observable, without requiring a measurable representative for the
 observable itself.
 -/
@@ -13,7 +13,7 @@ open MeasureTheory
 namespace EinsteinFull.Homogenization
 
 /-- A nonnegative pointwise observable dominated by a square-integrable
-majorant has a bounded extended nonnegative second moment. -/
+majorant has a bounded lower second moment. -/
 theorem lintegral_sq_le_of_squareIntegrable_majorant
     {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) (f H : Ω → ℝ) (C B : ℝ)
     (hC : 0 ≤ C) (hf : ∀ a, 0 ≤ f a) (hH : ∀ a, 0 ≤ H a)
