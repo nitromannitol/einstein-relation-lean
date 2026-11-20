@@ -35,4 +35,45 @@ theorem slab_shell_substitution (Ein P α β T S lam A B E : ℝ)
   rw [← heq]
   linarith
 
+
+/-- Normalize the explicit cutoff coefficients when the cutoff gradient is
+bounded by a constant times the small exponential scale. -/
+theorem slab_shell_coefficients_le (lam Λ C ε K D L : ℝ)
+    (hlam : 0 < lam) (hΛ : 0 ≤ Λ) (hC : 0 ≤ C) (hε : 0 ≤ ε) (hε1 : ε ≤ 1)
+    (hK : 0 ≤ K) (hKC : K ≤ C * ε) (hD : 0 ≤ D) (hL : 1 ≤ L) :
+    let α := Λ * (K ^ 2 + K)
+    let β := 2 * Λ * K
+    (Λ + α + β) * (D * ε) ≤ D * Λ * (1 + C ^ 2 + 3 * C) * ε ∧
+    (α * (2 * L) ^ 2 + β) / lam ≤
+      (Λ * (4 * C ^ 2 + 6 * C) / lam) * L ^ 2 * ε := by
+  dsimp only
+  have hCε : C * ε ≤ C := by nlinarith [mul_nonneg hC (sub_nonneg.mpr hε1)]
+  have hKleC : K ≤ C := hKC.trans hCε
+  have hsq' := mul_le_mul hKC hKleC hK (mul_nonneg hC hε)
+  have hsq : K ^ 2 ≤ C ^ 2 * ε := by nlinarith [hsq']
+  have hα : Λ * (K ^ 2 + K) ≤ Λ * (C ^ 2 + C) * ε := by
+    have h := mul_le_mul_of_nonneg_left (add_le_add hsq hKC) hΛ
+    nlinarith
+  have hβ : 2 * Λ * K ≤ 2 * Λ * C * ε := by
+    have h := mul_le_mul_of_nonneg_left hKC (mul_nonneg (show (0 : ℝ) ≤ 2 by norm_num) hΛ)
+    nlinarith
+  have hP : 0 ≤ Λ * (C ^ 2 + 3 * C) := by positivity
+  have hcoef : Λ + Λ * (K ^ 2 + K) + 2 * Λ * K ≤ Λ * (1 + C ^ 2 + 3 * C) := by
+    have h := mul_le_mul_of_nonneg_left hε1 hP
+    nlinarith [hα, hβ]
+  have hLsq : 1 ≤ L ^ 2 := by nlinarith
+  have hβscale : 2 * Λ * K ≤ 2 * Λ * C * ε * L ^ 2 := by
+    have hp : 0 ≤ 2 * Λ * C * ε := by positivity
+    nlinarith [hβ, mul_nonneg hp (sub_nonneg.mpr hLsq)]
+  have hαscale := mul_le_mul_of_nonneg_right hα (sq_nonneg (2 * L))
+  have hcoefB : Λ * (K ^ 2 + K) * (2 * L) ^ 2 + 2 * Λ * K ≤
+      Λ * (4 * C ^ 2 + 6 * C) * L ^ 2 * ε := by nlinarith [hαscale, hβscale]
+  constructor
+  · have h := mul_le_mul_of_nonneg_right hcoef (mul_nonneg hD hε)
+    nlinarith
+  · have h := div_le_div_of_nonneg_right hcoefB hlam.le
+    have heq : (Λ * (4 * C ^ 2 + 6 * C) * L ^ 2 * ε) / lam =
+        (Λ * (4 * C ^ 2 + 6 * C) / lam) * L ^ 2 * ε := by ring
+    simpa only [heq] using h
+
 end EinsteinFull.Regeneration
