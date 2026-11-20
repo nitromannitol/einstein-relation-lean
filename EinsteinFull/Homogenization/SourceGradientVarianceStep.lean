@@ -93,4 +93,53 @@ theorem variance_sourceGradient_le_child_variance_add_response_decrement
         (mul_le_mul_of_nonneg_left hchild (by linarith : 0 ≤ 1 + δ))
         (mul_le_mul_of_nonneg_left hz (by positivity : 0 ≤ 1 + δ⁻¹))
 
+
+/-- The optimizer-gradient variance satisfies a strict one-step contraction
+with a dimension-dependent coefficient and a response-decrement error. -/
+theorem variance_sourceGradient_le_contraction_add_response_decrement
+    {d : ℕ} [NeZero d] {K : ℝ} (hK : 0 ≤ K)
+    (P : Measure (Coefficient d K)) [IsProbabilityMeasure P] (hP : AKMFiniteRange P)
+    (hstat : ∀ z : LatticeIndex d, Measure.map (translateCoefficient (latticeShift z)) P = P)
+    (Q : TriadicCube d) (n k : ℕ) (hscale : Q.scale = (n : ℤ) + 2)
+    (hk : K ≤ (k : ℝ) + 1) (p q : Vec d) (i : Fin d) :
+    let η : ℝ := (((3 ^ d : ℕ) : ℝ)⁻¹) ^ 2
+    let X := fun a => Book.Ch04.canonicalScalarResponseGradientAverageCubeSet Q Q p q
+      (regularCoefficient a).toFun i
+    let V := ProbabilityTheory.variance (fun a => Book.Ch02.averageGradient
+      (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ)))
+      (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ))) k hk)
+      (Book.Ch02.canonicalMaximizer
+        (Book.Ch02.responseExistenceTheory
+          (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ)))
+          (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ))) k hk))
+        p q).toSolution i) P
+    ProbabilityTheory.variance X P ≤
+      (1 - η / 2) * V + (1 + 2 / η) * ((4 * d) *
+        ((∫ a, Book.Ch02.responseJ (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ)))
+          (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ))) k hk) p q ∂P) -
+         (∫ a, Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
+          (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) p q ∂P))) := by
+  intro η X V
+  have hη : 0 < η := by dsimp [η]; positivity
+  let δ : ℝ := η / 2
+  have hδ : 0 < δ := by dsimp [δ]; positivity
+  have hδinv : δ⁻¹ = 2 / η := by dsimp [δ]; field_simp
+  have hcoeff : (1 + δ) * (1 - η) ≤ 1 - η / 2 := by
+    dsimp [δ]
+    nlinarith [sq_nonneg η]
+  have hV : 0 ≤ V := ProbabilityTheory.variance_nonneg _ _
+  let E : ℝ := (4 * d) *
+    ((∫ a, Book.Ch02.responseJ (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ)))
+      (sourceCoeffOn a (Book.Ch02.cubeDomain (originCube d ((n + 1 : ℕ) : ℤ))) k hk) p q ∂P) -
+     (∫ a, Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
+      (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) p q ∂P))
+  change ProbabilityTheory.variance X P ≤ (1 - η / 2) * V + (1 + 2 / η) * E
+  have hstep := variance_sourceGradient_le_child_variance_add_response_decrement
+    hK P hP hstat Q n k hscale hk p q i δ hδ
+  dsimp only at hstep
+  change ProbabilityTheory.variance X P ≤ (1 + δ) * (1 - η) * V + (1 + δ⁻¹) * E at hstep
+  rw [hδinv] at hstep
+  have hmul := mul_le_mul_of_nonneg_right hcoeff hV
+  nlinarith
+
 end EinsteinFull.Homogenization
