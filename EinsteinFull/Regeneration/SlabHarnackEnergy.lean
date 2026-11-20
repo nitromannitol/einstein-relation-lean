@@ -61,6 +61,52 @@ theorem continuous_centralSlabPoint (n : ℕ) (i : Fin (n + 1)) (z : Fin n → �
     rw [hk]
     exact continuous_const
 
+/-- For large enough sides, the source slab box contains every comparison ball. -/
+theorem central_comparison_ball_subset_slab_box (n : ℕ) (i : Fin (n + 1))
+    (s L : ℝ) (z : Fin n → ℝ)
+    (hz : z ∈ Icc (fun _ : Fin n => (-1 : ℝ)) (fun _ => 1))
+    (hL : Real.sqrt (8 * ((n + 1 : ℕ) : ℝ)) + 1 ≤ L)
+    (hT : Real.sqrt (8 * ((n + 1 : ℕ) : ℝ)) + 1 ≤
+      Real.exp (s * L / (n + 1))) :
+    PDE.euclideanBall
+      ((1 / 2 : ℝ) • ((0 : PDE.Vec (n + 1)) + centralSlabPoint n i (0, z)))
+      (Real.sqrt (8 * ((n + 1 : ℕ) : ℝ))) ⊆ coordinateSlabBox n i s L := by
+  let R : ℝ := Real.sqrt (8 * ((n + 1 : ℕ) : ℝ))
+  let center : PDE.Vec (n + 1) :=
+    (1 / 2 : ℝ) • ((0 : PDE.Vec (n + 1)) + centralSlabPoint n i (0, z))
+  have hR : 0 < R := by dsimp [R]; positivity
+  have hcenter (j : Fin (n + 1)) : |center j| ≤ 1 / 2 := by
+    have hzj := centralSlabPoint_abs_le_one n i z hz j
+    dsimp only [center, Pi.smul_apply, smul_eq_mul, Pi.add_apply, Pi.zero_apply, zero_add]
+    rw [abs_mul, abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2)]
+    simp only [zero_add]
+    nlinarith
+  intro y hy
+  have hyR := (PDE.mem_euclideanBall_iff_vecEuclideanNorm_lt hR).1 hy
+  have hycoord (j : Fin (n + 1)) : |y j| < R + 1 := by
+    have h := (PDE.abs_apply_le_vecEuclideanNorm (y - center) j).trans_lt hyR
+    have hc := abs_le.mp (hcenter j)
+    have ht := abs_lt.mp h
+    simp only [Pi.sub_apply] at ht
+    apply abs_lt.mpr
+    constructor <;> linarith
+  change (MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) i y) ∈
+    Icc (-L) L ×ˢ Icc (fun _ => -Real.exp (s * L / (n + 1)))
+      (fun _ => Real.exp (s * L / (n + 1)))
+  constructor
+  · have hi := abs_lt.mp (hycoord i)
+    change -L ≤ y i ∧ y i ≤ L
+    constructor <;> linarith
+  · constructor
+    · intro j
+      have hj := abs_lt.mp (hycoord (i.succAbove j))
+      change -Real.exp (s * L / (n + 1)) ≤ y (i.succAbove j)
+      linarith
+    · intro j
+      have hj := abs_lt.mp (hycoord (i.succAbove j))
+      change y (i.succAbove j) ≤ Real.exp (s * L / (n + 1))
+      linarith
+
 /-- Harnack supplies a uniform central gap for the physical central-slab energy bound. -/
 theorem exists_central_slab_energy_lower_of_harnack
     (n : ℕ) (lam Λ s : ℝ) (hlam : 0 < lam) (hΛ : lam ≤ Λ) (hs : 0 < s) :
