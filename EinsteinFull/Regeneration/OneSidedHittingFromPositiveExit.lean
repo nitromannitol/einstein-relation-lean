@@ -60,4 +60,43 @@ theorem uniform_supplied_one_sided_hitting_of_positive_exit
       exact Real.exp_le_exp.mpr harg
     _ ≤ ENNReal.ofReal (1 / 15 : ℝ) := ENNReal.ofReal_le_ofReal hexp
 
+/-- GMP's one-sided time bound holds uniformly for starts in the slab. -/
+theorem uniform_supplied_slab_to_upper_hitting_of_positive_exit
+    (d : ℕ) (hd : 2 ≤ d) (Λ r L : ℝ) (hL : 1 ≤ L) :
+    ∃ g : ℝ, 0 < g ∧
+      ∀ (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+        (P : QuenchedPathLaws d),
+        IsGMPReducedKernel hd Q.ellipticity_parameter Q μ hμ.le hμ1 P →
+        (∀ᵐ ω ∂Q.measure, ∀ y : Vec d, (2 / 3 : ℝ) ≤ (P (y, ω)).real {γ |
+          coordinateSlabExit γ (Renewal.forceCoord hd) (L / μ) ≠ ⊤ ∧
+          γ (coordinateSlabExit γ (Renewal.forceCoord hd) (L / μ)).toNNReal
+            (Renewal.forceCoord hd) - γ 0 (Renewal.forceCoord hd) = L / μ}) →
+        ∀ᵐ ω ∂Q.measure, ∀ x : Vec d,
+          -(L / μ) ≤ x (Renewal.forceCoord hd) → x (Renewal.forceCoord hd) ≤ L / μ →
+          P (x, ω) {γ | (Real.toNNReal (g / μ ^ 2) : ℝ≥0∞) ≤
+            firstHittingAbove γ (Renewal.forceCoord hd)
+              (L / μ - γ 0 (Renewal.forceCoord hd))} ≤ ENNReal.ofReal (1 / 15 : ℝ) := by
+  obtain ⟨g, hg, hforward⟩ := uniform_supplied_one_sided_hitting_of_positive_exit d hd Λ r L hL
+  refine ⟨g, hg, ?_⟩
+  intro Q μ hμ hμ1 P hP hpositive
+  filter_upwards [hP, hforward Q μ hμ hμ1 P hP hpositive] with ω hω hbound
+  obtain ⟨hω, G, hrow⟩ := hω
+  intro x hxlo hxhi
+  have ha : 0 ≤ L / μ - x (Renewal.forceCoord hd) := sub_nonneg.mpr hxhi
+  have hscale : μ * (L / μ - x (Renewal.forceCoord hd)) ≤ 2 * L := by
+    have h := mul_le_mul_of_nonneg_left hxlo hμ.le
+    have he : μ * (L / μ) = L := by field_simp
+    nlinarith
+  have hstart : ∀ᵐ γ ∂P (x, ω), γ 0 = x := by
+    rw [hrow x]
+    exact G.pathLaw_starts_at x
+  calc
+    _ ≤ P (x, ω) {γ | (Real.toNNReal (g / μ ^ 2) : ℝ≥0∞) ≤
+        firstHittingAbove γ (Renewal.forceCoord hd) (L / μ - x (Renewal.forceCoord hd))} := by
+      apply measure_mono_ae
+      filter_upwards [hstart] with γ hγ
+      simp only [hγ]
+      exact le_rfl
+    _ ≤ _ := hbound x _ ha hscale
+
 end EinsteinFull.Regeneration
