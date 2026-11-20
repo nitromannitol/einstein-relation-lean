@@ -14,6 +14,11 @@ require «MarkovProcess» from git
 require «CoarseGraining» from git
   "https://github.com/scottnarmstrong/CoarseGraining" @ "310d1a6bab3ba2d398cdaffec32f3c9d4b5a24be"
 
+-- Homogenization at a polynomial scale in high contrast (Armstrong, Kuusi, Loher): non-isotropic
+-- quantitative homogenization, first-order correctors, Liouville theorem, large-scale regularity.
+require «HighContrastHomogenization» from git
+  "https://github.com/scottnarmstrong/HighContrastHomogenization" @ "7a13dbcd8d6609264a713373f5c69ceeac870472"
+
 -- De Giorgi–Nash–Moser, Harnack, parabolic Caccioppoli, Nash–Aronson, Schauder.
 require «elliptic_regularity» from git
   "https://github.com/scottnarmstrong/EllipticRegularityLean" @ "1e29da02bcc6e3c2359a5b8e0559e76d02ec4002"
