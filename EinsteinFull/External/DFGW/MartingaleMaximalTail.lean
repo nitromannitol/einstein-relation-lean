@@ -25,7 +25,7 @@ theorem tendsto_measureReal_max_martingale_increment_sq
       fun η => N t (Draft.dfgwShift s η)) (e : Vec d) {δ : ℝ} (hδ : 0 < δ) :
     Tendsto (fun n : ℕ => P.real {η | ∃ k < n, δ * n ≤
       (dot e (N ((k : ℝ≥0) + 1) η - N k η)) ^ 2}) atTop (𝓝 0) := by
-  letI : IsProbabilityMeasure P := hP.probability
+  let : IsProbabilityMeasure P := hP.probability
   let L : Vec d →L[ℝ] ℝ := ∑ i : Fin d, (e i) • ContinuousLinearMap.proj i
   have hL (v : Vec d) : L v = dot e v := by
     simp only [L, sum_apply, smul_apply, ContinuousLinearMap.proj_apply, smul_eq_mul, dot]
