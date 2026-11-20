@@ -200,7 +200,7 @@ theorem rpow_two_add_two_mul_eq (N : ℕ) {ϑ : ℝ} :
 exponent `1 + ϑ` bounds the square averages on the origin cube of side `3ᴺ` by a constant
 times `9ᴺ (3^(2ϑ))ᴺ` for all large `N`. -/
 theorem exists_cube_growth_of_liouvilleGrowth [NeZero d] {v : Vec d → ℝ}
-    (hvmeas : AEStronglyMeasurable v volume) {ϑ : ℝ} (hϑ : 0 ≤ ϑ)
+    (hvmeas : AEStronglyMeasurable v volume) {ϑ : ℝ}
     (hgrowth : Tendsto (fun r : ℝ => ENNReal.ofReal (r ^ (-(1 + ϑ))) *
       normalizedL2Norm (euclideanBall d r) v) atTop (𝓝 0)) :
     ∃ (Cg : ℝ) (Ng : ℕ), 0 ≤ Cg ∧ ∀ N, Ng ≤ N →
@@ -369,7 +369,7 @@ theorem HighContrastCorrectorPackage.exists_cube_growth [NeZero d]
     have : (0 : ℝ) ≤ d := Nat.cast_nonneg d
     linarith
   have hL := pk.memLiouvilleClass_affine hb e ⟨hϑ0, hϑ1⟩
-  obtain ⟨Cg, Ng, hCg, hgrowth⟩ := exists_cube_growth_of_liouvilleGrowth hL.1.1.1 hϑ0.le hL.2.2
+  obtain ⟨Cg, Ng, hCg, hgrowth⟩ := exists_cube_growth_of_liouvilleGrowth hL.1.1.1 hL.2.2
   refine ⟨(3 : ℝ) ^ (2 * ϑ), Cg, Ng, Real.one_le_rpow (by norm_num) (by positivity), ?_, hCg,
     hgrowth⟩
   rw [← Real.rpow_mul_natCast (by norm_num)]
