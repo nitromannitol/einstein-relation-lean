@@ -1,4 +1,6 @@
 import EinsteinFull.Regeneration.TrialContraction
+import EinsteinFull.Frozen.RegenerationTime
+import EinsteinFull.Frozen.RegenerationNoReturn
 
 /-!
 # Exponential moment of the first regeneration endpoint
@@ -143,5 +145,41 @@ theorem uniform_first_regeneration_endpoint_moment (d : ℕ) (hd : 2 ≤ d) (Λ 
           (Renewal.forceCoord hd) n q.2 ∂annealedCoupledLaw Q.measure K := by
       gcongr
     exact h.trans hfinal
+
+
+/-- GMP Lemma 5.8, (5.22) and (5.20) for the split coupling, conditional only on the
+positive slab-exit estimate of GMP Lemma 4.3: the no-return probability is at least
+one half and the first regeneration time has an exponential tail on the scale `λ⁻²`. -/
+theorem first_regeneration_bounds_of_positive_exit (d : ℕ) (hd : 2 ≤ d) (Λ r L : ℝ)
+    (hL : 1 ≤ L) :
+    ∃ l₀ : ℝ, 0 < l₀ ∧ r < 2 * l₀ ∧
+    ∀ l : ℝ, l₀ ≤ l → ∀ δ : ℝ, 0 < δ → δ < 1 →
+    ∃ c C : ℝ, 0 < c ∧ 0 < C ∧
+    ∀ (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+      (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d),
+      IsRegenerationCoupling hd Q μ l δ hμ.le hμ1 P K →
+      (∀ᵐ ω ∂Q.measure, ∀ y : Vec d, (2 / 3 : ℝ) ≤ (P (y, ω)).real {γ |
+        coordinateSlabExit γ (Renewal.forceCoord hd) (L / μ) ≠ ⊤ ∧
+        γ (coordinateSlabExit γ (Renewal.forceCoord hd) (L / μ)).toNNReal
+          (Renewal.forceCoord hd) - γ 0 (Renewal.forceCoord hd) = L / μ}) →
+      ENNReal.ofReal (1 / 2 : ℝ) ≤
+        annealedCoupledLaw Q.measure K (regenerationNoReturn hd (l / μ)) ∧
+      ∀ t : ℝ, 0 ≤ t →
+        annealedCoupledLaw Q.measure K {q | ENNReal.ofReal t < regenerationTime hd μ l 1 q.2} ≤
+          ENNReal.ofReal (C * Real.exp (-c * μ ^ 2 * t)) := by
+  obtain ⟨l₁, hl₁, hsep₁, hbounds⟩ :=
+    first_regeneration_bounds_of_positive_exit_and_moment d hd Λ r L hL
+  obtain ⟨l₂, hl₂, hmoment⟩ := uniform_first_regeneration_endpoint_moment d hd Λ r L hL
+  refine ⟨max l₁ l₂, lt_of_lt_of_le hl₁ (le_max_left _ _),
+    lt_of_lt_of_le hsep₁ (by linarith [le_max_left l₁ l₂]), ?_⟩
+  intro l hl δ hδ0 hδ1
+  have hl₁' : l₁ ≤ l := (le_max_left _ _).trans hl
+  have hsep : r < 2 * l := lt_of_lt_of_le hsep₁ (by linarith)
+  obtain ⟨s, D, hs, hD, hmom⟩ := hmoment l δ ((le_max_right _ _).trans hl) hsep hδ0 hδ1
+  obtain ⟨c, C, hc, hC, hfinal⟩ := hbounds l δ hl₁' hδ0 hδ1 s D hs hD
+  refine ⟨c, C, hc, hC, ?_⟩
+  intro Q μ hμ hμ1 P K hK hpos
+  obtain ⟨hint, hle⟩ := hmom Q μ hμ hμ1 P K hK hpos
+  exact hfinal Q μ hμ hμ1 P K hK hpos hint hle
 
 end EinsteinFull.Regeneration
