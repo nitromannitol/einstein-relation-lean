@@ -58,7 +58,7 @@ theorem variance_sum_le_of_independent_pair {Ω ι : Type*} [MeasurableSpace Ω]
           if i = i₀ then V else 0 := by
         by_cases h : i = i₀ <;> simp [h]
       simp_rw [hi]
-      simp only [Finset.sum_ite_eq', Finset.mem_univ, if_true]
+      simp only [Finset.sum_ite_eq', Finset.mem_univ, ite_true]
       ring
 
 /-- Averaging a finite equal-variance family with an independent pair contracts
@@ -70,7 +70,7 @@ theorem variance_average_le_of_independent_pair {Ω ι : Type*} [MeasurableSpace
     (i₀ j₀ : ι) (hij : ProbabilityTheory.IndepFun (X i₀) (X j₀) P) :
     ProbabilityTheory.variance ((Fintype.card ι : ℝ)⁻¹ • (∑ i, X i)) P ≤
       (1 - (Fintype.card ι : ℝ)⁻¹ ^ 2) * V := by
-  letI : Nonempty ι := ⟨i₀⟩
+  let : Nonempty ι := ⟨i₀⟩
   have hn : (Fintype.card ι : ℝ) ≠ 0 := by
     exact_mod_cast Fintype.card_ne_zero
   rw [ProbabilityTheory.variance_smul]

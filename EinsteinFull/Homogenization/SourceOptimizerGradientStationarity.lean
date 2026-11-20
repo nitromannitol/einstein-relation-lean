@@ -64,7 +64,7 @@ theorem sourceResponseAverageGradient_cube_eq_origin {d : â„•} [NeZero d] {K : â
     (Book.Ch02.responseSymmetricDirichletNeumannTheory
       (Book.Ch02.cubeDomain R) (sourceCoeffOn b (Book.Ch02.cubeDomain R) k hk)
       (sourceCoeffOn_isSymmetric b (Book.Ch02.cubeDomain R) k hk)).kappa_eq_zero
-  simp only [hz, matVecMul_zero, add_zero, Pi.add_apply, Pi.neg_apply]
+  simp only [hz, Pi.add_apply, Pi.neg_apply]
   congr 1
   simp only [matVecMul]
   apply Finset.sum_congr rfl
