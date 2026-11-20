@@ -1,4 +1,5 @@
 import EinsteinFull.Homogenization.MultiscalePoincareTruncation
+import Homogenization.Sobolev.Foundations.CubeBesovPoincare.W12LocalPoincare
 
 /-!
 # Vector-valued block averages
@@ -38,5 +39,35 @@ theorem integrable_and_originCubeBesovDepth_le_vector
     apply descendantsAverage_le_descendantsAverage
     intro R _
     exact sq_apply_le_vecNormSq (fun l => cubeAverage R (fun x => G x l)) i
+
+/-- The Euclidean length of an `H¹` gradient is in normalized `L²`, and its
+norm controls every coordinate `L²` norm. -/
+theorem memLp_and_cubeLpNorm_grad_coord_le_euclidean
+    {d : ℕ} [NeZero d] (Q : TriadicCube d) (u : H1Function (openCubeSet Q)) :
+    MemLp (fun x => euclideanNorm (u.grad x)) (2 : ℝ≥0∞) (normalizedCubeMeasure Q) ∧
+    ∀ i, cubeLpNorm Q (2 : ℝ≥0∞) (fun x => u.grad x i) ≤
+      cubeLpNorm Q (2 : ℝ≥0∞) (fun x => euclideanNorm (u.grad x)) := by
+  let v : W1pFunction (openCubeSet Q) (2 : ℝ≥0∞) :=
+    { toFun := u.toFun
+      grad := u.grad
+      memLp := u.memL2
+      gradMemLp := u.gradMemL2
+      hasWeakGradient := u.hasWeakGradient }
+  let U : BoundedMeasurableDomain d :=
+    (isOpenBoundedConvexDomain_openCubeSet Q).toBoundedMeasurableDomain
+      (Book.Ch02.openCubeSet_nonempty Q)
+  have hm : MemLp (fun x => euclideanNorm (u.grad x)) (2 : ℝ≥0∞)
+      (normalizedCubeMeasure Q) := by
+    simpa only [U, v, openCubeSet_boundedMeasurableDomain_normalizedVolume_eq_normalizedCubeMeasure]
+      using v.gradEuclideanMemLp U (2 : ℝ≥0∞)
+  refine ⟨hm, ?_⟩
+  intro i
+  unfold cubeLpNorm
+  apply ENNReal.toReal_mono hm.eLpNorm_ne_top
+  apply eLpNorm_mono_ae (u.grad_coord_memL2_normalizedCubeMeasure i).aestronglyMeasurable
+  filter_upwards [] with x
+  have h := Real.sqrt_le_sqrt (sq_apply_le_vecNormSq (u.grad x) i)
+  simpa only [euclideanNorm, Real.sqrt_sq_eq_abs, Real.norm_eq_abs,
+    abs_of_nonneg (Real.sqrt_nonneg _)] using h
 
 end EinsteinFull.Homogenization
