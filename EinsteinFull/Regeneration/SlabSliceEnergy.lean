@@ -107,4 +107,36 @@ theorem slab_coercive_energy_lower_of_weak_slices {Z : Type*} [MeasurableSpace Z
     simpa only [← hinc] using hgap
   · exact hcoercive
 
+/-- Product square-integrability gives square-integrable sections almost everywhere. -/
+theorem memLp_slab_slice_ae {Z : Type*} [MeasurableSpace Z]
+    (ν : Measure Z) [IsFiniteMeasure ν] (L : ℝ) (f : ℝ × Z → ℝ)
+    (hf : MemLp f 2 ((volume.restrict (Ioc 0 L)).prod ν)) :
+    ∀ᵐ z ∂ν, MemLp (fun t => f (t, z)) 2 (volume.restrict (Ioc 0 L)) := by
+  have hmeas := hf.aestronglyMeasurable.prodMk_right
+  have hint := hf.integrable_sq
+  filter_upwards [hmeas, hint.prod_left_ae] with z hzmeas hzint
+  exact (memLp_two_iff_integrable_sq hzmeas).2 hzint
+
+/-- Product `L²` control supplies the square-integrability of continuous weak slices. -/
+theorem slab_coercive_energy_lower_of_weak_slices_of_memLp
+    {Z : Type*} [MeasurableSpace Z] (ν : Measure Z) [IsFiniteMeasure ν] (L c lam : ℝ)
+    (hL : 0 < L) (hc : 0 ≤ c) (hlam : 0 ≤ lam)
+    (u g ρ : ℝ × Z → ℝ)
+    (hu : MemLp u 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hg : MemLp g 2 ((volume.restrict (Ioc 0 L)).prod ν))
+    (hρ : Integrable ρ ((volume.restrict (Ioc 0 L)).prod ν))
+    (hslice : ∀ᵐ z ∂ν,
+      ContinuousOn (fun t => u (t, z)) (Icc 0 L) ∧
+      PDE.HasWeakDerivOnIoo 0 L (fun t => u (t, z)) (fun t => g (t, z)) ∧
+      c ≤ |u (L, z) - u (0, z)|)
+    (hcoercive : ∀ᵐ p ∂((volume.restrict (Ioc 0 L)).prod ν), lam * g p ^ 2 ≤ ρ p) :
+    lam * (c ^ 2 * ν.real univ) ≤ L * ∫ p, ρ p ∂((volume.restrict (Ioc 0 L)).prod ν) := by
+  apply slab_coercive_energy_lower_of_weak_slices ν L c lam hL hc hlam u g ρ hg hρ
+  · filter_upwards [hslice, memLp_slab_slice_ae ν L u hu,
+      memLp_slab_slice_ae ν L g hg] with z ⟨hcont, hweak, hgap⟩ huz hgz
+    refine ⟨hcont, ?_, ?_, hweak, hgap⟩
+    · rwa [Measure.restrict_congr_set Ioo_ae_eq_Ioc]
+    · rwa [← Measure.restrict_congr_set Ioc_ae_eq_Icc]
+  · exact hcoercive
+
 end EinsteinFull.Regeneration
