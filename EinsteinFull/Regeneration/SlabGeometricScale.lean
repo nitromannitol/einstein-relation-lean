@@ -68,4 +68,25 @@ theorem slab_force_collar_widths (L : ℝ) (hL : 0 < L) :
     nlinarith [show (0 : ℝ) ≤ (k : ℝ) by positivity]
   linarith
 
+
+/-- The terminal transverse radius eventually exceeds one. -/
+theorem exists_large_terminal_slab_radius (n : ℕ) (s : ℝ) (hs : 0 < s) :
+    ∃ L₀ : ℝ, 0 < L₀ ∧ ∀ L : ℝ, L₀ ≤ L →
+      1 < slabGeometricRadius n s L (2 * (n + 1)) := by
+  let d : ℝ := n + 1
+  let M : ℝ := (2 : ℝ) ^ (2 * (n + 1))
+  have hd : 0 < d := by dsimp [d]; positivity
+  have hM : 0 < M := by dsimp [M]; positivity
+  refine ⟨max 1 (M * d / s), by positivity, ?_⟩
+  intro L hL
+  have hLbound : M * d / s ≤ L := (le_max_right _ _).trans hL
+  have hscale : M ≤ s * L / d := by
+    apply (le_div_iff₀ hd).2
+    have h := (div_le_iff₀ hs).1 hLbound
+    nlinarith
+  have hexp := Real.add_one_le_exp (s * L / d)
+  change 1 < Real.exp (s * L / d) / M
+  apply (lt_div_iff₀ hM).2
+  nlinarith
+
 end EinsteinFull.Regeneration
