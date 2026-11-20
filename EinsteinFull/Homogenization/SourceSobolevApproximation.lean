@@ -110,7 +110,7 @@ theorem h10_sourceH01 {d : ℕ} {U : Set (Vec d)} (hU : IsOpen U)
         apply (tendsto_integral_sq_iff_eLpNorm (fun n => hcoord n i)).mpr
         simpa only [gradient, coordinateDerivative, unitVector,
           _root_.Homogenization.basisVec] using w.tendsto_approx_grad i
-      have hsum := tendsto_finset_sum Finset.univ (fun i _ => hc i)
+      have hsum := tendsto_finsetSum Finset.univ (fun i _ => hc i)
       simp only [Finset.sum_const_zero] at hsum
       apply hsum.congr
       intro n
