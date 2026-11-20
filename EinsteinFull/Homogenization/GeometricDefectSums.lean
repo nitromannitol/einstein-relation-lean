@@ -40,4 +40,44 @@ theorem sum_pow_three_mul_tail_le (N : ℕ) (τ : ℕ → ℝ) (hτ : ∀ l, 0 �
       intro l _
       ring
 
+/-- If a geometric ratio is at least `3/2`, its initial partial sum is at
+most three times its last term. -/
+theorem sum_pow_le_three_last (x : ℝ) (hx : (3 / 2 : ℝ) ≤ x) (n : ℕ) :
+    (∑ m ∈ Finset.range (n + 1), x ^ m) ≤ 3 * x ^ n := by
+  let S : ℝ := ∑ m ∈ Finset.range (n + 1), x ^ m
+  have hS : 0 ≤ S := Finset.sum_nonneg (fun m _ => pow_nonneg (by linarith) m)
+  have hgeom : S * (x - 1) = x ^ n * x - 1 := by
+    simpa only [S, pow_succ] using geom_sum_mul x (n + 1)
+  have hslack : 0 ≤ S * (2 * x - 3) := mul_nonneg hS (by linarith)
+  have hprod : 0 ≤ x * (3 * x ^ n - S) := by nlinarith
+  have hxpos : 0 < x := by linarith
+  nlinarith
+
+/-- A shifted geometric sum with ratio `3θ ≥ 3/2` is bounded by three
+times its last term. -/
+theorem sum_pow_three_mul_shifted_geometric_le
+    (θ : ℝ) (hθ : (1 / 2 : ℝ) ≤ θ) (N l : ℕ) (hl : l ≤ N) :
+    (∑ m ∈ Finset.Ico l (N + 1), (3 : ℝ) ^ m * θ ^ (m - l)) ≤
+      3 * 3 ^ N * θ ^ (N - l) := by
+  have hx : (3 / 2 : ℝ) ≤ 3 * θ := by linarith
+  have hgeom := sum_pow_le_three_last (3 * θ) hx (N - l)
+  have hN : N + 1 - l = (N - l) + 1 := by omega
+  calc
+    _ = ∑ t ∈ Finset.range (N - l + 1), (3 : ℝ) ^ (l + t) * θ ^ t := by
+      rw [Finset.sum_Ico_eq_sum_range, hN]
+      simp only [Nat.add_sub_cancel_left]
+    _ = (3 : ℝ) ^ l * ∑ t ∈ Finset.range (N - l + 1), (3 * θ) ^ t := by
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro t _
+      rw [pow_add, mul_pow]
+      ring
+    _ ≤ (3 : ℝ) ^ l * (3 * (3 * θ) ^ (N - l)) :=
+      mul_le_mul_of_nonneg_left hgeom (by positivity)
+    _ = _ := by
+      rw [mul_pow]
+      calc
+        _ = 3 * ((3 : ℝ) ^ l * 3 ^ (N - l)) * θ ^ (N - l) := by ring
+        _ = _ := by rw [← pow_add, Nat.add_sub_of_le hl]
+
 end EinsteinFull.Homogenization
