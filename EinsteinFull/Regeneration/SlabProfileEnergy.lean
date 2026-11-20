@@ -1,5 +1,6 @@
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.MeasureTheory.Integral.Prod
 import Mathlib.Tactic
 
 /-!
@@ -71,5 +72,41 @@ theorem weighted_boundary_layer_volume_le (n : ℕ) (s L : ℝ) (hs : 0 ≤ s) :
     _ = Real.exp s * ((2 * Real.exp (s * L / (n + 1))) ^ n *
         Real.exp (-(s * L))) := by ring
     _ = _ := by rw [boundary_layer_transverse_factor]; ring
+
+/-- Product volume on a unit boundary layer and its transverse cube. -/
+noncomputable def boundaryLayerMeasure (n : ℕ) (s L : ℝ) : Measure (ℝ × (Fin n → ℝ)) :=
+  (volume.restrict (Ioc (-L) (-L + 1))).prod
+    (volume.restrict (Icc (fun _ => -Real.exp (s * L / (n + 1)))
+      (fun _ => Real.exp (s * L / (n + 1)))))
+
+/-- An integrable energy density bounded by the weight inherits boundary-layer decay. -/
+theorem boundary_layer_energy_le (n : ℕ) (s L K : ℝ) (hs : 0 ≤ s) (hK : 0 ≤ K)
+    (ρ : ℝ × (Fin n → ℝ) → ℝ) (hρ : Integrable ρ (boundaryLayerMeasure n s L))
+    (hbound : ∀ᵐ p ∂(boundaryLayerMeasure n s L), ρ p ≤ K * Real.exp (s * p.1)) :
+    (∫ p, ρ p ∂(boundaryLayerMeasure n s L)) ≤
+      K * (Real.exp s * 2 ^ n * Real.exp (-(s * L / (n + 1)))) := by
+  dsimp only [boundaryLayerMeasure] at hρ hbound ⊢
+  let V : Set (Fin n → ℝ) := Icc (fun _ => -Real.exp (s * L / (n + 1)))
+    (fun _ => Real.exp (s * L / (n + 1)))
+  let ν : Measure (Fin n → ℝ) := volume.restrict V
+  let : IsFiniteMeasure ν := isFiniteMeasure_restrict.mpr isCompact_Icc.measure_lt_top.ne
+  have ht : Integrable (fun t : ℝ => Real.exp (s * t))
+      (volume.restrict (Ioc (-L) (-L + 1))) :=
+    (Real.continuous_exp.comp (continuous_const.mul continuous_id)).integrableOn_Ioc
+  have hw : Integrable (fun p : ℝ × (Fin n → ℝ) => Real.exp (s * p.1))
+      ((volume.restrict (Ioc (-L) (-L + 1))).prod ν) := ht.comp_fst ν
+  have htotal : (∫ p : ℝ × (Fin n → ℝ), Real.exp (s * p.1)
+      ∂((volume.restrict (Ioc (-L) (-L + 1))).prod ν)) =
+      (∫ t in Ioc (-L) (-L + 1), Real.exp (s * t)) *
+        (volume : Measure (Fin n → ℝ)).real V := by
+    rw [integral_prod _ hw]
+    simp [ν, measureReal_def, mul_comm, integral_mul_const]
+  calc
+    _ ≤ ∫ p : ℝ × (Fin n → ℝ), K * Real.exp (s * p.1)
+        ∂((volume.restrict (Ioc (-L) (-L + 1))).prod ν) :=
+      integral_mono_ae hρ (hw.const_mul K) hbound
+    _ = K * ((∫ t in Ioc (-L) (-L + 1), Real.exp (s * t)) *
+        (volume : Measure (Fin n → ℝ)).real V) := by rw [integral_const_mul, htotal]
+    _ ≤ _ := mul_le_mul_of_nonneg_left (weighted_boundary_layer_volume_le n s L hs) hK
 
 end EinsteinFull.Regeneration
