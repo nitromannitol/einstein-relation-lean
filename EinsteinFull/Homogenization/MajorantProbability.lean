@@ -15,15 +15,15 @@ namespace EinsteinFull.Homogenization
 theorem measureReal_ge_le_of_squareIntegrable_majorant
     {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) [IsFiniteMeasure P]
     (f H : Ω → ℝ) (C ε B : ℝ) (hC : 0 ≤ C) (hε : 0 < ε)
-    (hf : ∀ a, 0 ≤ f a) (hH : ∀ a, 0 ≤ H a)
+    (hH : ∀ a, 0 ≤ H a)
     (hbound : ∀ a, f a ≤ C * H a) (hmem : MemLp H 2 P)
     (hsecond : (∫ a, (H a) ^ 2 ∂P) ≤ B) :
     P.real {a | ε ≤ f a} ≤ (C ^ 2 * B) / ε ^ 2 := by
   have hsubset : {a | ε ≤ f a} ⊆ {a | ε ^ 2 ≤ C ^ 2 * (H a) ^ 2} := by
     intro a ha
     have hCH := mul_nonneg hC (hH a)
-    simp only [Set.mem_setOf_eq] at ha ⊢
-    nlinarith [hf a, hbound a, sq_nonneg (C * H a - f a)]
+    simp only [Set.mem_ofPred_eq] at ha ⊢
+    nlinarith [hbound a, sq_nonneg (C * H a - f a)]
   have hnonneg : 0 ≤ᵐ[P] (fun a => C ^ 2 * (H a) ^ 2) :=
     Filter.Eventually.of_forall (fun a => mul_nonneg (sq_nonneg C) (sq_nonneg (H a)))
   have hint : Integrable (fun a => C ^ 2 * (H a) ^ 2) P := hmem.integrable_sq.const_mul _
