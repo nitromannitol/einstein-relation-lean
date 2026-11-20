@@ -495,7 +495,7 @@ theorem HighContrastCorrectorPackage.pairingBound [NeZero d]
 
 /-- The negative-one norm of the adapted flux defect at scales above the homogenization scale. -/
 theorem HighContrastCorrectorPackage.negOneNorm_flux_le
-    (pk : HighContrastCorrectorPackage hK P κ C) (hC : 0 ≤ C) {b : CoeffSpace d}
+    (pk : HighContrastCorrectorPackage hK P κ C) {b : CoeffSpace d}
     (hb : b ∈ pk.Ωend) (e : Vec d) {r : ℝ} (hr : 0 < r) (hrX : pk.X b ≤ r) :
     negOneNorm (ellipsoid pk.abar r) (fun x => matVecMul (matSqrt (symmPart pk.abar))⁻¹
         (matVecMul (b.1 x - skewPart pk.abar) (e + pk.gradPhi e b x) -
