@@ -38,6 +38,22 @@ noncomputable def regularCoefficient {d : ℕ} {K : ℝ} (a : Coefficient d K) :
     filter_upwards [h] with x hx
     exact congrFun (congrFun hx i) j
 
+/-- The regular coefficient is measurable for the full coefficient sigma algebras. -/
+theorem measurable_regularCoefficient {d : ℕ} {K : ℝ} :
+    Measurable (regularCoefficient (d := d) (K := K)) := by
+  have hm := measurable_coefficientRepresentative (d := d) (K := K)
+  change @Measurable _ (Fin d → Fin d → ℝ) _ (borel _) _ at hm
+  rw [← (Pi.borelSpace (X := fun _ : Fin d => Fin d → ℝ)).measurable_eq] at hm
+  have he (i j : Fin d) : Measurable (fun p : Coefficient d K × Vec d =>
+      coefficientRepresentative p.1 p.2 i j) :=
+    (measurable_pi_iff.mp (measurable_pi_iff.mp hm i)) j
+  refine _root_.Homogenization.measurable_into_regCoeffField' ?_ ?_
+  · intro x i j
+    exact (he i j).comp (measurable_id.prodMk measurable_const)
+  · intro i j φ hφ
+    have h := (he i j).mul (hφ.measurable.comp measurable_snd)
+    exact h.stronglyMeasurable.integral_prod_right'.measurable
+
 /-- The representative and original coefficient agree almost everywhere. -/
 theorem regularCoefficient_ae_eq {d : ℕ} {K : ℝ} (a : Coefficient d K) :
     (regularCoefficient a).toFun =ᵐ[volume] a.field :=
