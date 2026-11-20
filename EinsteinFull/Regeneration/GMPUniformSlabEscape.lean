@@ -1,6 +1,7 @@
 import EinsteinFull.Regeneration.GMPUniformExitMinorization
 import EinsteinFull.Regeneration.KilledSurvivalIteration
 import EinsteinFull.Regeneration.CoordinateSlabExit
+import EinsteinFull.Regeneration.SuccessiveSlabExits
 import EinsteinFull.Blueprint.Foundation.Proofs.SbxS7FiniteTrialSupport
 
 /-!
@@ -78,5 +79,45 @@ theorem gmp_slab_survival_le_of_source_minorization
       simpa only [hstart] using hγ 0 (zero_le : 0 ≤ τ)
     rw [hzero]
     exact zero_le
+
+/-- The scaled slab-exit estimate used in GMP (4.9), for every regular realization. -/
+theorem uniform_regular_gmp_slab_exit_tail
+    (d : ℕ) (hd : 2 ≤ d) (Λ r l : ℝ) (hl : 1 ≤ l) :
+    ∃ n : ℕ, ∀ (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+      (ω : FieldPair d)
+      (hω : IsRegular (sourceReducedBound Λ) (zeroPotentialReducedPair ω))
+      (G : GantertFixedEnvironmentRealization hd (sourceReducedBound Λ)
+        (one_le_sourceReducedBound Q.ellipticity_parameter) (zeroPotentialReducedPair ω)
+        hω μ hμ.le hμ1) (x : Vec d),
+      G.pathLaw x {γ : Path d |
+        (((n : ℝ≥0) * Renewal.regenDelta μ : ℝ≥0) : ℝ≥0∞) <
+          coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ)} ≤
+        ENNReal.ofReal (1 / 15 : ℝ) := by
+  obtain ⟨δ, hδ, hδ1, hminor⟩ := uniform_regular_gmp_source_minorization d hd Λ r l hl
+  obtain ⟨n, hn⟩ := exists_gmp_survival_le δ (1 / 15) hδ hδ1.le (by norm_num)
+  refine ⟨n, ?_⟩
+  intro Q μ hμ hμ1 ω hω G x
+  let i := Renewal.forceCoord hd
+  let R := l / μ
+  let Δ := Renewal.regenDelta μ
+  let U := coordinateSlab i x R
+  have hR : 0 < R := div_pos (lt_of_lt_of_le zero_lt_one hl) hμ
+  have hstep : ∀ y, G.pathLaw y {γ : Path d |
+      ∀ t : ℝ≥0, t ≤ Δ → γ t ∈ U} ≤ ENNReal.ofReal (1 - δ) :=
+    gmp_slab_survival_le_of_source_minorization G Δ δ R i hδ hδ1.le hR
+      (hminor Q μ hμ hμ1 ω hω G) x
+  have hsurv := hn G U (isOpen_coordinateSlab i x R) Δ hstep x
+  have hsub : ∀ᵐ γ ∂G.pathLaw x,
+      γ ∈ {γ : Path d | (((n : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞) < coordinateSlabExit γ i R} →
+      γ ∈ {γ : Path d | ∀ t : ℝ≥0, t ≤ (n : ℝ≥0) * Δ → γ t ∈ U} := by
+    filter_upwards [G.pathLaw_starts_at x] with γ hstart hγ t ht
+    have ht' : (t : ℝ≥0∞) < coordinateSlabExit γ i R :=
+      (ENNReal.coe_le_coe.mpr ht).trans_lt hγ
+    have hm := MarkovProcess.ContinuousPath.mem_of_lt_exitTime
+      (coordinateSlab i (γ 0) R) γ t ht'
+    change γ 0 = x at hstart
+    rw [hstart] at hm
+    exact hm
+  exact (measure_mono_ae hsub).trans hsurv
 
 end EinsteinFull.Regeneration
