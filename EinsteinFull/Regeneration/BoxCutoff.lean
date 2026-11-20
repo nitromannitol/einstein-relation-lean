@@ -7,7 +7,7 @@ A product of one-dimensional transitions gives a smooth cutoff with an
 independent transition width in every coordinate.
 -/
 
-open Set PDE
+open Filter Set PDE
 
 namespace EinsteinFull.Regeneration
 
@@ -138,6 +138,34 @@ theorem boxCutoff_gradient_coord_le {d : ℕ} {a b δ : PDE.Vec d}
             · norm_num
       _ = 32 / δ j := one_mul _
     · exact Finset.prod_nonneg fun i _ => PDE.cubeCutoffScalarFactor_nonneg _ _ _ _
+  · intro i hi hij
+    rw [boxCutoffFactor_fderiv]
+    simp [PDE.basisVec_apply, hij]
+  · simp
+
+/-- A coordinate derivative vanishes inside that coordinate's inset. -/
+theorem boxCutoff_gradient_coord_eq_zero_of_interior {d : ℕ} {a b δ : PDE.Vec d}
+    (hδ : ∀ j, 0 < δ j) (j : Fin d) (x : PDE.Vec d)
+    (hx : a j + δ j < x j ∧ x j < b j - δ j) :
+    PDE.classicalGradient (boxCutoff a b δ) x j = 0 := by
+  have hevent : PDE.cubeCutoffScalarFactor (a j) (b j) (δ j) =ᶠ[nhds (x j)]
+      fun _ => (1 : ℝ) := by
+    filter_upwards [isOpen_Ioo.mem_nhds hx] with t ht
+    have hl := PDE.axisBoxLowerTransition_eq_one_of_add_delta_le
+      (a := a j) (δ := δ j) (t := t) (hδ j) ht.1.le
+    have hu := PDE.axisBoxUpperTransition_eq_one_of_add_delta_le
+      (b := b j) (δ := δ j) (t := t) (hδ j) (by linarith [ht.2])
+    simp [PDE.cubeCutoffScalarFactor, hl, hu]
+  have hderiv : deriv (PDE.cubeCutoffScalarFactor (a j) (b j) (δ j)) (x j) = 0 := by
+    rw [hevent.deriv_eq, deriv_const]
+  rw [PDE.classicalGradient_apply]
+  change (fderiv ℝ (fun y : PDE.Vec d =>
+    ∏ i ∈ Finset.univ, boxCutoffFactor a b δ i y) x) (PDE.basisVec j) = 0
+  rw [fderiv_finsetProd (fun i _ =>
+    ((boxCutoffFactor_smooth a b δ i).differentiable (by simp) x))]
+  simp only [sum_apply, smul_apply, smul_eq_mul]
+  rw [Finset.sum_eq_single j]
+  · simp only [boxCutoffFactor_fderiv, PDE.basisVec_apply, ite_true, mul_one, hderiv, mul_zero]
   · intro i hi hij
     rw [boxCutoffFactor_fderiv]
     simp [PDE.basisVec_apply, hij]
