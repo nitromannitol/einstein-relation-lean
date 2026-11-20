@@ -101,4 +101,17 @@ theorem originCubeBesovOscillation_le_sum_scales_add_gradient
       _ = _ := by rw [hscale]
   rw [htail]
 
+/-- On the cube of side `3 ^ n`, the `j`-th depth term is the side length
+`3 ^ (n - j)` times the root mean square of the descendant averages. -/
+theorem originCubeBesovCircDepthSeminorm_eq
+    {d : ℕ} (n j : ℕ) (hj : j ≤ n) (g : Vec d → ℝ) :
+    cubeBesovCircDepthSeminorm (originCube d (n : ℤ)) 1 (2 : ℝ≥0∞) g j =
+      (3 : ℝ) ^ (n - j) *
+        Real.sqrt (descendantsAverage (originCube d (n : ℤ)) j
+          (fun R => (cubeAverage R g) ^ 2)) := by
+  rw [pow_sub₀ (3 : ℝ) (by norm_num) hj, ← div_eq_mul_inv]
+  simp only [cubeBesovCircDepthSeminorm, cubeBesovCircDepthWeight, Real.rpow_one,
+    cubeScaleFactor_originCube, zpow_natCast, cubeBesovCircDepthAverage,
+    ENNReal.toReal_ofNat, Real.norm_eq_abs, Real.rpow_two, sq_abs, ← Real.sqrt_eq_rpow]
+
 end EinsteinFull.Homogenization
