@@ -225,4 +225,82 @@ theorem sum_weighted_defect_bounds_le
         (mul_le_mul_of_nonneg_left hconv (mul_nonneg hα hD))
     _ = _ := by dsimp only [W, last]; ring
 
+/-- The reflected triadic scale weights sum to at most three halves of the
+largest weight. -/
+theorem sum_reflected_pow_three_le (N : ℕ) :
+    (∑ j ∈ Finset.range (N + 1), (3 : ℝ) ^ (N - j)) ≤ (3 / 2 : ℝ) * 3 ^ N := by
+  have h := Finset.sum_range_reflect (fun m => (3 : ℝ) ^ m) (N + 1)
+  simp only [Nat.add_sub_cancel] at h
+  rw [h]
+  exact sum_pow_three_le N
+
+/-- The second-moment bound for a multiscale majorant reduces to the
+geometric decay term and one geometric convolution of the defects. -/
+theorem multiscale_majorant_bound_le_geometric
+    (θ α β B D A : ℝ) (hθ : (1 / 2 : ℝ) ≤ θ)
+    (hα : 0 ≤ α) (hβ : 0 ≤ β) (hB : 0 ≤ B) (hD : 0 ≤ D) (hA : 0 ≤ A)
+    (N : ℕ) (τ : ℕ → ℝ) (hτ : ∀ l, 0 ≤ τ l) :
+    let T := fun j => α * (∑ l ∈ Finset.Ico (N - j) N, τ l) +
+      α * (θ ^ (N - j) * B + D * ∑ l ∈ Finset.range (N - j + 1), θ ^ (N - j - l) * τ l) +
+      β * ∑ l ∈ Finset.Ico (N - j) N, τ l
+    2 * A + 2 * ((∑ j ∈ Finset.range (N + 1), (3 : ℝ) ^ (N - j)) *
+      ∑ j ∈ Finset.range (N + 1), (3 : ℝ) ^ (N - j) * T j) ≤
+    (3 : ℝ) ^ (2 * N) * (2 * A + 9 * (α * B + α + β + α * D)) *
+      (θ ^ N + ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l) := by
+  intro T
+  let W : ℝ := (3 : ℝ) ^ N
+  let S : ℝ := ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l
+  let X : ℝ := (α * B) * θ ^ N + (α + β + α * D) * S
+  let Wsum : ℝ := ∑ j ∈ Finset.range (N + 1), (3 : ℝ) ^ (N - j)
+  let Tsum : ℝ := ∑ j ∈ Finset.range (N + 1), (3 : ℝ) ^ (N - j) * T j
+  have hθ0 : 0 ≤ θ := by linarith
+  have hS : 0 ≤ S := Finset.sum_nonneg (fun l _ => mul_nonneg (pow_nonneg hθ0 _) (hτ l))
+  have hW : 0 ≤ W := by dsimp [W]; positivity
+  have hX : 0 ≤ X := by dsimp [X]; positivity
+  have hWsum : 0 ≤ Wsum := Finset.sum_nonneg (fun j _ => by positivity)
+  have hWbound : Wsum ≤ (3 / 2 : ℝ) * W := sum_reflected_pow_three_le N
+  let f : ℕ → ℝ := fun m => (3 : ℝ) ^ m *
+    (α * (∑ l ∈ Finset.Ico m N, τ l) +
+     α * (θ ^ m * B + D * ∑ l ∈ Finset.range (m + 1), θ ^ (m - l) * τ l) +
+     β * ∑ l ∈ Finset.Ico m N, τ l)
+  have href := Finset.sum_range_reflect f (N + 1)
+  have hreflect : Tsum = ∑ m ∈ Finset.range (N + 1), f m := by
+    simpa only [Tsum, T, f, Nat.add_sub_cancel] using href
+  have hTbound : Tsum ≤ 3 * W * X := by
+    rw [hreflect]
+    exact sum_weighted_defect_bounds_le θ α β B D hθ hα hβ hB hD N τ hτ
+  have hprod : Wsum * Tsum ≤ ((3 / 2 : ℝ) * W) * (3 * W * X) :=
+    (mul_le_mul_of_nonneg_left hTbound hWsum).trans
+      (mul_le_mul_of_nonneg_right hWbound (by positivity))
+  have hpow : (1 : ℝ) ≤ (3 : ℝ) ^ (2 * N) * θ ^ N := by
+    have hratio : (1 : ℝ) ≤ 9 * θ := by linarith
+    have hp := one_le_pow₀ hratio (n := N)
+    have heq : (9 * θ) ^ N = (3 : ℝ) ^ (2 * N) * θ ^ N := by
+      rw [mul_pow, pow_mul (3 : ℝ) 2 N]
+      norm_num
+    simpa only [heq] using hp
+  have hWsq : W * W = (3 : ℝ) ^ (2 * N) := by
+    dsimp only [W]
+    rw [← pow_add]
+    congr 1
+    omega
+  have hbase : 2 * A ≤ (3 : ℝ) ^ (2 * N) * (2 * A) * θ ^ N := by
+    have h := mul_le_mul_of_nonneg_left hpow (show (0 : ℝ) ≤ 2 * A by positivity)
+    nlinarith
+  have hcross : 0 ≤ (2 * A + 9 * (α * B)) * S +
+      9 * (α + β + α * D) * θ ^ N := by positivity
+  change 2 * A + 2 * (Wsum * Tsum) ≤ _
+  calc
+    _ ≤ 2 * A + 2 * (((3 / 2 : ℝ) * W) * (3 * W * X)) := by linarith [hprod]
+    _ = 2 * A + 9 * (3 : ℝ) ^ (2 * N) * X := by rw [← hWsq]; ring
+    _ ≤ (3 : ℝ) ^ (2 * N) * (2 * A * θ ^ N + 9 * X) := by nlinarith [hbase]
+    _ ≤ _ := by
+      have hz : 2 * A * θ ^ N + 9 * X ≤
+          (2 * A + 9 * (α * B + α + β + α * D)) * (θ ^ N + S) := by
+        dsimp only [X]
+        nlinarith [hcross]
+      have h := mul_le_mul_of_nonneg_left hz
+        (show (0 : ℝ) ≤ (3 : ℝ) ^ (2 * N) by positivity)
+      simpa only [mul_assoc] using h
+
 end EinsteinFull.Homogenization
