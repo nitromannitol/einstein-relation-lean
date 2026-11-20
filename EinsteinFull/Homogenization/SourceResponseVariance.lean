@@ -70,4 +70,63 @@ theorem variance_sum_sourceResponseJ_of_separated {ι : Type*} [Fintype ι]
   · intro i _ j _ hij
     exact (iIndepFun_sourceResponseJ_of_separated P hP s hs Q hsep k hk p q).indepFun hij
 
+/-- The variance of one response is bounded uniformly over triadic cubes. -/
+theorem variance_sourceResponseJ_cube_le {d : ℕ} [NeZero d] {K : ℝ} (hK : 0 ≤ K)
+    (P : Measure (Coefficient d K)) [IsProbabilityMeasure P] (Q : TriadicCube d)
+    (k : ℕ) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d) :
+    ProbabilityTheory.variance (fun a => Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
+      (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) p q) P ≤
+      (((K / 2) * EinsteinRelation.euclideanSq (-p) + vecNormSq q - vecDot p q) / 2) ^ 2 := by
+  have h := ProbabilityTheory.variance_le_sq_of_bounded
+    (ae_of_all P fun a => sourceResponseJ_cube_bounds hK a Q k hk p q)
+    (memLp_sourceResponseJ_cube hK P Q k hk p q 2).aemeasurable
+  simpa only [sub_zero] using h
+
+/-- A finite sum of separated responses has variance at most the number of
+terms times the uniform one-cube variance bound. -/
+theorem variance_sum_sourceResponseJ_le {ι : Type*} [Fintype ι]
+    {d : ℕ} [NeZero d] {K : ℝ} (hK : 0 ≤ K)
+    (P : Measure (Coefficient d K)) [IsProbabilityMeasure P] (hP : AKMFiniteRange P)
+    (s : ℝ) (hs : 1 < s) (Q : ι → TriadicCube d)
+    (hsep : ∀ i j, i ≠ j → ∀ x ∈ cubeSet (Q i), ∀ y ∈ cubeSet (Q j),
+      s ≤ EinsteinRelation.euclideanNorm (x - y))
+    (k : ℕ) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d) (S : Finset ι) :
+    ProbabilityTheory.variance (∑ i ∈ S, fun a =>
+      Book.Ch02.responseJ (Book.Ch02.cubeDomain (Q i))
+        (sourceCoeffOn a (Book.Ch02.cubeDomain (Q i)) k hk) p q) P ≤
+    (S.card : ℝ) *
+      (((K / 2) * EinsteinRelation.euclideanSq (-p) + vecNormSq q - vecDot p q) / 2) ^ 2 := by
+  rw [variance_sum_sourceResponseJ_of_separated hK P hP s hs Q hsep k hk
+    (fun _ => p) (fun _ => q) S]
+  calc
+    _ ≤ ∑ _i ∈ S,
+        (((K / 2) * EinsteinRelation.euclideanSq (-p) + vecNormSq q - vecDot p q) / 2) ^ 2 :=
+      Finset.sum_le_sum (fun i _ => variance_sourceResponseJ_cube_le hK P (Q i) k hk p q)
+    _ = _ := by simp
+
+/-- The variance of the average over a nonempty separated family decays as
+the inverse number of cubes. -/
+theorem variance_average_sourceResponseJ_le {ι : Type*} [Fintype ι]
+    {d : ℕ} [NeZero d] {K : ℝ} (hK : 0 ≤ K)
+    (P : Measure (Coefficient d K)) [IsProbabilityMeasure P] (hP : AKMFiniteRange P)
+    (s : ℝ) (hs : 1 < s) (Q : ι → TriadicCube d)
+    (hsep : ∀ i j, i ≠ j → ∀ x ∈ cubeSet (Q i), ∀ y ∈ cubeSet (Q j),
+      s ≤ EinsteinRelation.euclideanNorm (x - y))
+    (k : ℕ) (hk : K ≤ (k : ℝ) + 1) (p q : Vec d) (S : Finset ι)
+    (hS : S.Nonempty) :
+    ProbabilityTheory.variance ((S.card : ℝ)⁻¹ • (∑ i ∈ S, fun a =>
+      Book.Ch02.responseJ (Book.Ch02.cubeDomain (Q i))
+        (sourceCoeffOn a (Book.Ch02.cubeDomain (Q i)) k hk) p q)) P ≤
+    (((K / 2) * EinsteinRelation.euclideanSq (-p) + vecNormSq q - vecDot p q) / 2) ^ 2 /
+      (S.card : ℝ) := by
+  have hn : (S.card : ℝ) ≠ 0 := by
+    exact_mod_cast Finset.card_ne_zero.mpr hS
+  rw [ProbabilityTheory.variance_smul]
+  calc
+    _ ≤ ((S.card : ℝ)⁻¹) ^ 2 * ((S.card : ℝ) *
+        (((K / 2) * EinsteinRelation.euclideanSq (-p) + vecNormSq q - vecDot p q) / 2) ^ 2) :=
+      mul_le_mul_of_nonneg_left (variance_sum_sourceResponseJ_le hK P hP s hs Q hsep k hk p q S)
+        (sq_nonneg _)
+    _ = _ := by field_simp
+
 end EinsteinFull.Homogenization
