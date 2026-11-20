@@ -188,6 +188,54 @@ theorem volume_ellipsoid_rpow_le (abar : Mat d) (hd : 0 < d) {r : ℝ} (hr : 0 <
         rw [show (d : ℝ) * (-(1 : ℝ) / d) = -1 by field_simp, Real.rpow_neg_one]
         field_simp
 
+/-- **Cutoff pairing with a field of small negative-one norm.** If `L G` has normalized `H⁻¹`
+norm at most `N` on `V`, the integral of a cutoff supported in `A ⊂ V` against `G · (Lᵀ w)` is
+bounded by the volume of `V`, the test norm of the cutoff and `N`. -/
+theorem abs_integral_mul_vecDot_le_of_negOneNorm {V A : Set (Vec d)} (hV0 : volume V ≠ 0)
+    (hVtop : volume V ≠ ⊤) (hA : MeasurableSet A) (hAV : A ⊆ V) {G : Vec d → Vec d}
+    {L : Mat d} {N : ℝ} (hN : 0 ≤ N)
+    (hneg : negOneNorm V (fun x => matVecMul L (G x)) ≤ ENNReal.ofReal N)
+    {η : Vec d → ℝ} (hη : ContDiff ℝ (⊤ : ℕ∞) η) (hηcs : HasCompactSupport η)
+    (hηA : tsupport η ⊆ A) (hη0 : ∀ x, 0 ≤ η x) (hη1 : ∀ x, η x ≤ 1) {M : ℝ}
+    (hM : ∀ x, ‖fderiv ℝ η x‖ ≤ M) (w : Vec d)
+    (hint : Integrable (fun x => η x * vecDot (G x) (matVecMul (matTranspose L) w))) :
+    |∫ x, η x * vecDot (G x) (matVecMul (matTranspose L) w)| ≤
+      (volume V).toReal *
+        (Real.sqrt (vecNormSq w * ((volume A).toReal / (volume V).toReal) *
+          ((volume V).toReal ^ (-(2 : ℝ) / d) + d * M ^ 2)) * N) := by
+  set F : Vec d → Vec d := fun x => matVecMul L (G x)
+  set ψ : Vec d → Vec d := fun x => η x • w
+  have hAtop : volume A ≠ ⊤ := ((measure_mono hAV).trans_lt (lt_top_iff_ne_top.mpr hVtop)).ne
+  have htest : IsLocalVecTest V ψ :=
+    ⟨hη.smul contDiff_const, hηcs.smul_right,
+      (tsupport_smul_subset_left η (fun _ => w)).trans (hηA.trans hAV)⟩
+  have hpt (x : Vec d) : vecDot (F x) (ψ x) =
+      η x * vecDot (G x) (matVecMul (matTranspose L) w) := by
+    simp only [F, ψ]
+    rw [vecDot_matVecMul_transpose]
+    simp only [vecDot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    ring
+  have hintV : IntegrableOn (fun x => vecDot (F x) (ψ x)) V volume := by
+    simp_rw [hpt]
+    exact hint.integrableOn
+  have hnormV := h1NormSq_smul_le_of_tsupport hA hV0 hVtop hAtop hη hηA hη0 hη1 hM w
+  have hVreal : 0 < (volume V).toReal := ENNReal.toReal_pos hV0 hVtop
+  have hM0 : 0 ≤ M := le_trans (norm_nonneg _) (hM 0)
+  have hK0 : 0 ≤ vecNormSq w * ((volume A).toReal / (volume V).toReal) *
+      ((volume V).toReal ^ (-(2 : ℝ) / d) + d * M ^ 2) :=
+    mul_nonneg (mul_nonneg (vecNormSq_nonneg w) (by positivity))
+      (add_nonneg (Real.rpow_nonneg hVreal.le _) (by positivity))
+  have hmain := abs_setIntegral_le_of_negOneNorm_le' hV0 hVtop htest hintV hK0 hN hnormV hneg
+  have hzero : ∫ x, η x * vecDot (G x) (matVecMul (matTranspose L) w) =
+      ∫ x in V, vecDot (F x) (ψ x) := by
+    simp_rw [hpt]
+    refine (setIntegral_eq_integral_of_forall_compl_eq_zero fun x hx => ?_).symm
+    have hxη : x ∉ tsupport η := fun h => hx (hAV (hηA h))
+    simp [image_eq_zero_of_notMem_tsupport hxη]
+  rw [hzero]
+  exact hmain
+
 section Package
 
 variable {K : ℝ} {hK : 1 ≤ K}
@@ -444,6 +492,50 @@ theorem HighContrastCorrectorPackage.pairingBound [NeZero d]
         (Real.sqrt d * Real.sqrt d) * W * B * (3 : ℝ) ^ N * Real.sqrt ((3 : ℝ) ^ (N * d)) *
         (M + ballVolumeConstant d * ((3 : ℝ) ^ N)⁻¹) * Real.sqrt a := by ring
     _ = _ := by rw [hdd]
+
+/-- The negative-one norm of the adapted flux defect at scales above the homogenization scale. -/
+theorem HighContrastCorrectorPackage.negOneNorm_flux_le
+    (pk : HighContrastCorrectorPackage hK P κ C) (hC : 0 ≤ C) {b : CoeffSpace d}
+    (hb : b ∈ pk.Ωend) (e : Vec d) {r : ℝ} (hr : 0 < r) (hrX : pk.X b ≤ r) :
+    negOneNorm (ellipsoid pk.abar r) (fun x => matVecMul (matSqrt (symmPart pk.abar))⁻¹
+        (matVecMul (b.1 x - skewPart pk.abar) (e + pk.gradPhi e b x) -
+          matVecMul (symmPart pk.abar) e)) ≤
+      ENNReal.ofReal (r * (C * Real.sqrt (vecDot e (matVecMul (symmPart pk.abar) e)) *
+        (r / pk.X b) ^ (-κ))) := by
+  set B := C * Real.sqrt (vecDot e (matVecMul (symmPart pk.abar) e)) * (r / pk.X b) ^ (-κ)
+  have h := pk.corrector b hb e r hrX
+  have h1 : ENNReal.ofReal r⁻¹ * negOneNorm (ellipsoid pk.abar r)
+      (fun x => matVecMul (matSqrt (symmPart pk.abar))⁻¹
+        (matVecMul (b.1 x - skewPart pk.abar) (e + pk.gradPhi e b x) -
+          matVecMul (symmPart pk.abar) e)) ≤ ENNReal.ofReal B :=
+    le_trans le_add_self h
+  calc _ = ENNReal.ofReal r * (ENNReal.ofReal r⁻¹ * negOneNorm (ellipsoid pk.abar r)
+        (fun x => matVecMul (matSqrt (symmPart pk.abar))⁻¹
+          (matVecMul (b.1 x - skewPart pk.abar) (e + pk.gradPhi e b x) -
+            matVecMul (symmPart pk.abar) e))) := by
+        rw [← mul_assoc, ← ENNReal.ofReal_mul hr.le, mul_inv_cancel₀ hr.ne',
+          ENNReal.ofReal_one, one_mul]
+    _ ≤ ENNReal.ofReal r * ENNReal.ofReal B := by gcongr
+    _ = ENNReal.ofReal (r * B) := (ENNReal.ofReal_mul hr.le).symm
+
+theorem HighContrastCorrectorPackage.negOneNorm_gradPhi_le
+    (pk : HighContrastCorrectorPackage hK P κ C) {b : CoeffSpace d}
+    (hb : b ∈ pk.Ωend) (e : Vec d) {r : ℝ} (hr : 0 < r) (hrX : pk.X b ≤ r) :
+    negOneNorm (ellipsoid pk.abar r)
+        (fun x => matVecMul (matSqrt (symmPart pk.abar)) (pk.gradPhi e b x)) ≤
+      ENNReal.ofReal (r * (C * Real.sqrt (vecDot e (matVecMul (symmPart pk.abar) e)) *
+        (r / pk.X b) ^ (-κ))) := by
+  set B := C * Real.sqrt (vecDot e (matVecMul (symmPart pk.abar) e)) * (r / pk.X b) ^ (-κ)
+  have h := pk.corrector b hb e r hrX
+  have h1 : ENNReal.ofReal r⁻¹ * negOneNorm (ellipsoid pk.abar r)
+      (fun x => matVecMul (matSqrt (symmPart pk.abar)) (pk.gradPhi e b x)) ≤ ENNReal.ofReal B :=
+    le_trans le_self_add h
+  calc _ = ENNReal.ofReal r * (ENNReal.ofReal r⁻¹ * negOneNorm (ellipsoid pk.abar r)
+        (fun x => matVecMul (matSqrt (symmPart pk.abar)) (pk.gradPhi e b x))) := by
+        rw [← mul_assoc, ← ENNReal.ofReal_mul hr.le, mul_inv_cancel₀ hr.ne',
+          ENNReal.ofReal_one, one_mul]
+    _ ≤ ENNReal.ofReal r * ENNReal.ofReal B := by gcongr
+    _ = ENNReal.ofReal (r * B) := (ENNReal.ofReal_mul hr.le).symm
 
 end Package
 
