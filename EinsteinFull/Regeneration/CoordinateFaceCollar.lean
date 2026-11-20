@@ -130,7 +130,7 @@ theorem coordinate_right_face_collar_le
       (u (centralSlabPoint n i (b, p.2)) - u (centralSlabPoint n i p)) ^ 2) μ := by
     apply hu.integrable_sq.congr
     filter_upwards [hfaceprod] with p hp
-    simp [hp, sq_abs]
+    simp [hp]
   have henergy : Integrable (fun p => Real.exp ((0 : ℝ) * p.1) *
       (u.grad (centralSlabPoint n i p) i) ^ 2) μ := by
     simpa using hg.integrable_sq
