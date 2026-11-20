@@ -93,4 +93,23 @@ theorem gmp_positive_slab_exit_tendsto_ball
   rw [hevent] at hlim
   exact hlim
 
+/-- Eventual bounded-domain lower bounds pass to the positive slab-exit probability. -/
+theorem gmp_positive_slab_exit_le_of_ball_bounds
+    (d : ℕ) (hd : 2 ≤ d) (Λ r l : ℝ) (hl : 1 ≤ l)
+    (Q : EnvironmentLaw d Λ r) (μ : ℝ) (hμ : 0 < μ) (hμ1 : μ ≤ 1)
+    (ω : FieldPair d) (hω : IsRegular (sourceReducedBound Λ) (zeroPotentialReducedPair ω))
+    (G : GantertFixedEnvironmentRealization hd (sourceReducedBound Λ)
+      (one_le_sourceReducedBound Q.ellipticity_parameter) (zeroPotentialReducedPair ω)
+      hω μ hμ.le hμ1) (x y : Vec d) (a : ℝ)
+    (hbound : ∀ᶠ n : ℕ in atTop, a ≤ (G.pathLaw x).real (finiteExitEvent
+      (coordinateSlab (Renewal.forceCoord hd) x (l / μ) ∩ Metric.ball y n)
+      {z | z (Renewal.forceCoord hd) - x (Renewal.forceCoord hd) = l / μ})) :
+    a ≤ (G.pathLaw x).real {γ | coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ) ≠ ⊤ ∧
+      γ (coordinateSlabExit γ (Renewal.forceCoord hd) (l / μ)).toNNReal
+        (Renewal.forceCoord hd) - γ 0 (Renewal.forceCoord hd) = l / μ} := by
+  let : IsMarkovKernel G.pathLaw := G.pathLaw_isMarkovKernel
+  have hlim := gmp_positive_slab_exit_tendsto_ball d hd Λ r l hl Q μ hμ hμ1 ω hω G x y
+  have hreal := (ENNReal.tendsto_toReal (measure_ne_top (G.pathLaw x) _)).comp hlim
+  exact ge_of_tendsto hreal hbound
+
 end EinsteinFull.Regeneration
