@@ -52,6 +52,41 @@ theorem initial_slab_mean_of_positive_exit {d : ℕ} (μ : Measure (Path d))
     (fun γ => cappedSlabIncrement_mem_Icc γ i r hr g 0)
   linarith
 
+/-- A likely positive exit and an unlikely late exit yield the capped-exit estimate. -/
+theorem cappedSlab_positive_probability_of_exit_bounds {d : ℕ} (μ : Measure (Path d))
+    [IsProbabilityMeasure μ] (i : Fin d) (r : ℝ) (hr : 0 < r) (g : ℝ≥0)
+    (hpositive : (2 / 3 : ℝ) ≤ μ.real {γ | coordinateSlabExit γ i r ≠ ⊤ ∧
+      γ (coordinateSlabExit γ i r).toNNReal i - γ 0 i = r})
+    (hlate : μ.real {γ | (g : ℝ≥0∞) < coordinateSlabExit γ i r} ≤ (1 / 15 : ℝ)) :
+    (3 / 5 : ℝ) ≤ μ.real {γ | cappedSlabIncrement γ i r g 0 = 1} := by
+  let A : Set (Path d) := {γ | cappedSlabIncrement γ i r g 0 = 1}
+  let B : Set (Path d) := {γ | (g : ℝ≥0∞) < coordinateSlabExit γ i r}
+  let H : Set (Path d) := {γ | coordinateSlabExit γ i r ≠ ⊤ ∧
+    γ (coordinateSlabExit γ i r).toNNReal i - γ 0 i = r}
+  have hsub : H ⊆ A ∪ B := by
+    intro γ hγ
+    by_cases hdelay : (g : ℝ≥0∞) < coordinateSlabExit γ i r
+    · exact Or.inr hdelay
+    · left
+      have hcap : (coordinateSlabExit γ i r).toNNReal ≤ g := by
+        apply ENNReal.coe_le_coe.mp
+        rw [ENNReal.coe_toNNReal hγ.1]
+        exact le_of_not_gt hdelay
+      have heq : cappedCoordinateSlabExit γ i r g = (coordinateSlabExit γ i r).toNNReal := by
+        simp [cappedCoordinateSlabExit, hγ.1, min_eq_left hcap]
+      have hshift : pathTimeShift γ 0 = γ := by
+        ext t
+        simp only [pathTimeShift, ContinuousMap.coe_mk, zero_add]
+      change cappedSlabIncrement γ i r g 0 = 1
+      simp only [cappedSlabIncrement, cappedSlabExitTime_succ, cappedSlabExitTime_zero,
+        hshift, zero_add, heq, hγ.2, div_self (ne_of_gt hr)]
+  have hmono := measureReal_mono (μ := μ) hsub
+  have hunion := measureReal_union_le (μ := μ) A B
+  change (2 / 3 : ℝ) ≤ μ.real H at hpositive
+  change μ.real B ≤ (1 / 15 : ℝ) at hlate
+  change (3 / 5 : ℝ) ≤ μ.real A
+  linarith
+
 /-- The positive-exit estimate in the proof of GMP Lemma 4.2 yields forward hitting. -/
 theorem forward_hitting_le_of_regular_positive_exit {d : ℕ} (hd : 2 ≤ d)
     (ω : FieldPair d) (lam Λ : ℝ) (hΛ : 1 ≤ Λ) (hω : IsRegular Λ ω)
