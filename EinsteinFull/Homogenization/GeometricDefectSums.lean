@@ -80,4 +80,42 @@ theorem sum_pow_three_mul_shifted_geometric_le
         _ = 3 * ((3 : ℝ) ^ l * 3 ^ (N - l)) * θ ^ (N - l) := by ring
         _ = _ := by rw [← pow_add, Nat.add_sub_of_le hl]
 
+/-- The weighted geometric decay term is controlled by its final scale. -/
+theorem sum_pow_three_mul_geometric_le (θ : ℝ) (hθ : (1 / 2 : ℝ) ≤ θ) (N : ℕ) :
+    (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m * θ ^ m) ≤
+      3 * 3 ^ N * θ ^ N := by
+  have h := sum_pow_le_three_last (3 * θ) (by linarith) N
+  simpa only [mul_pow, mul_assoc] using h
+
+/-- Interchanging the scale and defect sums controls the weighted geometric
+convolution by a single convolution at the final scale. -/
+theorem sum_pow_three_mul_geometric_defects_le
+    (θ : ℝ) (hθ : (1 / 2 : ℝ) ≤ θ) (N : ℕ) (τ : ℕ → ℝ)
+    (hτ : ∀ l, 0 ≤ τ l) :
+    (∑ m ∈ Finset.range (N + 1), (3 : ℝ) ^ m *
+      ∑ l ∈ Finset.range (m + 1), θ ^ (m - l) * τ l) ≤
+    3 * 3 ^ N * ∑ l ∈ Finset.range (N + 1), θ ^ (N - l) * τ l := by
+  calc
+    _ = ∑ m ∈ Finset.Ico 0 (N + 1), ∑ l ∈ Finset.Ico 0 (m + 1),
+        ((3 : ℝ) ^ m * θ ^ (m - l)) * τ l := by
+      simp only [Nat.Ico_zero_eq_range, Finset.mul_sum, mul_assoc]
+    _ = ∑ l ∈ Finset.Ico 0 (N + 1), ∑ m ∈ Finset.Ico l (N + 1),
+        ((3 : ℝ) ^ m * θ ^ (m - l)) * τ l :=
+      (Finset.sum_Ico_Ico_comm 0 (N + 1)
+        (fun l m => ((3 : ℝ) ^ m * θ ^ (m - l)) * τ l)).symm
+    _ = ∑ l ∈ Finset.range (N + 1),
+        (∑ m ∈ Finset.Ico l (N + 1), (3 : ℝ) ^ m * θ ^ (m - l)) * τ l := by
+      simp only [Nat.Ico_zero_eq_range, Finset.sum_mul]
+    _ ≤ ∑ l ∈ Finset.range (N + 1), (3 * 3 ^ N * θ ^ (N - l)) * τ l := by
+      apply Finset.sum_le_sum
+      intro l hl
+      have hlN : l ≤ N := by simp only [Finset.mem_range] at hl; omega
+      exact mul_le_mul_of_nonneg_right
+        (sum_pow_three_mul_shifted_geometric_le θ hθ N l hlN) (hτ l)
+    _ = _ := by
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro l _
+      ring
+
 end EinsteinFull.Homogenization
