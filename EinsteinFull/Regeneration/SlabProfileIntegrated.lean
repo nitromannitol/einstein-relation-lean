@@ -95,4 +95,54 @@ theorem slabBoundaryProfile_integrated_energy_of_ellipticity (n : ℕ) (i : Fin 
   apply slabBoundaryProfile_integrated_energy_le n i s L hs hU a lam Λ _ hell hΛ
   simpa only [PDE.vecDot_comm] using hint
 
+/-- The force-aligned slab box with exponentially large transverse sides. -/
+noncomputable def coordinateSlabBox (n : ℕ) (i : Fin (n + 1)) (s L : ℝ) :
+    Set (PDE.Vec (n + 1)) :=
+  (MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) i) ⁻¹'
+    (Icc (-L) L ×ˢ
+      Icc (fun _ => -Real.exp (s * L / (n + 1)))
+        (fun _ => Real.exp (s * L / (n + 1))))
+
+/-- The whole slab-box profile energy equals the transition-layer energy. -/
+theorem slabBoundaryProfile_box_energy_le (n : ℕ) (i : Fin (n + 1))
+    (s L : ℝ) (hs : 0 ≤ s) (hL : 1 ≤ L) {U : Set (PDE.Vec (n + 1))}
+    (hU : PDE.IsOpenBoundedConvexDomain U) (a : PDE.CoeffField (n + 1))
+    (lam Λ lam' Λ' : ℝ) (hΛ : 0 ≤ Λ)
+    (hsub : coordinateSlabBox n i s L ⊆ U)
+    (hEll : PDE.IsEllipticFieldOn lam' Λ' U (fun x => Real.exp (s * x i) • a x))
+    (hell : ∀ᵐ x ∂(volume.restrict (coordinateBoundaryLayer n i s L)),
+      PDE.IsEllipticMatrix lam Λ (a x)) :
+    (∫ x in coordinateSlabBox n i s L, PDE.vecDot
+      (PDE.matVecMul (Real.exp (s * x i) • a x) ((slabBoundaryProfile hU i L).grad x))
+      ((slabBoundaryProfile hU i L).grad x)) ≤
+      Λ * (Real.exp s * 2 ^ n * Real.exp (-(s * L / (n + 1)))) := by
+  let e := MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => ℝ) i
+  have hcoord (x : PDE.Vec (n + 1)) : (e x).1 = x i := by
+    simp [e, MeasurableEquiv.piFinSuccAbove_apply]
+  have hboxmeas : MeasurableSet (coordinateSlabBox n i s L) :=
+    (measurableSet_Icc.prod measurableSet_Icc).preimage e.measurable
+  have hlayer : coordinateBoundaryLayer n i s L ⊆ coordinateSlabBox n i s L := by
+    intro x hx
+    change (e x).1 ∈ Ioc (-L) (-L + 1) ∧ _ at hx
+    change (e x).1 ∈ Icc (-L) L ∧ _
+    exact ⟨⟨hx.1.1.le, by linarith [hx.1.2]⟩, hx.2⟩
+  have hzero : ∀ x ∈ coordinateSlabBox n i s L \ coordinateBoundaryLayer n i s L,
+      PDE.vecDot (PDE.matVecMul (Real.exp (s * x i) • a x)
+        ((slabBoundaryProfile hU i L).grad x)) ((slabBoundaryProfile hU i L).grad x) = 0 := by
+    intro x hx
+    have hstrip : x ∉ {x : PDE.Vec (n + 1) | -L < x i ∧ x i < -L + 1} := by
+      intro hstrip
+      apply hx.2
+      change (e x).1 ∈ Ioc (-L) (-L + 1) ∧ _
+      have hbox := hx.1
+      change (e x).1 ∈ Icc (-L) L ∧ _ at hbox
+      exact ⟨⟨by simpa only [hcoord] using hstrip.1,
+        by simpa only [hcoord] using hstrip.2.le⟩, hbox.2⟩
+    rw [slabBoundaryProfile_grad, Set.indicator_of_notMem hstrip]
+    simp [PDE.matVecMul, PDE.vecDot]
+  have heq := setIntegral_eq_of_subset_of_forall_sdiff_eq_zero (μ := volume) hboxmeas hlayer hzero
+  rw [heq]
+  exact slabBoundaryProfile_integrated_energy_of_ellipticity n i s L hs hU a
+    lam Λ lam' Λ' hΛ (hlayer.trans hsub) hEll hell
+
 end EinsteinFull.Regeneration
