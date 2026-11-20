@@ -44,4 +44,20 @@ theorem integral_mul_kernel_nonneg (hP : Draft.IsDFGWTrajectoryProcess P μ T)
   rw [he] at h
   exact h
 
+/-- A mixed correlation is bounded by the average of the two autocorrelations. -/
+theorem abs_inner_transitionOperator_le (hP : Draft.IsDFGWTrajectoryProcess P μ T)
+    (t : ℝ≥0) (f g : Lp ℝ 2 μ) :
+    |inner ℝ f (transitionOperator hP t g)| ≤
+      (inner ℝ f (transitionOperator hP t f) + inner ℝ g (transitionOperator hP t g)) / 2 := by
+  have hp := inner_transitionOperator_nonneg hP t (f + g)
+  have hm := inner_transitionOperator_nonneg hP t (f - g)
+  have hs := inner_transitionOperator hP t f g
+  have hc : inner ℝ g (transitionOperator hP t f) = inner ℝ f (transitionOperator hP t g) := by
+    rw [← hs, real_inner_comm]
+  simp only [map_add, map_sub, inner_add_left, inner_add_right, inner_sub_left,
+    inner_sub_right] at hp hm
+  rw [hc] at hp hm
+  apply abs_le.mpr
+  constructor <;> linarith
+
 end EinsteinFull.External.DFGW
