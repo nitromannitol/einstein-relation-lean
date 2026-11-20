@@ -63,4 +63,42 @@ theorem cubeBesovOscillation_le_sum_scales_add_tail
           (u.grad_coord_memL2_normalizedCubeMeasure i)) hD
     _ = _ := by rw [← Finset.mul_sum]; ring
 
+/-- On a cube of side `3 ^ n`, truncation below unit scale leaves a remainder
+of one half of the normalized `L²` norm in each coordinate. -/
+theorem originCubeBesovOscillation_le_sum_scales_add_gradient
+    {d : ℕ} [NeZero d] (n : ℕ)
+    (u : H1Function (openCubeSet (originCube d (n : ℤ)))) :
+    cubeBesovOscillation (originCube d (n : ℤ)) (2 : ℝ≥0∞) (fun x => u x) ≤
+      (Book.Ch01.Legacy.fullVectorPoincareConstant (originCube d (n : ℤ)) *
+        (3 : ℝ) ^ ((d : ℝ) + 1)) *
+      ∑ i : Fin d,
+        ((∑ j ∈ Finset.range (n + 1),
+          cubeBesovCircDepthSeminorm (originCube d (n : ℤ)) 1 (2 : ℝ≥0∞)
+            (fun x => u.grad x i) j) +
+        (1 / 2 : ℝ) * cubeLpNorm (originCube d (n : ℤ)) (2 : ℝ≥0∞)
+          (fun x => u.grad x i)) := by
+  let Q := originCube d (n : ℤ)
+  have hscale : cubeBesovScaleWeight (-1) Q *
+      ((1 / 3 : ℝ) ^ (n + 1) / (1 - 1 / 3)) = 1 / 2 := by
+    simp only [Q, cubeBesovScaleWeight, neg_neg, cubeScaleFactor_originCube, Real.rpow_one,
+      zpow_natCast, pow_succ]
+    have hp : (3 : ℝ) ^ n ≠ 0 := pow_ne_zero _ (by norm_num)
+    have he : (1 / 3 : ℝ) ^ n = ((3 : ℝ) ^ n)⁻¹ := by rw [one_div, inv_pow]
+    rw [he]
+    field_simp
+    norm_num
+  have h := cubeBesovOscillation_le_sum_scales_add_tail Q u (n + 1)
+  refine h.trans_eq ?_
+  congr 1
+  apply Finset.sum_congr rfl
+  intro i _
+  have htail : (cubeBesovScaleWeight (-1) Q * cubeLpNorm Q (2 : ℝ≥0∞)
+      (fun x => u.grad x i)) * ((1 / 3 : ℝ) ^ (n + 1) / (1 - 1 / 3)) =
+      (1 / 2 : ℝ) * cubeLpNorm Q (2 : ℝ≥0∞) (fun x => u.grad x i) := by
+    calc
+      _ = (cubeBesovScaleWeight (-1) Q * ((1 / 3 : ℝ) ^ (n + 1) / (1 - 1 / 3))) *
+          cubeLpNorm Q (2 : ℝ≥0∞) (fun x => u.grad x i) := by ring
+      _ = _ := by rw [hscale]
+  rw [htail]
+
 end EinsteinFull.Homogenization
