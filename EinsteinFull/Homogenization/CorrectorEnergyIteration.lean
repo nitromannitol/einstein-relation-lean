@@ -624,7 +624,7 @@ theorem exists_energy_step (d : ℕ) [NeZero d] :
 bound `9ᴺ ρᴺ` on the square averages with `θ ρ^(d+1) ≤ 1/2`. -/
 theorem tendsto_discounted_energy [NeZero d] {K : ℝ} (hK : 1 ≤ K)
     (s : EllipticWholeSpaceSolution d K) (e : Vec d) {θ ρ Cg : ℝ} {Ng : ℕ} (hθ0 : 0 ≤ θ)
-    (hθ1 : θ < 1) (hρ : 1 ≤ ρ) (hθρ : θ * ρ ^ (d + 1) ≤ 1 / 2) (hCg : 0 ≤ Cg)
+    (hθ1 : θ < 1) (hρ : 1 ≤ ρ) (hθρ : θ * ρ ^ (d + 1) ≤ 1 / 2)
     (hgrowth : ∀ N, Ng ≤ N →
       cubeAverage (originCube d (N : ℤ)) (fun x => s.v x ^ 2) ≤ Cg * 9 ^ N * ρ ^ N) (n : ℕ) :
     Tendsto (fun k : ℕ => θ ^ k * cubeAverage (originCube d ((n + k * (d + 1) : ℕ) : ℤ))
@@ -711,7 +711,7 @@ theorem exists_energy_parameters {Γ : ℝ} (hΓ : 0 ≤ Γ) :
     rw [div_le_div_iff₀ (by positivity) (by norm_num)]
     nlinarith
 
-theorem sq_amplitude_le {m d : ℕ} {δ τ cμ : ℝ} (hτ : 0 < τ) (hcμ : 0 ≤ cμ) (hδ : 0 ≤ δ) :
+theorem sq_amplitude_le {m d : ℕ} {δ τ cμ : ℝ} (hτ : 0 < τ) (hcμ : 0 ≤ cμ) :
     ((m + 1) * δ * (τ⁻¹ + cμ) * Real.sqrt ((3 : ℝ) ^ (m * d))) ^ 2 ≤
       (m + 1 : ℝ) ^ 2 * (τ⁻¹ + 1) ^ 2 * (3 : ℝ) ^ (m * d) * ((1 + cμ) ^ 2 * δ ^ 2) := by
   have hτi : 0 ≤ τ⁻¹ := inv_nonneg.mpr hτ.le
@@ -791,7 +791,7 @@ theorem exists_energy_bound (d : ℕ) [NeZero d] (K : ℝ) (hK : 1 ≤ K) :
   have hlim : ∀ k, Tendsto (fun j : ℕ => θ ^ j *
       cubeAverage (originCube d ((k + j * (d + 1) : ℕ) : ℤ))
         (fun x => vecNormSq (s.correctorGrad e x))) atTop (𝓝 0) :=
-    fun k => tendsto_discounted_energy hK s e hθ0 (by linarith) hρ hθρ hCg hgrowth k
+    fun k => tendsto_discounted_energy hK s e hθ0 (by linarith) hρ hθρ hgrowth k
   have hiter := le_div_one_sub_of_iterate (E := fun k =>
       cubeAverage (originCube d (k : ℤ)) (fun x => vecNormSq (s.correctorGrad e x)))
     hθ0 (by linarith) hB0 hstep' hlim n (by simpa using hn)
@@ -800,7 +800,7 @@ theorem exists_energy_bound (d : ℕ) [NeZero d] (K : ℝ) (hK : 1 ≤ K) :
     nlinarith
   have hAsq : A ^ 2 ≤ A₀ * ((1 + cμ) ^ 2 * δ ^ 2) := by
     rw [hAdef, hA₀def]
-    exact sq_amplitude_le hτ0 hcμ hδ
+    exact sq_amplitude_le hτ0 hcμ
   have hfin : 4 / 3 * B ≤ 4 / 3 * (2 + Cc * 9 ^ (d + 1) + Γ * A₀) *
       (vecNormSq e + (1 + cμ) ^ 2 * δ ^ 2) := by
     have hq : 0 ≤ (1 + cμ) ^ 2 * δ ^ 2 := by positivity
