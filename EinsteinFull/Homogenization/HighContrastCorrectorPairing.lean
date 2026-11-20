@@ -22,7 +22,7 @@ open _root_.Homogenization.HighContrast
 variable {d : ℕ}
 
 theorem eVolumeAverage_le_of_le_indicator {V A : Set (Vec d)} (hA : MeasurableSet A)
-    (hV0 : volume V ≠ 0) (hVtop : volume V ≠ ⊤) {f : Vec d → ENNReal} {c : ENNReal}
+    {f : Vec d → ENNReal} {c : ENNReal}
     (hf : ∀ x, f x ≤ A.indicator (fun _ => c) x) :
     eVolumeAverage V f ≤ c * volume A / volume V := by
   unfold eVolumeAverage
@@ -91,8 +91,8 @@ theorem h1NormSq_smul_le_of_tsupport {V A : Set (Vec d)} (hA : MeasurableSet A)
         funext i
         simp [smoothGrad, hfd]
       simp [hg, vecNormSq, vecDot]
-  have hA1 := eVolumeAverage_le_of_le_indicator hA hV0 hVtop hval
-  have hB1 := eVolumeAverage_le_of_le_indicator hA hV0 hVtop hgrad
+  have hA1 := eVolumeAverage_le_of_le_indicator (V := V) hA hval
+  have hB1 := eVolumeAverage_le_of_le_indicator (V := V) hA hgrad
   have hVreal : 0 < (volume V).toReal := ENNReal.toReal_pos hV0 hVtop
   have hpow : volume V ^ (-(2 : ℝ) / d) = ENNReal.ofReal ((volume V).toReal ^ (-(2 : ℝ) / d)) := by
     rw [← ENNReal.ofReal_toReal hVtop, ENNReal.ofReal_rpow_of_pos hVreal, ENNReal.toReal_ofReal
