@@ -167,4 +167,91 @@ theorem trialFailureWeight_le {d : ℕ} (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R a :
       from hH)]
     exact zero_le
 
+
+/-- Stopping a path after its fall does not change the fall weight. -/
+theorem fallWeight_stoppedPath {d : ℕ} (lam R a : ℝ) (i : Fin d) (γ : Path d) (t : ℝ≥0)
+    (ht : firstHittingBelow γ i (-R) ≤ (t : ℝ≥0∞)) :
+    fallWeight lam R a i (MarkovProcess.ContinuousPath.stoppedPath t γ) = fallWeight lam R a i γ := by
+  have hpre : ∀ s ≤ t, γ s = MarkovProcess.ContinuousPath.stoppedPath t γ s :=
+    fun s hs => (MarkovProcess.ContinuousPath.stoppedPath_apply_of_le t γ s hs).symm
+  have hH := firstHittingBelow_eq_of_agree γ (MarkovProcess.ContinuousPath.stoppedPath t γ) i (-R)
+    t hpre ht
+  have hfin : firstHittingBelow γ i (-R) ≠ ⊤ := ne_top_of_le_ne_top ENNReal.coe_ne_top ht
+  have hHt : (firstHittingBelow γ i (-R)).toNNReal ≤ t := by
+    apply ENNReal.coe_le_coe.mp
+    rw [ENNReal.coe_toNNReal hfin]
+    exact ht
+  have hmax : coordinateMaximum (MarkovProcess.ContinuousPath.stoppedPath t γ) i
+      (firstHittingBelow γ i (-R)).toNNReal = coordinateMaximum γ i (firstHittingBelow γ i (-R)).toNNReal := by
+    unfold coordinateMaximum
+    congr 1
+    apply Set.image_congr
+    intro s hs
+    rw [← hpre s (hs.2.trans hHt), ← hpre 0 zero_le]
+  simp only [fallWeight]
+  rw [Set.indicator_of_mem (show MarkovProcess.ContinuousPath.stoppedPath t γ ∈
+      {γ : Path d | firstHittingBelow γ i (-R) ≠ ⊤} by
+      change firstHittingBelow (MarkovProcess.ContinuousPath.stoppedPath t γ) i (-R) ≠ ⊤
+      rw [hH]
+      exact hfin),
+    Set.indicator_of_mem (show γ ∈ {γ : Path d | firstHittingBelow γ i (-R) ≠ ⊤} from hfin), hH,
+    hmax]
+
+/-- The strong Markov property at the fall bounds the failure weight of a supplied
+realization by the fall weight times a uniform window moment. -/
+theorem lintegral_trialFailureWeight_le {d : ℕ} (hd : 2 ≤ d)
+    (ω : FieldPair d) (f Λ : ℝ) (hΛ : 1 ≤ Λ) (hω : IsRegular Λ ω)
+    (h0 : 0 ≤ f) (h1 : f ≤ 1)
+    (G : GantertFixedEnvironmentRealization hd Λ hΛ ω hω f h0 h1)
+    (Δ : ℝ≥0) (hΔ : 0 < Δ) (lam R a : ℝ) (hlam : 0 < lam) (hR : 0 < R) (ha : 0 ≤ a)
+    (i : Fin d) (Cw : ℝ)
+    (hwin : ∀ y, ∫⁻ η, windowWeight Δ lam a i η ∂G.pathLaw y ≤ ENNReal.ofReal Cw) (x : Vec d) :
+    ∫⁻ γ, trialFailureWeight Δ lam R a i γ ∂G.pathLaw x ≤
+      ENNReal.ofReal (Real.exp (a * lam * (13 * R))) *
+        (ENNReal.ofReal Cw * ∫⁻ γ, fallWeight lam R a i γ ∂G.pathLaw x) := by
+  let T : Path d → WithTop ℝ≥0 := fun γ => firstHittingBelow γ i (-R)
+  have hTm : Measurable T := measurable_first_downcrossing R i
+  have hT := isStoppingTime_firstHittingBelow (d := d) i (-R)
+  have hw : Measurable[hT.measurableSpace] (fallWeight (d := d) lam R a i) := by
+    apply measurable_stopping_of_prefix T hTm hT
+    · intro γ t
+      exact (firstHittingBelow_le_iff_of_agree γ (MarkovProcess.ContinuousPath.stoppedPath t γ) i
+        (-R) t (fun s hs => (MarkovProcess.ContinuousPath.stoppedPath_apply_of_le t γ s hs).symm)).symm
+    · exact measurable_fallWeight lam R a i
+    · intro γ htop
+      simp only [fallWeight]
+      exact Set.indicator_of_notMem (show γ ∉ {γ : Path d | firstHittingBelow γ i (-R) ≠ ⊤} from
+        fun h => h htop) _
+    · intro γ t ht
+      exact fallWeight_stoppedPath lam R a i γ t ht
+  have hrestart := lintegral_mul_shift_extended_stopping hd ω f Λ hΛ hω h0 h1 G T hTm hT x
+    (fallWeight lam R a i) hw (fun γ htop => by
+      simp only [fallWeight]
+      exact Set.indicator_of_notMem (show γ ∉ {γ : Path d | firstHittingBelow γ i (-R) ≠ ⊤} from
+        fun h => h htop) _)
+    (windowWeight Δ lam a i) (measurable_windowWeight Δ lam a i)
+  have hshift (γ : Path d) : pathTimeShift γ (firstHittingBelow γ i (-R)).toNNReal =
+      MarkovProcess.ContinuousPath.shift ((T γ).untopD 0) γ := by
+    ext t
+    rfl
+  calc ∫⁻ γ, trialFailureWeight Δ lam R a i γ ∂G.pathLaw x
+      ≤ ∫⁻ γ, ENNReal.ofReal (Real.exp (a * lam * (13 * R))) *
+          (fallWeight lam R a i γ * windowWeight Δ lam a i
+            (MarkovProcess.ContinuousPath.shift ((T γ).untopD 0) γ)) ∂G.pathLaw x := by
+        apply lintegral_mono
+        intro γ
+        beta_reduce
+        rw [← hshift]
+        exact trialFailureWeight_le Δ hΔ lam R a hlam hR ha i γ
+    _ = ENNReal.ofReal (Real.exp (a * lam * (13 * R))) *
+          ∫⁻ γ, fallWeight lam R a i γ * (∫⁻ η, windowWeight Δ lam a i η
+            ∂G.pathLaw (γ ((T γ).untopD 0))) ∂G.pathLaw x := by
+        rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top, hrestart]
+    _ ≤ ENNReal.ofReal (Real.exp (a * lam * (13 * R))) *
+          ∫⁻ γ, fallWeight lam R a i γ * ENNReal.ofReal Cw ∂G.pathLaw x := by
+        gcongr with γ
+        exact hwin _
+    _ = _ := by
+        rw [lintegral_mul_const _ (measurable_fallWeight lam R a i), mul_comm (∫⁻ _, _ ∂_)]
+
 end EinsteinFull.Regeneration
