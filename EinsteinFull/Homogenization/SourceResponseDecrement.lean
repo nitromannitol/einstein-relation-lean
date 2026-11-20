@@ -77,4 +77,22 @@ theorem sourceResponseDecrement_le_tau {d : ℕ} [NeZero d] {K : ℝ}
       sourceResponseTau P n k hk := by
   exact le_csSup (bddAbove_sourceResponseDecrementValues hK P n k hk) ⟨p, q, hp, hq, rfl⟩
 
+/-- The response additivity defect is nonnegative. -/
+theorem sourceResponseTau_nonneg {d : ℕ} [NeZero d] {K : ℝ}
+    (hK : 0 ≤ K) (P : Measure (Coefficient d K)) [IsProbabilityMeasure P]
+    (n k : ℕ) (hk : K ≤ (k : ℝ) + 1) : 0 ≤ sourceResponseTau P n k hk := by
+  apply le_csSup (bddAbove_sourceResponseDecrementValues hK P n k hk)
+  refine ⟨0, 0, ?_, ?_, ?_⟩
+  · simp [vecNormSq, vecDot]
+  · simp [vecNormSq, vecDot]
+  · have hz (Q : TriadicCube d) (a : Coefficient d K) :
+        Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
+          (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) 0 0 = 0 := by
+      have h := sourceResponseJ_cube_bounds hK a Q k hk 0 0
+      have hupper : Book.Ch02.responseJ (Book.Ch02.cubeDomain Q)
+          (sourceCoeffOn a (Book.Ch02.cubeDomain Q) k hk) 0 0 ≤ 0 := by
+        simpa [EinsteinRelation.euclideanSq, EinsteinRelation.dot, vecNormSq, vecDot] using h.2
+      exact le_antisymm hupper h.1
+    simp [hz]
+
 end EinsteinFull.Homogenization
