@@ -199,8 +199,9 @@ Loher, *Homogenization at a polynomial scale in high contrast* (arXiv:2609.27647
 `HCPoly.uniform_homogenization` in HighContrastHomogenization. The dilation `x ↦ 2x` turns the range
 of dependence of the source law into the unit range of that theorem; by its Liouville
 classification, the dilated source corrector is the corrector of the dilated coefficient up to a
-constant, and the oscillation and energy bounds of the corrector and the pairing bounds of the flux
-`a(e + ∇φ) − āe` at the scales above twice the homogenization scale are transferred by the dilation.
+constant, and the oscillation and energy bounds of the corrector at the scales above a fixed
+multiple of the homogenization scale, and the pairing bounds of the flux `a(e + ∇φ) − āe` at the
+scales above twice that scale, are transferred by the dilation.
 The homogenized matrix is bounded by identifying `āu · w` with mean fluxes on large cubes. The flux
 corrector of Lemma 6.1 is the explicit `L²_loc` limit of the truncations of the heat formula (6.7),
 selected along the indices at which they are `2⁻ᵏ`-Cauchy, so that it depends measurably on the
