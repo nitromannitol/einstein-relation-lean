@@ -40,8 +40,10 @@ lean_lib EinsteinRelation where
   srcDir := "vendor/EinsteinRelation"
   leanOptions := #[⟨`autoImplicit, false⟩, ⟨`relaxedAutoImplicit, false⟩]
 
+-- The root module and its imports, and every module of `EinsteinFull/Homogenization/`.
 @[default_target]
 lean_lib EinsteinFull where
+  globs := #[.one `EinsteinFull, .submodules `EinsteinFull.Homogenization]
   leanOptions := #[⟨`autoImplicit, false⟩, ⟨`relaxedAutoImplicit, false⟩]
 
 lean_lib EinsteinFullAudit where
