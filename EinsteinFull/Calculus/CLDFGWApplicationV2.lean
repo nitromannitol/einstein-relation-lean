@@ -86,26 +86,26 @@ theorem integrable_tsX0 {P : Measure (TwoSidedSpace d)} {a b : ℝ}
   exact h
 
 instance polishSpace_twoSidedPath : PolishSpace C(ℝ, Vec d) := by
-  haveI : CompleteSpace C(ℝ, Vec d) := inferInstance
-  haveI : Filter.IsCountablyGenerated (uniformity C(ℝ, Vec d)) := inferInstance
-  haveI : SecondCountableTopology C(ℝ, Vec d) := inferInstance
+  have : CompleteSpace C(ℝ, Vec d) := inferInstance
+  have : Filter.IsCountablyGenerated (uniformity C(ℝ, Vec d)) := inferInstance
+  have : SecondCountableTopology C(ℝ, Vec d) := inferInstance
   infer_instance
 
 instance polishSpace_path : PolishSpace (Path d) := by
-  haveI : CompleteSpace (Path d) := inferInstance
-  haveI : Filter.IsCountablyGenerated (uniformity (Path d)) := inferInstance
-  haveI : SecondCountableTopology (Path d) := inferInstance
+  have : CompleteSpace (Path d) := inferInstance
+  have : Filter.IsCountablyGenerated (uniformity (Path d)) := inferInstance
+  have : SecondCountableTopology (Path d) := inferInstance
   infer_instance
 
 instance standardBorel_twoSidedSpace : StandardBorelSpace (TwoSidedSpace d) := by
-  letI : PolishSpace (FieldPair d) := fieldPair_polish d
-  haveI : StandardBorelSpace (aperiodicSet d) := (measurableSet_aperiodicSet d).standardBorel
+  have : PolishSpace (FieldPair d) := fieldPair_polish d
+  have : StandardBorelSpace (aperiodicSet d) := (measurableSet_aperiodicSet d).standardBorel
   infer_instance
 
 /-- On paths through the origin at time zero the trajectory map is injective. -/
 theorem tsTraj_injOn : Set.InjOn (tsTraj (d := d)) {ω | ω.2 0 = 0} := by
   intro ω hω ω' hω' h
-  simp only [Set.mem_setOf_eq] at hω hω'
+  simp only [Set.mem_ofPred_eq] at hω hω'
   have h0 : (ω.1 : FieldPair d) = ω'.1 := by
     have := congrArg (fun η : C(ℝ, FieldPair d) => η 0) h
     simpa [trajOf, tsState, hω, hω'] using this
@@ -296,8 +296,8 @@ theorem dfgw_conclusion_traj :
             ∂(tsLaw Q K).map tsTraj) (𝓝[>] 0) (𝓝 (∫ γ, F (Path.toCadlag γ) ∂W)) := by
   have := tsLaw_isProbability Q hap K
   have hsep : TopologicalSpace.SeparableSpace (Lp ℝ 2 Q.measure) := by
-    haveI : IsProbabilityMeasure Q.measure := Q.probability
-    haveI : Fact ((2 : ℝ≥0∞) ≠ ⊤) := ⟨ENNReal.ofNat_ne_top⟩
+    have : IsProbabilityMeasure Q.measure := Q.probability
+    have : Fact ((2 : ℝ≥0∞) ≠ ⊤) := ⟨ENNReal.ofNat_ne_top⟩
     infer_instance
   have hdot : ∀ e : Vec d, Continuous fun v : Vec d => dot e v := fun e => by
     unfold dot
@@ -347,8 +347,8 @@ theorem dfgw_hasDiffusivity_axiom (Y : QuenchedPathLaws d)
       HasDiffusivity Q.measure (originLaw Y) Dm := by
   have := tsLaw_isProbability Q hap K
   obtain ⟨C, Dm, hC, hD, -, W, hW, hsk⟩ := dfgw_conclusion_traj hd D Q hQ hunforced hpath hap hK
-  haveI : IsProbabilityMeasure W := hW.1
-  haveI : IsProbabilityMeasure ((tsLaw Q K).map tsTraj) :=
+  have : IsProbabilityMeasure W := hW.1
+  have : IsProbabilityMeasure ((tsLaw Q K).map tsTraj) :=
     (Measure.isProbabilityMeasure_map_iff measurable_tsTraj.aemeasurable).2 inferInstance
   refine ⟨C, Dm, hC, hD, W, hW, fun F => ?_⟩
   have h := tendsto_boundedContinuous_of_skorokhod measurable_tsY hsk F
