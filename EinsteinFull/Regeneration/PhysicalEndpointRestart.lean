@@ -1,5 +1,6 @@
 import EinsteinFull.PhysicalRegeneration.Vendor.Regeneration.AnnealedUniformEndpointRestart
 import EinsteinFull.Regeneration.EndpointJointUniform
+import EinsteinRelation.Regeneration.FirstRegenerationSliceFubini
 
 /-!
 # The annealed uniform endpoint with a factor of the endpoint displacement
@@ -92,5 +93,92 @@ theorem integral_annealed_future_endpoint_eq_uniformEndpointAverage_phys {d : �
     (hΨ.comp ((measurable_fst.prodMk measurable_const).prodMk measurable_snd))
     ⟨CP, fun q => hCP _⟩ (fun y => B (y, ω)) (hB.comp measurable_prodMk_right)
     (by obtain ⟨C, hC⟩ := hbB; exact ⟨C, fun y => hC _⟩) (fun y => hB0 _) hv
+
+open Classical in
+/-- Annealed endpoint averaging with a factor of the endpoint displacement gives the spatial
+integral of the weighted past kernel against a bounded future version. -/
+theorem integral_annealed_endpointAverage_fubini_endpoint {d : ℕ}
+    (Q : Measure (FieldPair d)) [IsProbabilityMeasure Q]
+    (K : CoupledQuenchedLaws d) (hK : HasProbabilityLaws Q K)
+    (Δ : ℝ≥0) (m : ℕ) (i : Fin d) (R : ℝ) (hR : 0 < R)
+    (G : CoupledSample d → ℝ) (hG : Measurable G) (hbG : BoundedRealTest G)
+    (g : Vec d → ℝ) (hg : Measurable g) (hbg : BoundedRealTest g)
+    (B : Vec d × FieldPair d → ℝ) (hB : Measurable B) (hbB : BoundedRealTest B) :
+    (∫ ω, ∫ z, G z * endpointAverage i R (z.1 ((m : ℝ≥0) * Δ))
+        (fun y => g (y - z.1 ((m : ℝ≥0) * Δ)) * B (y, ω)) ∂K (0, ω) ∂Q) =
+      (volume (endpointBall i R (0 : Vec d))).toReal⁻¹ *
+        ∫ y, ∫ ω, (∫ z, G z * g (y - z.1 ((m : ℝ≥0) * Δ)) *
+          (if y ∈ endpointBall i R (z.1 ((m : ℝ≥0) * Δ)) then 1 else 0) ∂K (0, ω)) *
+          B (y, ω) ∂Q := by
+  classical
+  let μ := annealedCoupledLaw Q K
+  have : IsProbabilityMeasure μ := annealedCoupledLaw_isProbabilityMeasure Q K hK
+  let X : FieldPair d × CoupledSample d → Vec d := fun q => q.2.1 ((m : ℝ≥0) * Δ)
+  let B' : (FieldPair d × CoupledSample d) × Vec d → ℝ := fun q =>
+    g (q.2 - X q.1) * B (q.2, q.1.1)
+  have hX : Measurable X := (continuous_eval_const _).measurable.comp measurable_snd.fst
+  have hB' : Measurable B' :=
+    (hg.comp (measurable_snd.sub (hX.comp measurable_fst))).mul
+      (hB.comp (measurable_snd.prodMk measurable_fst.fst))
+  obtain ⟨Cg, hCg⟩ := hbg
+  obtain ⟨CB, hCB⟩ := hbB
+  have hbB' : BoundedRealTest B' := ⟨max Cg 0 * max CB 0, fun q => by
+    rw [abs_mul]
+    exact mul_le_mul ((hCg _).trans (le_max_left _ _)) ((hCB _).trans (le_max_left _ _))
+      (abs_nonneg _) (le_max_right _ _)⟩
+  let F : FieldPair d × CoupledSample d → ℝ := fun q =>
+    G q.2 * endpointAverage i R (X q) (fun y => B' (q, y))
+  have hF : Measurable F := (hG.comp measurable_snd).mul
+    (measurable_endpointAverage i R X hX B' hB')
+  have hbF : BoundedRealTest F := by
+    obtain ⟨CG, hCG⟩ := hbG
+    obtain ⟨CA, hCA⟩ := boundedRealTest_endpointAverage i R hR X B' hbB'
+    refine ⟨max CG 0 * max CA 0, fun q => ?_⟩
+    dsimp [F]
+    rw [abs_mul]
+    exact mul_le_mul ((hCG _).trans (le_max_left _ _))
+      ((hCA _).trans (le_max_left _ _)) (abs_nonneg _) (le_max_right _ _)
+  have hdis := integral_annealedCoupledLaw Q K hK F hF hbF
+  change (∫ ω, ∫ z, F (ω, z) ∂K (0, ω) ∂Q) = _
+  rw [← hdis]
+  have hfu := integral_mul_endpointAverage_eq μ i R hR X hX
+    (fun q => G q.2) (hG.comp measurable_snd)
+    (by obtain ⟨C, hC⟩ := hbG; exact ⟨C, fun q => hC _⟩) B' hB' hbB'
+  refine hfu.trans (congrArg (fun a => (volume (endpointBall i R (0 : Vec d))).toReal⁻¹ * a)
+    (integral_congr_ae (Filter.Eventually.of_forall fun y => ?_)))
+  let J : FieldPair d × CoupledSample d → ℝ := fun q =>
+    (endpointBall i R (X q)).indicator (fun y => G q.2 * B' (q, y)) y
+  have hset : MeasurableSet {q : FieldPair d × CoupledSample d |
+      y ∈ endpointBall i R (X q)} :=
+    (measurableSet_endpointBall_pair i R).preimage (hX.prodMk measurable_const)
+  have hJ : Measurable J :=
+    ((hG.comp measurable_snd).mul (hB'.comp (measurable_id.prodMk measurable_const))).indicator
+      hset
+  have hbJ : BoundedRealTest J := by
+    obtain ⟨CG, hCG⟩ := hbG
+    obtain ⟨CC, hCC⟩ := hbB'
+    refine ⟨max CG 0 * max CC 0, fun q => ?_⟩
+    by_cases hq : y ∈ endpointBall i R (X q)
+    · simp only [J, Set.indicator_of_mem hq, abs_mul]
+      exact mul_le_mul ((hCG _).trans (le_max_left _ _))
+        ((hCC _).trans (le_max_left _ _)) (abs_nonneg _) (le_max_right _ _)
+    · simpa only [J, Set.indicator_of_notMem hq, abs_zero] using
+        (mul_nonneg (le_max_right CG (0 : ℝ)) (le_max_right CC (0 : ℝ)))
+  have hdisJ := integral_annealedCoupledLaw Q K hK J hJ hbJ
+  change (∫ q, J q ∂μ) = _
+  rw [hdisJ]
+  apply integral_congr_ae
+  apply Filter.Eventually.of_forall
+  intro ω
+  dsimp only
+  rw [← integral_mul_const]
+  apply integral_congr_ae
+  apply Filter.Eventually.of_forall
+  intro z
+  by_cases hz : y ∈ endpointBall i R (z.1 ((m : ℝ≥0) * Δ))
+  · simp only [J, X, B', Set.indicator_of_mem hz, hz, ↓reduceIte]
+    ring
+  · simp only [J, X, Set.indicator_of_notMem hz, hz, ↓reduceIte]
+    ring
 
 end EinsteinFull.Regeneration
