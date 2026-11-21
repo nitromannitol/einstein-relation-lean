@@ -145,7 +145,8 @@ theorem heatHessian_eq {t : ℝ} (ht : 0 < t) (i j : Fin d) :
   funext fun z => coordinateDerivative_two_euclideanHeatKernel t ht i j z
 
 theorem measurable_heatHessian {t : ℝ} (ht : 0 < t) (i j : Fin d) :
-    Measurable (coordinateDerivative j (coordinateDerivative i (euclideanHeatKernel (d := d) t))) := by
+    Measurable
+      (coordinateDerivative j (coordinateDerivative i (euclideanHeatKernel (d := d) t))) := by
   rw [heatHessian_eq ht]
   exact (measurable_euclideanHeatKernel t).mul (by fun_prop)
 

@@ -209,7 +209,8 @@ theorem sum_kconv_laplacian {ε₁ ε₂ : ℝ} (hε₁ : 0 < ε₁) (hε : ε�
   have hD : ∀ i, IsSmoothCompact (coordinateDerivative i (coordinateDerivative i ψ)) :=
     fun i => (hψ.coordinateDerivative i).coordinateDerivative i
   have hψ2 : ContDiff ℝ 2 ψ := hψ.1.of_le (by norm_cast)
-  have hlap : coordLaplacian ψ = fun y => ∑ i, coordinateDerivative i (coordinateDerivative i ψ) y :=
+  have hlap : coordLaplacian ψ =
+      fun y => ∑ i, coordinateDerivative i (coordinateDerivative i ψ) y :=
     rfl
   have hsum : ∑ i, kconv (heatWindowKernel ε₁ ε₂)
       (coordinateDerivative i (coordinateDerivative i ψ)) x =

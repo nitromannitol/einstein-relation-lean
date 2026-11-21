@@ -113,7 +113,8 @@ theorem memLp_heatHessian {t : ℝ} (ht : 0 < t) (i j : Fin d) :
     ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t))).of_le
     (measurable_heatHessian ht i j).aestronglyMeasurable (Filter.Eventually.of_forall fun z => ?_)
   rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, abs_of_nonneg (by positivity : (0 : ℝ) ≤
-    (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t)), abs_of_nonneg (euclideanHeatKernel_nonneg (by positivity) z)]
+    (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t)),
+    abs_of_nonneg (euclideanHeatKernel_nonneg (by positivity) z)]
   exact abs_heatHessian_le ht i j z
 
 /-- The explicit heat-kernel Hessian, jointly in time and space. -/
