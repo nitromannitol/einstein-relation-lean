@@ -1,4 +1,5 @@
 import EinsteinFull.External.Draft.DFGWInvarianceV2
+import EinsteinFull.External.DFGW.DFGWInvarianceProof
 
 namespace EinsteinFull.External
 
@@ -6,7 +7,8 @@ namespace EinsteinFull.External
 continuous trajectory space, part (ii) in the Skorokhod space. Direct-PDF evidence:
 literature-dfgw-invariance-v3 (after v1 and v2). The application to the environment seen from
 the particle, the transport to the two-sided carrier and the continuous-path corollary stay
-internal. -/
-axiom dfgw_invariance : EinsteinFull.External.Draft.dfgwInvarianceStmtV2
+internal. Proved in `EinsteinFull.External.DFGW.dfgw_invariance_holds`. -/
+theorem dfgw_invariance : EinsteinFull.External.Draft.dfgwInvarianceStmtV2 :=
+  DFGW.dfgw_invariance_holds
 
 end EinsteinFull.External
