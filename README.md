@@ -8,7 +8,7 @@ A machine-checked **Lean 4** formalization of the paper
 
 The paper's source, bibliography, figure and compiled PDF are included under
 [`paper/`](paper/). Every numbered result of the paper, twenty-one in all, is proved **for every
-random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from nine results of the
+random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from eight results of the
 literature. These literature inputs are stated in Lean as named axioms, each with its source; they
 are listed in [Assumed literature inputs](#assumed-literature-inputs). The axiom report of every numbered
 result lists `propext`, `Classical.choice`, `Quot.sound` and inputs from that list, and nothing else; the
@@ -106,7 +106,7 @@ Each numbered result is stated, with its paper label and number, in its own file
    the paper, under both assumptions.
 2. **Axioms and incomplete proofs.** The library contains no `sorry`, no `admit` and no
    `native_decide`. Beyond `propext`, `Classical.choice` and `Quot.sound`, the axiom reports of the
-   numbered results contain only the nine literature inputs below. Each one states a result of the
+   numbered results contain only the eight literature inputs below. Each one states a result of the
    cited literature in Lean and was checked against its source in an independent model review; the
    axiom report of each numbered result lists exactly the inputs that its proof uses.
 3. **The formal diffusion.** The diffusion is specified by its martingale problem: a family of
@@ -137,7 +137,6 @@ Each numbered result is stated, with its paper label and number, in its own file
 | `akm_localized_energy` | localized energy minimizers and their measurability | AKM, Section 4.4 and Theorem 4.6(iv) | 5 |
 | `akm_negative_sobolev` | negative Sobolev bound for the corrector gradient and flux | AKM, Theorem 4.24 | 7 |
 | `bass_continuous_elliptic_well_posed` | well-posedness of the martingale problem with continuous elliptic diffusion and bounded drift | Bass, Chapter VI, Theorem 4.3 | 18 |
-| `gmp_velocity` | the quenched law of large numbers with positive longitudinal velocity | GMP, Section 2.3 and Proposition 5.9 | 4 |
 
 AKM: S. Armstrong, T. Kuusi and J.-C. Mourrat, *Quantitative Stochastic Homogenization and Large-Scale
 Regularity*, Grundlehren 352, Springer, 2019. GMP: N. Gantert, P. Mathieu and A. Piatnitski, *Einstein
@@ -187,6 +186,24 @@ Ann. Inst. H. Poincaré Probab. Statist. 39 (2003), 839–876); here that argume
 constants uniform in the environment law and the force, using a uniform exponential moment of the
 maximal displacement over one regeneration interval of length `λ⁻²`.
 
+The law of large numbers of GMP, Section 2.3 and Proposition 5.9, a deterministic quenched velocity
+of the physical diffusion with positive component along the force, is proved:
+`EinsteinFull.External.gmp_velocity` is a theorem, proved by
+`EinsteinFull.External.gmp_velocity_holds` in `EinsteinFull/Regeneration/GMPVelocityProof.lean`.
+The proof follows the source, which regenerates the physical process itself (GMP, Theorem 5.6, after
+Shen, Theorem 2.5). The physical diffusion carries the split coupling of Proposition 5.4; the
+regeneration tails of Lemma 5.8 hold for it, by the proof for the reduced diffusion carried over in
+`EinsteinFull/PhysicalRegeneration/`; under the law conditioned on no return the regeneration
+records have one law, the duration and displacement of the first cycle are independent of the next
+record, and the first regeneration time and the maximal displacement over the first cycle are
+integrable. The later cycle durations and displacements are then pairwise independent and
+identically distributed, and the strong law of large numbers gives the velocity, whose component
+along the force is positive. Where the source invokes the ergodic theorem, the proof uses this
+strong law, and the remainder of an incomplete cycle is controlled by Borel–Cantelli from the
+identical laws of the cycle maxima. The physical diffusion is constructed from every starting point
+from the well-posedness of its martingale problem, `bass_continuous_elliptic_well_posed`, which the
+four numbered results that used `gmp_velocity` already use.
+
 The sublinearity of the correctors, AKM Lemma 3.17 (the oscillation part of (3.85), and (3.86)) for
 source correctors, with the existence of the flux corrector (Lemma 6.1) and the oscillation bound
 (6.13) of Proposition 6.2, as stated in `EinsteinFull/External/Draft/AKMSublinearCorrectorsV2.lean`,
@@ -224,7 +241,7 @@ statement is formed from the exponents of Theorem C, not from those of AKM, Chap
   `Classical.choice`, `Quot.sound` and literature inputs from the table above, and nothing else.
   [`EinsteinFullAudit/Axioms.lean`](EinsteinFullAudit/Axioms.lean) prints the reports and
   `scripts/check_axioms.py` fails on any other axiom, on `sorryAx`, or on a missing report.
-- **Builds.** `lake build` of this tree compiled 16,795 jobs with no errors.
+- **Builds.** `lake build` of this tree compiled 16,930 jobs with no errors.
 - **Independent check of the statements.** Theorems 1.1 and 1.2 and Proposition 7.1 are restated in
   [`EinsteinFullAudit/`](EinsteinFullAudit/) using mathlib alone, one challenge per result. A shared
   vocabulary restates, under their library names, every definition that the statements use and the
@@ -240,7 +257,7 @@ statement is formed from the exponents of Theorem C, not from those of AKM, Chap
 
 ## Size
 
-The library contains 3,091 Lean files with 759,899 physical lines, on top of mathlib and the
+The library contains 3,215 Lean files with 777,974 physical lines, on top of mathlib and the
 libraries above. The comparator sources are counted separately.
 
 ## Building
@@ -293,7 +310,8 @@ EinsteinFull/
   Blueprint/                    one Lean proposition per step of the proofs in the paper, and its proof
   Calculus/, Work/              supporting theory: semigroups, heat kernels, correctors, couplings
   Regeneration/                 the regeneration construction, its renewal structure and the
-                                proof of GMP Lemma 5.8
+                                proofs of GMP Lemma 5.8 and Proposition 5.9
+  PhysicalRegeneration/         the regeneration construction for the physical diffusion
   External/                     the literature inputs, and in DFGW/ the proof of the DFGW
                                 invariance principle
   Homogenization/               the proof of AKM Lemma 3.17, Lemma 6.1 and Proposition 6.2, and
