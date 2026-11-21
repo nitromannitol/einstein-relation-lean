@@ -7,8 +7,7 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
 Transport of a process on an abstract carrier with continuous trajectories to its
-trajectory space `C(ℝ, S)`, as the input `dfgwInvarianceStmtV2` requires. Not imported by
-production.
+trajectory space `C(ℝ, S)`, as the statement `dfgwInvarianceStmtV2` requires.
 
 The trajectory map `ω ↦ (t ↦ ξ t ω)` pulls the coordinate sigma-algebras back to those of the
 process, intertwines the time shifts and reflections, and carries the law of the process to a

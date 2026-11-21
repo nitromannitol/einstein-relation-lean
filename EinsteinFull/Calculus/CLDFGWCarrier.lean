@@ -9,7 +9,7 @@ import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 The coordinate sigma-algebras of a process, the reversible ergodic Markov setting of DFGW
 Section 2 (pp.789–790) on an abstract carrier, the antisymmetric families (2.3)–(2.5) with
 A.1–A.4, and the path of such a family. These are the objects transported to the trajectory
-space for the admitted input `EinsteinFull.External.dfgw_invariance`.
+space for the invariance principle `EinsteinFull.External.dfgw_invariance`.
 -/
 
 namespace EinsteinFull.External.Draft

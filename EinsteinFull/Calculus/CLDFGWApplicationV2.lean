@@ -4,8 +4,8 @@ import EinsteinFull.External.DFGWInvariance
 import EinsteinFull.Calculus.CLSkorokhod
 
 /-!
-The two-sided environment process on its trajectory space `C(ℝ, FieldPair d)`, and the admitted
-input `dfgwInvarianceStmtV2` applied to it.
+The two-sided environment process on its trajectory space `C(ℝ, FieldPair d)`, and the DFGW
+invariance principle `dfgwInvarianceStmtV2` applied to it.
 
 The displacement over `[a, b]` is `displacementInv (η a, η b)` on trajectories; on the image of
 the two-sided process it is the actual displacement, so antisymmetry and additivity transfer from
@@ -262,7 +262,8 @@ theorem tsM0_martingale :
     (stronglyMeasurable_condExp.mono hle).measurable (measurable_tsM0 hd s))).2 h3
 
 include hQ hunforced hpath hap hK in
-/-- The trajectory family of the two-sided process satisfies the hypotheses of the admitted input. -/
+/-- The trajectory family of the two-sided process satisfies the hypotheses of the invariance
+principle. -/
 theorem tsTrajFamily :
     IsDFGWTrajectoryFamily ((tsLaw Q K).map tsTraj) (tsX0 (d := d)) tsY where
   adapted _ _ hab := tsX0_adapted hab
@@ -274,9 +275,9 @@ theorem tsTrajFamily :
   version := tsY_version (tsLaw_ae_start Q K)
 
 include hQ hunforced hpath hap hK in
-/-- The admitted DFGW input applied to the two-sided environment process. The matrix `C` and the
-limit (2.43) are read on the two-sided law; the Skorokhod-space convergence is on its trajectory
-law. -/
+/-- The DFGW invariance principle applied to the two-sided environment process. The matrix `C`
+and the limit (2.43) are read on the two-sided law; the Skorokhod-space convergence is on its
+trajectory law. -/
 theorem dfgw_conclusion_traj :
     ∃ C Dm : Mat d,
       (∀ e : Vec d, dot e (C.mulVec e) =
@@ -329,8 +330,8 @@ theorem dfgw_conclusion_traj :
     rw [tsY_tsTraj, tsX0_tsTraj, NNReal.coe_mul]
 
 include hQ hunforced hpath hap hK in
-/-- From the admitted DFGW input: every quenched path law solving the unforced reduced martingale
-problem has an annealed invariance principle, with the diffusion matrix of DFGW. -/
+/-- From the DFGW invariance principle: every quenched path law solving the unforced reduced
+martingale problem has an annealed invariance principle, with the diffusion matrix of DFGW. -/
 theorem dfgw_hasDiffusivity_axiom (Y : QuenchedPathLaws d)
     (hY : ∀ᵐ ω ∂Q.measure,
       SolvesMartingaleProblem (reducedGenerator (⟨0, by omega⟩ : Fin d) ω 0) 0 (Y (0, ω))) :
