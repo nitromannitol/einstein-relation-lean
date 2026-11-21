@@ -18,8 +18,9 @@ The development is built on [mathlib](https://github.com/leanprover-community/ma
 public libraries [MarkovProcess](https://github.com/scottnarmstrong/MarkovProcess),
 [CoarseGraining](https://github.com/scottnarmstrong/CoarseGraining),
 [EllipticRegularityLean](https://github.com/scottnarmstrong/EllipticRegularityLean),
-[SuperdiffusionCLT](https://github.com/scottnarmstrong/SuperdiffusionCLT) and
-[subdiffusive-process](https://github.com/nitromannitol/subdiffusive-process).
+[SuperdiffusionCLT](https://github.com/scottnarmstrong/SuperdiffusionCLT),
+[subdiffusive-process](https://github.com/nitromannitol/subdiffusive-process) and
+[Lattice-Probability](https://github.com/nitromannitol/Lattice-Probability).
 
 [![CI](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/build.yml)
 [![Comparator audit](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/comparator.yml/badge.svg?branch=main)](https://github.com/nitromannitol/einstein-relation-lean/actions/workflows/comparator.yml)

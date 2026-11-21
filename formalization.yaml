@@ -81,6 +81,12 @@ related_formalizations:
   - id: "https://github.com/scottnarmstrong/SuperdiffusionCLT"
     relationship: "builds-on"
     note: "Diffusions in random fields and the invariance principle; a pinned git dependency."
+  - id: "https://github.com/nitromannitol/Lattice-Probability"
+    relationship: "builds-on"
+    note: >-
+      Probability results, among them the martingale central limit theorem, Doob's maximal
+      inequality and tightness from moduli of continuity, used in the proof of the DFGW invariance
+      principle; a pinned git dependency.
 
 status:
   scope: >-
