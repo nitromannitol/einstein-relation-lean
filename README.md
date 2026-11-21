@@ -8,7 +8,7 @@ A machine-checked **Lean 4** formalization of the paper
 
 The paper's source, bibliography, figure and compiled PDF are included under
 [`paper/`](paper/). Every numbered result of the paper, twenty-one in all, is proved **for every
-random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from eleven results of the
+random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from ten results of the
 literature. These literature inputs are stated in Lean as named axioms, each with its source; they
 are listed in [Assumed literature inputs](#assumed-literature-inputs). The axiom report of every numbered
 result lists `propext`, `Classical.choice`, `Quot.sound` and inputs from that list, and nothing else; the
@@ -105,7 +105,7 @@ Each numbered result is stated, with its paper label and number, in its own file
    the paper, under both assumptions.
 2. **Axioms and incomplete proofs.** The library contains no `sorry`, no `admit` and no
    `native_decide`. Beyond `propext`, `Classical.choice` and `Quot.sound`, the axiom reports of the
-   numbered results contain only the eleven literature inputs below. Each one states a result of the
+   numbered results contain only the ten literature inputs below. Each one states a result of the
    cited literature in Lean and was checked against its source in an independent model review; the
    axiom report of each numbered result lists exactly the inputs that its proof uses.
 3. **The formal diffusion.** The diffusion is specified by its martingale problem: a family of
@@ -137,7 +137,6 @@ Each numbered result is stated, with its paper label and number, in its own file
 | `akm_negative_sobolev` | negative Sobolev bound for the corrector gradient and flux | AKM, Theorem 4.24 | 7 |
 | `akm_sublinear_correctors` | sublinearity of the scalar and flux correctors above a minimal radius | AKM, Lemma 3.17, Lemma 6.1 and Proposition 6.2 | 13 |
 | `bass_continuous_elliptic_well_posed` | well-posedness of the martingale problem with continuous elliptic diffusion and bounded drift | Bass, Chapter VI, Theorem 4.3 | 18 |
-| `gantert_regeneration_tail` | the no-return bound and exponential tail of the first regeneration time | GMP, Lemma 5.8 | 8 |
 | `gmp_velocity` | the quenched law of large numbers with positive longitudinal velocity | GMP, Section 2.3 and Proposition 5.9 | 4 |
 
 AKM: S. Armstrong, T. Kuusi and J.-C. Mourrat, *Quantitative Stochastic Homogenization and Large-Scale
@@ -145,14 +144,15 @@ Regularity*, Grundlehren 352, Springer, 2019. GMP: N. Gantert, P. Mathieu and A.
 relation for reversible diffusions in a random environment*, Comm. Pure Appl. Math. 65 (2012), 187–228.
 DFGW: A. De Masi, P. A. Ferrari, S. Goldstein and W. D. Wick, *An invariance principle for reversible Markov
 processes*, J. Stat. Phys. 55 (1989), 787–855. Bass: R. F. Bass, *Diffusions and Elliptic Operators*,
-Springer, 1997. The library also declares `gmp_dirichlet_lower` (GMP, Lemma 5.3), which no
-numbered result uses. Scalar white-noise existence (AKM, Proposition 5.14) is proved in
+Springer, 1997. The library also declares `gmp_dirichlet_lower` (GMP, Lemma 5.3) and, in
+`EinsteinFull/Frozen/GantertRegenerationTail.lean`, `gantert_regeneration_tail` (GMP, Lemma 5.8),
+which no numbered result uses; the statement of the second is proved (see below). Scalar
+white-noise existence (AKM, Proposition 5.14) is proved in
 `EinsteinFull/WhiteNoise/Existence.lean` and supplied to Proposition 7.1 by
 `EinsteinFull.WhiteNoise.akmWhiteNoiseExistence`.
 
-The precise Lean statement of each input is in `EinsteinFull/External/` (and, for the regeneration
-tail, `EinsteinFull/Frozen/GantertRegenerationTail.lean`), with the pinpoint references in its
-docstring.
+The precise Lean statement of each input is in `EinsteinFull/External/`, with the pinpoint
+references in its docstring.
 
 The invariance principle of DFGW, Theorem 2.2 with Remarks 1 and 3, on the space of continuous
 trajectories as stated in `EinsteinFull/External/Draft/DFGWInvarianceV2.lean`, is proved:
@@ -167,6 +167,25 @@ martingale, and the maximal inequality of the source's Lemma 2.6 is used only fo
 boundary term of the martingale approximation. Since the paths and the Brownian limit are
 continuous, convergence against bounded continuous functionals of continuous paths gives the
 convergence against the Skorokhod tests of the statement.
+
+Lemma 5.8 of GMP, the no-return bound (5.20) and the exponential tail (5.22) of the first
+regeneration time of the split coupling of Section 7, is proved:
+`EinsteinFull.External.gantert_regeneration_tail_holds` in
+`EinsteinFull/Regeneration/GantertRegenerationTailProof.lean` has the statement of
+`gantert_regeneration_tail` and replaces it in the proofs of the numbered results. The proof follows
+the source: the positive slab-exit estimate of GMP Lemma 4.3 for the reduced zero-potential
+diffusion (`EinsteinFull.Regeneration.gmp_positive_slab_exit`), and from it the no-return bound and
+the exponential moment (5.26) of the first regeneration endpoint. It departs from the source in two
+places. The source's proof of Lemma 4.3 uses that the slab-exit probability solves the
+boundary-value problem (4.3)–(4.4); here this is proved: Dynkin's formula at the exit time for a
+smooth compactly supported payoff and the limit of the zero-boundary resolvents as the rate vanishes
+show that the exit payoff is, after translation and rescaling by the force, a Sobolev solution of
+the weighted divergence-form equation in the slab, and the strong Feller property and a barrier
+argument show that it is continuous inside the slab and at its boundary. The source obtains (5.26)
+from the argument of Shen, Theorem 4.9 (L. Shen, *On ballistic diffusions in random environment*,
+Ann. Inst. H. Poincaré Probab. Statist. 39 (2003), 839–876); here that argument is carried out with
+constants uniform in the environment law and the force, using a uniform exponential moment of the
+maximal displacement over one regeneration interval of length `λ⁻²`.
 
 ## Guarantees
 
@@ -242,12 +261,13 @@ EinsteinFull.lean               the root module
 EinsteinFull/
   MainTheorems.lean             imports the twenty-one numbered results
   Frozen/                       the statements of the numbered results, the definitions they use,
-                                and the regeneration-tail input
+                                and the statement of the regeneration tail (GMP, Lemma 5.8)
   Proofs/                       the proof of each numbered result, composed from the steps below
   Closures/                     the composition of the proof steps, in dependency order
   Blueprint/                    one Lean proposition per step of the proofs in the paper, and its proof
   Calculus/, Work/              supporting theory: semigroups, heat kernels, correctors, couplings
-  Regeneration/                 the regeneration construction and its renewal structure
+  Regeneration/                 the regeneration construction, its renewal structure and the
+                                proof of GMP Lemma 5.8
   External/                     the literature inputs, and in DFGW/ the proof of the DFGW
                                 invariance principle
 vendor/EinsteinRelation/        the blueprint library: environments, diffusions, generators

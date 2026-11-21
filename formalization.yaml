@@ -9,8 +9,9 @@ project:
     applied force, through the critical order d + 1 (Theorem 1.1), the quantitative Einstein relation
     (Theorem 1.2), its optimality (Proposition 7.1), and all the intermediate numbered results. Every
     theorem holds for every environment law satisfying Assumptions 1.1 and 1.2. The proofs use
-    eleven results from the literature, stated in Lean as named axioms with their sources; the
-    invariance principle of De Masi, Ferrari, Goldstein and Wick (Theorem 2.2) is proved.
+    ten results from the literature, stated in Lean as named axioms with their sources; the
+    invariance principle of De Masi, Ferrari, Goldstein and Wick (Theorem 2.2) and Lemma 5.8 of
+    Gantert, Mathieu and Piatnitski are proved.
     Theorems 1.1 and 1.2 and Proposition 7.1 are independently checked by the comparator pairs under
     EinsteinFullAudit/.
   authors:
@@ -45,7 +46,19 @@ sources:
     authors: ["Nina Gantert", "Pierre Mathieu", "Andrey Piatnitski"]
     type: "paper"
     relationship: "assumes"
-    note: "Comm. Pure Appl. Math. 65 (2012), 187-228. Lemma 5.8 and the law of large numbers are literature inputs."
+    note: >-
+      Comm. Pure Appl. Math. 65 (2012), 187-228. The law of large numbers (Section 2.3 and
+      Proposition 5.9) is a literature input. Lemma 5.8, the no-return bound (5.20) and the
+      exponential tail (5.22) of the first regeneration time, is proved:
+      EinsteinFull.External.gantert_regeneration_tail_holds in
+      EinsteinFull/Regeneration/GantertRegenerationTailProof.lean has the statement of
+      EinsteinFull.External.gantert_regeneration_tail and replaces it in the proofs of the numbered
+      results. The proof departs from the source in two places: the representation (4.3)-(4.4) of
+      the slab-exit probability by a boundary-value problem, used in the proof of Lemma 4.3, is
+      proved (Dynkin's formula at the exit time, the limit of zero-boundary resolvents, continuity
+      of the exit payoff inside the slab and at its boundary), and the exponential moment (5.26),
+      obtained in the source from the argument of Shen (2003), Theorem 4.9, is proved with constants
+      uniform in the environment law and the force (see README).
   - title: "An invariance principle for reversible Markov processes"
     authors: ["Anna De Masi", "Pablo A. Ferrari", "Sheldon Goldstein", "W. David Wick"]
     type: "paper"
@@ -100,32 +113,34 @@ status:
     - "propext"
     - "Classical.choice"
     - "Quot.sound"
-  literature_inputs: 11
+  literature_inputs: 10
   literature_inputs_note: >-
-    Eleven results cited from the literature (Armstrong, Kuusi and Mourrat 2019; Gantert,
-    Mathieu and Piatnitski 2012; Bass 1997) are named axioms in EinsteinFull/External/ and
-    EinsteinFull/Frozen/GantertRegenerationTail.lean, each with its source in its docstring; the
-    README lists them. Theorem 2.2 of De Masi, Ferrari, Goldstein and Wick 1989 is proved in
-    EinsteinFull/External/DFGW/, and EinsteinFull.External.dfgw_invariance is a theorem. The
-    library also declares gmp_dirichlet_lower, which no numbered result uses. Scalar white-noise
-    existence (Armstrong, Kuusi and Mourrat, Proposition 5.14) is proved in
-    EinsteinFull/WhiteNoise/Existence.lean.
+    Ten results cited from the literature (Armstrong, Kuusi and Mourrat 2019; Gantert, Mathieu and
+    Piatnitski 2012; Bass 1997) are named axioms in EinsteinFull/External/, each with its source in
+    its docstring; the README lists them. Theorem 2.2 of De Masi, Ferrari, Goldstein and Wick 1989
+    is proved in EinsteinFull/External/DFGW/, and EinsteinFull.External.dfgw_invariance is a
+    theorem. Lemma 5.8 of Gantert, Mathieu and Piatnitski 2012 is proved as
+    EinsteinFull.External.gantert_regeneration_tail_holds, which replaces gantert_regeneration_tail
+    in the proofs of the numbered results. The library also declares gmp_dirichlet_lower and, in
+    EinsteinFull/Frozen/GantertRegenerationTail.lean, gantert_regeneration_tail, which no numbered
+    result uses. Scalar white-noise existence (Armstrong, Kuusi and Mourrat, Proposition 5.14) is
+    proved in EinsteinFull/WhiteNoise/Existence.lean.
   main_results:
     - declaration: "EinsteinFull.Frozen.uniform_small_force_expansion"
       file: "EinsteinFull/Frozen/UniformSmallForceExpansion.lean"
       sorry_count: 0
       comparator_config: "EinsteinFullAudit/UniformSmallForceExpansion/comparator.json"
-      literature_dependencies: 11
+      literature_dependencies: 10
     - declaration: "EinsteinFull.Frozen.mobility_rate"
       file: "EinsteinFull/Frozen/MobilityRate.lean"
       sorry_count: 0
       comparator_config: "EinsteinFullAudit/MobilityRate/comparator.json"
-      literature_dependencies: 11
+      literature_dependencies: 10
     - declaration: "EinsteinFull.Frozen.sharp_example"
       file: "EinsteinFull/Frozen/SharpExample.lean"
       sorry_count: 0
       comparator_config: "EinsteinFullAudit/SharpExample/comparator.json"
-      literature_dependencies: 11
+      literature_dependencies: 10
 
 automation:
   methods:
