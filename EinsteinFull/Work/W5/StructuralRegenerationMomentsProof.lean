@@ -7,8 +7,8 @@ import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 /-!
 # First-cycle moments for the fixed GMP construction
 
-The only nonstandard input used here is the root-approved named GMP tail and
-no-return input. The construction scale and split probability are fixed before
+The moments are derived from the regeneration tail and no-return bounds of GMP
+Lemma 5.8, `External.gantert_regeneration_tail_holds`. The construction scale and split probability are fixed before
 the moment constants and the environment law. No change of coupling or scale,
 two-positive-mass claim, or many-cycle independence is implicit in these results.
 -/
