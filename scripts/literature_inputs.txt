@@ -7,5 +7,4 @@ akm_localized_energy
 akm_negative_sobolev
 akm_sublinear_correctors
 bass_continuous_elliptic_well_posed
-gantert_regeneration_tail
 gmp_velocity
