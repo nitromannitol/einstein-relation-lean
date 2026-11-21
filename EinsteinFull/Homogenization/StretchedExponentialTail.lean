@@ -1,3 +1,14 @@
+/-
+Adapted from subdiffusive-process (https://github.com/nitromannitol/subdiffusive-process), commit
+4c6b8fa60357a07fd5713e5104a6cc70f8e432dc, file
+`SubdiffusiveProcess/Probability/Orlicz/TailConverse.lean` (`integrable_exp_le_two_of_tail` and
+`ogammaLE_of_all_level_tail`), licensed under the Apache License 2.0.
+Changes: the tail bound is assumed only at the levels `r ≥ 1/8`, with rate `exp(-3r)`, and the levels
+below `1/8` are bounded by an indicator term in the layer-cake integral; the first theorem concludes
+the lower-integral bound `∫⁻ exp Z ≤ 2` only; the second assumes the tail `exp(-t^q)` at the levels
+`t ≥ 1` with `s ≤ q` and concludes `OsBound` of Armstrong, Kuusi and Mourrat with the constant
+`8^(1/s) A`; the namespace and the names are those of this library.
+-/
 import EinsteinRelation.External.AKMEnergyDensity
 import Mathlib.MeasureTheory.Integral.Layercake
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
