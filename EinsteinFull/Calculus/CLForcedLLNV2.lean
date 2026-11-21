@@ -1,4 +1,6 @@
-import EinsteinFull.Calculus.C11ForcedSignedVelocity
+import EinsteinFull.Calculus.C11SourceAssociationVelocity
+import EinsteinFull.Calculus.C1S3FoundationGuardEntries
+import EinsteinFull.Blueprint.Foundation.Proofs.SbxS7PhysicalOriginPassages
 import EinsteinFull.Calculus.U2GMPFinalEnvironment
 import EinsteinFull.Calculus.CLSpatialDilation
 import EinsteinRelation.Sharpness.PhysicalLawSampleBounds
