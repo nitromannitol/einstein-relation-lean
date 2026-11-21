@@ -1,6 +1,6 @@
 import EinsteinFull.Blueprint.Foundation.node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transfer
 import EinsteinFull.Blueprint.Foundation.node_rt_u3A_renewal_u23_tube_u2D_probability
-import EinsteinFull.Frozen.GantertRegenerationTail
+import EinsteinFull.Regeneration.GantertRegenerationTailProof
 import EinsteinRelation.Probability.FiniteHistoryMeasurability
 import Mathlib.Topology.CompactOpen
 
@@ -13,7 +13,7 @@ open EinsteinRelation Regeneration
 private lemma transfer_norm_continuous {d : ℕ} :
     Continuous (fun v : Vec d => euclideanNorm v) := by
   unfold euclideanNorm euclideanSq dot
-  exact Real.continuous_sqrt.comp (continuous_finset_sum _ fun i _ =>
+  exact Real.continuous_sqrt.comp (continuous_finsetSum _ fun i _ =>
     (continuous_apply i).mul (continuous_apply i))
 
 private lemma transfer_tube_measurable {d : ℕ} (lam : ℝ)
@@ -36,13 +36,13 @@ private lemma transfer_tube_measurable {d : ℕ} (lam : ℝ)
             (hγ.comp (NNReal.continuous_coe.comp continuous_snd)))
   have hA : MeasurableSet {z : CoupledSample d | ∀ u : ℝ≥0, (u : ℝ) ≤ (m : ℝ) →
       euclideanNorm (lam • z.1 ((u : ℝ) / lam ^ 2).toNNReal - γ u) < ε} := by
-    have ho := (ContinuousMap.isOpen_setOf_mapsTo (isCompact_Icc :
+    have ho := (ContinuousMap.isOpen_setOfPred_mapsTo (isCompact_Icc :
       IsCompact (Set.Icc (0 : ℝ≥0) (m : ℝ≥0))) (isOpen_Iio : IsOpen (Set.Iio ε))).preimage hF
     have he : {z : CoupledSample d | ∀ u : ℝ≥0, (u : ℝ) ≤ (m : ℝ) →
         euclideanNorm (lam • z.1 ((u : ℝ) / lam ^ 2).toNNReal - γ u) < ε} =
         Prod.fst ⁻¹' (F ⁻¹' {f | Set.MapsTo f (Set.Icc 0 (m : ℝ≥0)) (Set.Iio ε)}) := by
       ext z
-      simp only [Set.mem_setOf_eq, Set.mem_preimage, Set.MapsTo, Set.mem_Icc, Set.mem_Iio,
+      simp only [Set.mem_ofPred_eq, Set.mem_preimage, Set.MapsTo, Set.mem_Icc, Set.mem_Iio,
         F, ContinuousMap.coe_mk, zero_le, true_and]
       exact ⟨fun h u hu => h u (by exact_mod_cast hu),
         fun h u hu => h (by exact_mod_cast hu)⟩
@@ -118,7 +118,7 @@ theorem node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transfer_of_deps
     (htube : node_rt_u3A_renewal_u23_tube_u2D_probabilityStmt) :
     node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transferStmt := by
   intro d hd Λ₀ r₀
-  obtain ⟨l₀, hl₀, hr₀, htail⟩ := External.gantert_regeneration_tail d hd Λ₀ r₀
+  obtain ⟨l₀, hl₀, hr₀, htail⟩ := External.gantert_regeneration_tail_holds d hd Λ₀ r₀
   refine ⟨l₀, hl₀, hr₀, ?_⟩
   intro l hl δ hδ hδ₁
   have hlpos := hl₀.trans_le hl
@@ -162,7 +162,7 @@ theorem node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transfer_of_deps
     have hi : Measurable (fun Y : Path d => (Y, fun _ : ℕ => false)) :=
       measurable_id.prodMk measurable_const
     exact hAg.preimage hi
-  letI := hμ
+  have := hμ
   have hm := transfer_fresh_mass (Renewal.regenDelta lam) δ hδ.le K (0, ω) hf
     (j - 1) {z | z.1 ∈ E} hA
   have hmap : K (0, ω) {z | z.1 ∈ E} = P (0, ω) E := by
@@ -170,7 +170,7 @@ theorem node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transfer_of_deps
     rfl
   have hcoin : ENNReal.ofReal (δ * η ^ N) ≤
       K (0, ω) {z | z.1 ∈ E ∧ z.2 (j - 1) = true} := by
-    simp only [Set.mem_setOf_eq] at hm
+    simp only [Set.mem_ofPred_eq] at hm
     rw [hm, hmap, ENNReal.ofReal_mul hδ.le]
     exact mul_le_mul_right hp _
   have hfin := And.intro hp hcoin

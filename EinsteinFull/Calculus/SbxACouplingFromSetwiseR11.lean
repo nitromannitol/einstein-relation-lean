@@ -1,7 +1,7 @@
 import EinsteinFull.Calculus.SbxASourceSetwiseDensityR05
 import EinsteinFull.Calculus.SbxS3CleanKernelPatchingR02
 import EinsteinFull.Regeneration.SbxS1JointSplitR01
-import EinsteinFull.Frozen.GantertRegenerationTail
+import EinsteinFull.Regeneration.GantertRegenerationTailProof
 
 open MeasureTheory ProbabilityTheory EinsteinRelation
 open EinsteinRelation.Regeneration
@@ -39,7 +39,7 @@ theorem a_uniform_actual_coupling_half_mass_of_setwise
             (regenerationNoReturn hd (l / μ)) := by
   classical
   intro d hd Λ r
-  obtain ⟨L, hL, hsep, htail'⟩ := EinsteinFull.External.gantert_regeneration_tail d hd Λ r
+  obtain ⟨L, hL, hsep, htail'⟩ := EinsteinFull.External.gantert_regeneration_tail_holds d hd Λ r
   refine ⟨max L 1, lt_of_lt_of_le hL (le_max_left _ _), ?_, ?_⟩
   · exact lt_of_lt_of_le hsep (mul_le_mul_of_nonneg_left (le_max_left _ _) (by norm_num))
   intro l hl
@@ -65,7 +65,7 @@ theorem a_uniform_actual_coupling_half_mass_of_setwise
   obtain ⟨P', _, hP', hMarkov, hstart, hmin'⟩ :=
     SbxS3Section3R01.clean_patch_reduced_kernel hd Q μ h0.le h1
       (Renewal.regenDelta μ) _ (l / μ) (Renewal.forceCoord hd) P hP hminP
-  letI : IsMarkovKernel P' := hMarkov
+  have : IsMarkovKernel P' := hMarkov
   have hΔ := EinsteinRelation.regenDelta_pos h0
   have hR : 0 < l / μ := div_pos (lt_of_lt_of_le zero_lt_one hl1) h0
   let δ := SbxS14MinorizationVolumeR03.windowCoinCoefficient (Renewal.forceCoord hd) l c
