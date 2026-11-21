@@ -8,7 +8,7 @@ A machine-checked **Lean 4** formalization of the paper
 
 The paper's source, bibliography, figure and compiled PDF are included under
 [`paper/`](paper/). Every numbered result of the paper, twenty-one in all, is proved **for every
-random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from twelve results of the
+random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from eleven results of the
 literature. These literature inputs are stated in Lean as named axioms, each with its source; they
 are listed in [Assumed literature inputs](#assumed-literature-inputs). The axiom report of every numbered
 result lists `propext`, `Classical.choice`, `Quot.sound` and inputs from that list, and nothing else; the
@@ -104,7 +104,7 @@ Each numbered result is stated, with its paper label and number, in its own file
    the paper, under both assumptions.
 2. **Axioms and incomplete proofs.** The library contains no `sorry`, no `admit` and no
    `native_decide`. Beyond `propext`, `Classical.choice` and `Quot.sound`, the axiom reports of the
-   numbered results contain only the twelve literature inputs below. Each one states a result of the
+   numbered results contain only the eleven literature inputs below. Each one states a result of the
    cited literature in Lean and was checked against its source in an independent model review; the
    axiom report of each numbered result lists exactly the inputs that its proof uses.
 3. **The formal diffusion.** The diffusion is specified by its martingale problem: a family of
@@ -136,7 +136,6 @@ Each numbered result is stated, with its paper label and number, in its own file
 | `akm_negative_sobolev` | negative Sobolev bound for the corrector gradient and flux | AKM, Theorem 4.24 | 7 |
 | `akm_sublinear_correctors` | sublinearity of the scalar and flux correctors above a minimal radius | AKM, Lemma 3.17, Lemma 6.1 and Proposition 6.2 | 13 |
 | `bass_continuous_elliptic_well_posed` | well-posedness of the martingale problem with continuous elliptic diffusion and bounded drift | Bass, Chapter VI, Theorem 4.3 | 18 |
-| `dfgw_invariance` | the invariance principle for reversible Markov processes | DFGW, Theorem 2.2 | 4 |
 | `gantert_regeneration_tail` | the no-return bound and exponential tail of the first regeneration time | GMP, Lemma 5.8 | 8 |
 | `gmp_velocity` | the quenched law of large numbers with positive longitudinal velocity | GMP, Section 2.3 and Proposition 5.9 | 4 |
 
@@ -154,6 +153,20 @@ The precise Lean statement of each input is in `EinsteinFull/External/` (and, fo
 tail, `EinsteinFull/Frozen/GantertRegenerationTail.lean`), with the pinpoint references in its
 docstring.
 
+The invariance principle of DFGW, Theorem 2.2 with Remarks 1 and 3, on the space of continuous
+trajectories as stated in `EinsteinFull/External/Draft/DFGWInvarianceV2.lean`, is proved:
+`EinsteinFull.External.dfgw_invariance` is a theorem, proved by
+`EinsteinFull.External.DFGW.dfgw_invariance_holds` in
+`EinsteinFull/External/DFGW/DFGWInvarianceProof.lean`, from the results in `EinsteinFull/External/DFGW/`.
+The proof follows the source's Kipnis–Varadhan martingale approximation and martingale central limit
+theorem, and departs from the source in the proof of tightness. Instead of the source's argument in
+the Skorokhod space, tightness is proved in the space of continuous paths by a block criterion:
+Doob's inequality and uniform integrability of the normalized martingale increments control the
+martingale, and the maximal inequality of the source's Lemma 2.6 is used only for the resolvent
+boundary term of the martingale approximation. Since the paths and the Brownian limit are
+continuous, convergence against bounded continuous functionals of continuous paths gives the
+convergence against the Skorokhod tests of the statement.
+
 ## Guarantees
 
 - **No `sorry`.** The library has none. The three comparator challenges under
@@ -164,7 +177,7 @@ docstring.
   [`EinsteinFullAudit/Axioms.lean`](EinsteinFullAudit/Axioms.lean) prints the reports and
   `scripts/check_axioms.py` fails on any other axiom, on `sorryAx`, or on a missing report.
 - **Builds from a clean checkout.** `lake build` of this tree in a fresh build directory compiled
-  14,471 jobs with no errors.
+  14,753 jobs with no errors.
 - **Independent check of the statements.** Theorems 1.1 and 1.2 and Proposition 7.1 are restated in
   [`EinsteinFullAudit/`](EinsteinFullAudit/) using mathlib alone, one challenge per result. A shared
   vocabulary restates, under their library names, every definition that the statements use and the
@@ -180,7 +193,7 @@ docstring.
 
 ## Size
 
-The library contains 2,327 Lean files with 684,549 physical lines, on top of mathlib and the
+The library contains 2,623 Lean files with 704,646 physical lines, on top of mathlib and the
 libraries above. The comparator sources are counted separately.
 
 ## Building
@@ -234,7 +247,8 @@ EinsteinFull/
   Blueprint/                    one Lean proposition per step of the proofs in the paper, and its proof
   Calculus/, Work/              supporting theory: semigroups, heat kernels, correctors, couplings
   Regeneration/                 the regeneration construction and its renewal structure
-  External/                     the literature inputs
+  External/                     the literature inputs, and in DFGW/ the proof of the DFGW
+                                invariance principle
 vendor/EinsteinRelation/        the blueprint library: environments, diffusions, generators
 vendor/DeGiorgi/                De Giorgi–Nash–Moser theory
 EinsteinFullAudit/              the axiom report and the mathlib-only comparator pairs, with their
