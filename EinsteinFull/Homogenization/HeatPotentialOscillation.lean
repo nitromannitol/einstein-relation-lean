@@ -134,4 +134,107 @@ theorem exists_osc_heatGradWindow_large_le (d : ℕ) (hd : 2 ≤ d) :
         rw [show r * r ^ (-κ) = r ^ (1 - κ) by
           rw [sub_eq_add_neg, Real.rpow_add hr0, Real.rpow_one]]
 
+theorem rpow_mul_sq_rpow_eq {r : ℝ} (hr : 0 < r) :
+    r ^ ((d : ℝ) / 2 + 1) * (r ^ 2) ^ (-(d : ℝ) / 4) = r := by
+  rw [← Real.rpow_natCast, ← Real.rpow_mul hr.le, ← Real.rpow_add hr]
+  have : (d : ℝ) / 2 + 1 + ((2 : ℕ) : ℝ) * (-(d : ℝ) / 4) = 1 := by push_cast; ring
+  rw [this, Real.rpow_one]
+
+theorem inv_mul_rpow_eq {lam : ℝ} (hlam : 0 < lam) :
+    lam⁻¹ * lam ^ (-(d : ℝ) / 4) = lam ^ (-(1 + (d : ℝ) / 4)) := by
+  rw [← Real.rpow_neg_one, ← Real.rpow_add hlam]
+  congr 1
+  ring
+
+/-- **Intermediate-time bound for the truncated heat potential.** -/
+theorem exists_abs_heatGradWindow_mid_le (d : ℕ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ {F : Vec d → ℝ} {R₀ A κ : ℝ}, HasScalePairingBound F R₀ A κ →
+      0 < R₀ → 0 ≤ A → 0 ≤ κ → Measurable F → HasGaussianMoments F →
+      ∀ (i : Fin d) {r lam : ℝ}, R₀ ≤ r → 0 < lam → lam ≤ 1 → ∀ x : Vec d, euclideanNorm x ≤ r →
+        |heatGradWindow (lam * r ^ 2) (r ^ 2) i F x| ≤
+          C * A * lam ^ (-(1 + (d : ℝ) / 4)) * r * (r / R₀) ^ (-κ) := by
+  obtain ⟨C₀, hC₀, hpair⟩ := exists_gaussianPairing_const d
+  refine ⟨C₀ * ((2 : ℝ) ^ ((d : ℝ) / 2) * 2 * (1 + Real.sqrt d)) *
+    (8 * Real.pi) ^ (-(d : ℝ) / 4), by positivity, ?_⟩
+  intro F R₀ A κ hF hR₀ hA hκ hFm hmom i r lam hr hlam hlam1 x hx
+  have hr0 : 0 < r := lt_of_lt_of_le hR₀ hr
+  set K₀ := C₀ * A * r ^ ((d : ℝ) / 2 + 1) * (r / R₀) ^ (-κ) *
+    ((2 : ℝ) ^ ((d : ℝ) / 2) * 2 * (1 + Real.sqrt d) / (lam * r ^ 2)) *
+    ((8 * Real.pi) ^ (-(d : ℝ) / 4) * lam ^ (-(d : ℝ) / 4) * (r ^ 2) ^ (-(d : ℝ) / 4)) with hK₀
+  have hK₀0 : 0 ≤ K₀ := by positivity
+  have hpt : ∀ t ∈ Icc (lam * r ^ 2) (r ^ 2), ‖heatGradConv t i F x‖ ≤ K₀ := by
+    intro t ht
+    have ht0 : 0 < t := lt_of_lt_of_le (by positivity) ht.1
+    obtain ⟨Bm, hBm⟩ := hmom (2 * t) (by positivity) (euclideanNorm x)
+    have h := hpair hF hR₀ hA hκ hFm (contDiff_heatGrad t i) ht0
+      (B := (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / Real.sqrt t))
+      (B' := Real.sqrt d * ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t)))
+      (by positivity) (by positivity) (fun z => abs_heatGrad_le ht0 i z)
+      (fun z => euclideanNorm_gradient_heatGrad_le ht0 i z) x (hBm x le_rfl).1 hr hx ht.2
+    rw [Real.norm_eq_abs]
+    refine h.trans ?_
+    have hlr : lam * r ≤ Real.sqrt t := by
+      have h1 : lam * r ≤ Real.sqrt lam * r := by
+        gcongr
+        calc lam = Real.sqrt lam * Real.sqrt lam := (Real.mul_self_sqrt hlam.le).symm
+          _ ≤ Real.sqrt lam * 1 := by
+              gcongr
+              exact Real.sqrt_le_one.mpr hlam1
+          _ = Real.sqrt lam := mul_one _
+      refine h1.trans ?_
+      rw [← Real.sqrt_sq hr0.le, ← Real.sqrt_mul hlam.le]
+      exact Real.sqrt_le_sqrt ht.1
+    have hst : 0 < Real.sqrt t := Real.sqrt_pos.mpr ht0
+    have hB1 : (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / Real.sqrt t) / r +
+        Real.sqrt d * ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t)) ≤
+        (2 : ℝ) ^ ((d : ℝ) / 2) * 2 * (1 + Real.sqrt d) / (lam * r ^ 2) := by
+      have e1 : 2 / Real.sqrt t / r ≤ 2 / (lam * r ^ 2) := by
+        rw [div_div, show lam * r ^ 2 = lam * r * r by ring]
+        gcongr
+      have e2 : 2 / t ≤ 2 / (lam * r ^ 2) := by
+        gcongr
+        exact ht.1
+      have hc : 0 ≤ (2 : ℝ) ^ ((d : ℝ) / 2) := by positivity
+      calc (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / Real.sqrt t) / r +
+            Real.sqrt d * ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t))
+          = (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / Real.sqrt t / r) +
+            Real.sqrt d * ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t)) := by ring
+        _ ≤ (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / (lam * r ^ 2)) +
+            Real.sqrt d * ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / (lam * r ^ 2))) := by gcongr
+        _ = _ := by ring
+    have hB2 : (8 * Real.pi * t) ^ (-(d : ℝ) / 4) ≤
+        (8 * Real.pi) ^ (-(d : ℝ) / 4) * lam ^ (-(d : ℝ) / 4) * (r ^ 2) ^ (-(d : ℝ) / 4) := by
+      rw [← Real.mul_rpow (by positivity) hlam.le, ← Real.mul_rpow (by positivity) (by positivity)]
+      refine Real.rpow_le_rpow_of_nonpos (by positivity) ?_
+        (div_nonpos_of_nonpos_of_nonneg (by simp) (by norm_num))
+      have := ht.1
+      nlinarith [Real.pi_pos]
+    have hfac : 0 ≤ C₀ * A * r ^ ((d : ℝ) / 2 + 1) * (r / R₀) ^ (-κ) := by positivity
+    calc C₀ * A * r ^ ((d : ℝ) / 2 + 1) * (r / R₀) ^ (-κ) *
+          ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / Real.sqrt t) / r +
+            Real.sqrt d * ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t))) *
+          (8 * Real.pi * t) ^ (-(d : ℝ) / 4)
+        ≤ C₀ * A * r ^ ((d : ℝ) / 2 + 1) * (r / R₀) ^ (-κ) *
+          ((2 : ℝ) ^ ((d : ℝ) / 2) * 2 * (1 + Real.sqrt d) / (lam * r ^ 2)) *
+          ((8 * Real.pi) ^ (-(d : ℝ) / 4) * lam ^ (-(d : ℝ) / 4) * (r ^ 2) ^ (-(d : ℝ) / 4)) := by
+          gcongr
+      _ = K₀ := rfl
+  have hvol : volume (Icc (lam * r ^ 2) (r ^ 2)) < ⊤ := measure_Icc_lt_top
+  have hmain := norm_setIntegral_le_of_norm_le_const hvol hpt
+  rw [measureReal_def, Real.volume_Icc, ENNReal.toReal_ofReal (by nlinarith [sq_nonneg r])] at hmain
+  unfold heatGradWindow
+  rw [← Real.norm_eq_abs]
+  refine hmain.trans ?_
+  have hlen : r ^ 2 - lam * r ^ 2 ≤ r ^ 2 := by nlinarith [sq_nonneg r]
+  calc K₀ * (r ^ 2 - lam * r ^ 2) ≤ K₀ * r ^ 2 := mul_le_mul_of_nonneg_left hlen hK₀0
+    _ = _ := by
+        have h1 := rpow_mul_sq_rpow_eq (d := d) hr0
+        have h2 := inv_mul_rpow_eq (d := d) hlam
+        have key : K₀ * r ^ 2 = C₀ * ((2 : ℝ) ^ ((d : ℝ) / 2) * 2 * (1 + Real.sqrt d)) *
+            (8 * Real.pi) ^ (-(d : ℝ) / 4) * A * (lam⁻¹ * lam ^ (-(d : ℝ) / 4)) *
+            (r ^ ((d : ℝ) / 2 + 1) * (r ^ 2) ^ (-(d : ℝ) / 4)) * (r / R₀) ^ (-κ) := by
+          rw [hK₀]
+          field_simp
+        rw [key, h1, h2]
+
 end EinsteinFull.Homogenization
