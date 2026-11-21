@@ -11,7 +11,7 @@ assume, therefore needs only the corresponding challenge and the vocabulary, not
 | File | Role |
 | --- | --- |
 | `<Pair>/Challenge.lean` | The statement, with exactly one `sorry`, the proof of the final theorem. Its module docstring states the result in words and lists the literature inputs that its proof uses. **This is the file to read**, together with the vocabulary it imports. |
-| `Vocabulary/` | The definitions that the statements use, and the literature inputs with their statements, restated: one file per library module that declares one of them. These files import only Mathlib and each other. |
+| `Vocabulary/` | The definitions that the statements use, and the literature inputs with their statements, restated: one file per library module that declares one of them. Three files declare nothing and keep the import structure of the challenges, because the inputs of their library modules are proved: `EinsteinFull/External/DFGWInvariance.lean`, `EinsteinFull/External/AKMWhiteNoiseExistence.lean` and `EinsteinFull/Frozen/GantertRegenerationTail.lean`. These files import only Mathlib and each other. |
 | `<Pair>/Solution.lean` | The proof. It imports the library, states the same theorem and proves it with the library theorem. |
 | `<Pair>/comparator.json` | The comparator configuration: the challenge and solution modules, the theorem name and the permitted axioms, namely `propext`, `Classical.choice`, `Quot.sound` and the literature inputs of the result. |
 | `Axioms.lean` | The axiom report of all twenty-one numbered results, checked by `scripts/check_axioms.py`. |
