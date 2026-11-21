@@ -34,7 +34,8 @@ theorem exists_unitCorrector_global_identification
   filter_upwards [hω] with y hy
   simpa only [smul_add, two_smul_halfDirection, doubledCorrector_grad] using hy
 
-/-- The admitted estimate supplies one source pair for every coordinate of the
+/-- The source estimate `C2SublinearSource.sublinearCorrectors`, proved from
+`External.akm_sublinear_correctors`, supplies one source pair for every coordinate of the
 actual gradient, with uniform constants chosen before the environment law.
 The stochastic exponent is exactly `d / 2`; no smoothness or divergence
 property is inferred from the source oscillation bound. -/

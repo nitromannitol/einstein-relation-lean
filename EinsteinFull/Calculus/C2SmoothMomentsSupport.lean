@@ -12,8 +12,9 @@ open EinsteinRelation EinsteinRelation.Correctors EinsteinRelation.External.AKM
 open EinsteinRelation.Environment.AKMTestIntegralSupport
 
 /-- Every positive real moment of the unit-ball gradient energy follows from
-the admitted source estimate, with its law-independent constant. The source
-corrector and its unit direction are retained literally. -/
+the source estimate, proved as `External.akm_sublinear_correctors`, with its
+law-independent constant. The source corrector and its unit direction are
+retained literally. -/
 theorem sourceCorrector_unit_gradient_moments
     (d : ℕ) (hd : 2 ≤ d) (K p : ℝ) (hK : 1 < K) (hp : 0 < p) :
     ∃ C : ℝ, 0 < C ∧ ∀ (P : Measure (Coefficient d K)), LawHypotheses P →

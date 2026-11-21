@@ -6,7 +6,8 @@ import EinsteinRelation.External.AKMSourceCorrectorIdentification
 Carrier transport for the sublinear-pair proof. The source and vendor flux
 correctors retain exactly the same potentials, gradients and heat selection.
 The vendor scalar corrector has already proved cell-flux integrability; forgetting
-that field introduces no extra hypothesis into the admitted source estimate.
+that field introduces no extra hypothesis into the source estimate, which is proved
+as `EinsteinFull.External.akm_sublinear_correctors`.
 -/
 
 open MeasureTheory
@@ -40,8 +41,9 @@ def toSourceFluxCorrector {d : ℕ} {K : ℝ} {P : Measure (Coefficient d K)}
   locally_square_integrable := S.locally_square_integrable
   heat_selected := S.heat_selected
 
-/-- The admitted source estimate applies to the existing integrable vendor
-correctors, with its constants, random radius and normalized norms unchanged. -/
+/-- The source estimate, proved as `External.akm_sublinear_correctors`, applies to the
+existing integrable vendor correctors, with its constants, random radius and normalized
+norms unchanged. -/
 theorem sublinearCorrectors : External.Draft.akmSublinearCorrectorsStmt := by
   intro d hd K hK
   obtain ⟨β, C, hβ, hC, h⟩ := External.akm_sublinear_correctors d hd K hK
