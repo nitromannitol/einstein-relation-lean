@@ -1,4 +1,5 @@
 import EinsteinFull.Calculus.SbxS3JointReducedKernelR01
+import EinsteinFull.Regeneration.PhysicalKernelPredicate
 import EinsteinFull.Calculus.U6BoundedPhysicalResolvent
 import EinsteinFull.Calculus.U5RegularSignedRealization
 
@@ -6,9 +7,8 @@ import EinsteinFull.Calculus.U5RegularSignedRealization
 # The physical quenched kernel from every starting point
 
 The physical diffusion of Gantert–Mathieu–Piatnitski (2012), Section 7 (p. 32), runs on the
-pair `ω = (a₀, V)` itself. This module states that a quenched path kernel is, for almost every
-environment, the path law of a Section 7 realization of `ω` from every starting point, and
-constructs such a kernel, jointly measurable in the starting point and the environment, as the
+pair `ω = (a₀, V)` itself. This module constructs a physical quenched kernel
+(`IsGMPPhysicalKernel`), jointly measurable in the starting point and the environment, as the
 measurable selection of the unique solutions of the physical martingale problems. Any physical
 origin law agrees with that kernel at the origin, since all realizations of one regular pair
 have the same path law from every start.
@@ -19,16 +19,6 @@ open EinsteinRelation.External.GantertSection7Support
 open scoped NNReal Classical
 
 namespace EinsteinFull.Regeneration
-
-/-- The physical quenched kernel of one force `λ ∈ [0, 1]` (GMP 2012, Section 7, p. 32). For
-almost every environment `ω`, the kernel equals the path law of a fixed-environment realization
-of the physical pair `ω = (a₀, V)` from every spatial starting point. -/
-def IsGMPPhysicalKernel {d : ℕ} (hd : 2 ≤ d) {Λ₀ r₀ : ℝ} (hΛ₀ : 1 ≤ Λ₀)
-    (Q : EnvironmentLaw d Λ₀ r₀) (lam : ℝ) (h0 : 0 ≤ lam) (h1 : lam ≤ 1)
-    (P : QuenchedPathLaws d) : Prop :=
-  ∀ᵐ ω ∂Q.measure, ∃ hω : IsRegular Λ₀ ω,
-    ∃ r : GantertFixedEnvironmentRealization hd Λ₀ hΛ₀ ω hω lam h0 h1,
-      ∀ x : Vec d, P (x, ω) = r.pathLaw x
 
 /-- A physical origin law is the physical kernel at the origin, for almost every environment. -/
 theorem ae_originLaw_eq_of_isGMPPhysicalKernel {d : ℕ} (hd : 2 ≤ d) {Λ₀ r₀ : ℝ}
