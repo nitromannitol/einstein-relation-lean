@@ -196,8 +196,7 @@ maximal displacement over one regeneration interval of length `λ⁻²`.
   `Classical.choice`, `Quot.sound` and literature inputs from the table above, and nothing else.
   [`EinsteinFullAudit/Axioms.lean`](EinsteinFullAudit/Axioms.lean) prints the reports and
   `scripts/check_axioms.py` fails on any other axiom, on `sorryAx`, or on a missing report.
-- **Builds from a clean checkout.** `lake build` of this tree in a fresh build directory compiled
-  14,753 jobs with no errors.
+- **Builds.** `lake build` of this tree compiled 14,963 jobs with no errors.
 - **Independent check of the statements.** Theorems 1.1 and 1.2 and Proposition 7.1 are restated in
   [`EinsteinFullAudit/`](EinsteinFullAudit/) using mathlib alone, one challenge per result. A shared
   vocabulary restates, under their library names, every definition that the statements use and the
@@ -213,7 +212,7 @@ maximal displacement over one regeneration interval of length `λ⁻²`.
 
 ## Size
 
-The library contains 2,623 Lean files with 704,646 physical lines, on top of mathlib and the
+The library contains 2,874 Lean files with 731,638 physical lines, on top of mathlib and the
 libraries above. The comparator sources are counted separately.
 
 ## Building
@@ -227,8 +226,7 @@ lake build
 ```
 
 The source dependencies have no prebuilt cache, so the first build compiles them as well as the
-library. With the dependencies already built, a fresh build of the library took about 23
-minutes on an Intel Core Ultra 9 285 machine (24 threads).
+library.
 
 To reproduce the axiom reports:
 
@@ -271,7 +269,6 @@ EinsteinFull/
   External/                     the literature inputs, and in DFGW/ the proof of the DFGW
                                 invariance principle
 vendor/EinsteinRelation/        the blueprint library: environments, diffusions, generators
-vendor/DeGiorgi/                De Giorgi–Nash–Moser theory
 EinsteinFullAudit/              the axiom report and the mathlib-only comparator pairs, with their
                                 vocabulary
 paper/                          the paper: source, bibliography, figure, PDF

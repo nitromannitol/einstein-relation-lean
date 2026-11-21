@@ -41,7 +41,9 @@ sources:
     authors: ["Scott Armstrong", "Tuomo Kuusi", "Jean-Christophe Mourrat"]
     type: "book"
     relationship: "assumes"
-    note: "Grundlehren 352, Springer, 2019. Nine of its results are literature inputs (see README)."
+    note: >-
+      Grundlehren 352, Springer, 2019. Eight of its results are literature inputs (see README);
+      Proposition 5.14 (existence of scalar white noise) is proved.
   - title: "Einstein relation for reversible diffusions in a random environment"
     authors: ["Nina Gantert", "Pierre Mathieu", "Andrey Piatnitski"]
     type: "paper"
@@ -173,9 +175,9 @@ automation:
         - "claude-haiku-5-5"
       framework: "Claude Code (Anthropic)"
       tool_setup: >-
-        Claude Opus 5.5: orchestration, integration, statement reviews, canonical adoption gates and the
-        sealing of the numbered results. Claude Sonnet 5.5 and Claude Haiku 5.5: lemmas with fixed
-        statements. Same toolchain.
+        Claude Opus 5.5: orchestration, integration, statement reviews, canonical adoption gates, the
+        sealing of the numbered results and proofs of literature inputs. Claude Sonnet 5.5 and
+        Claude Haiku 5.5: lemmas with fixed statements. Same toolchain.
       cost:
         wall_time: "not tracked"
         spend_usd: "not tracked"
@@ -193,7 +195,7 @@ automation:
       prompting_notes: "Fixed statements only."
   spend_usd: "not tracked"
   notes: >-
-    The Lean development was written by AI agents between 18 October and 2 November 2026, under the
+    The Lean development was written by AI agents between 18 October and 20 November 2026, under the
     direction of the authors. Every numbered result was stated in Lean and frozen before its proof.
     Each proof step of the paper was then stated as its own Lean proposition and proved from the
     propositions of the steps it uses; each numbered result is the composition of these steps. Every
