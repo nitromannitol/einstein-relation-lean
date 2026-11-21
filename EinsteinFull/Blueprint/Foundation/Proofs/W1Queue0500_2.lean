@@ -112,8 +112,8 @@ private lemma transfer_fresh_mass {d : ℕ} (Δ : ℝ≥0) (δ : ℝ) (hδ : 0 �
   rw [← ENNReal.ofReal_toReal (measure_ne_top (K xω) _), hi, ENNReal.ofReal_mul hδ,
     ENNReal.ofReal_toReal (measure_ne_top (K xω) A)]
 
-/-- Combine the literal tube bound with the fresh candidate coin and the admitted
-GMP first-cycle tail, retaining the preceding construction parameters. -/
+/-- Combine the literal tube bound with the fresh candidate coin and the GMP first-cycle tail
+(`External.gantert_regeneration_tail_holds`), retaining the preceding construction parameters. -/
 theorem node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transfer_of_deps
     (htube : node_rt_u3A_renewal_u23_tube_u2D_probabilityStmt) :
     node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transferStmt := by

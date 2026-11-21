@@ -7,9 +7,9 @@ import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 /-!
 # First-cycle moments for the fixed GMP construction
 
-The moments are derived from the regeneration tail and no-return bounds of GMP
-Lemma 5.8, `External.gantert_regeneration_tail_holds`. The construction scale and split probability are fixed before
-the moment constants and the environment law. No change of coupling or scale,
+The moments are derived from the regeneration tail and no-return bounds of GMP Lemma 5.8,
+`External.gantert_regeneration_tail_holds`. The construction scale and split probability are fixed
+before the moment constants and the environment law. No change of coupling or scale,
 two-positive-mass claim, or many-cycle independence is implicit in these results.
 -/
 
@@ -120,8 +120,8 @@ theorem regeneration_first_exponentialMoment_le_of_tail {d : ℕ} (hd : 2 ≤ d)
       rw [← ENNReal.ofReal_tsum_of_nonneg (fun n => by positivity) hs.summable, hs.tsum_eq]
       rfl
 
-/-- Structural first-cycle witnesses from precisely the approved fixed-scale
-GMP input. The scale threshold precedes the scale, which precedes the split
+/-- Structural first-cycle witnesses from the tail and no-return bounds of GMP
+Lemma 5.8. The scale threshold precedes the scale, which precedes the split
 probability, which precedes all moment constants and actual laws/couplings.
 No existence or change of the split coupling is asserted. -/
 theorem exists_structural_first_cycle_moments (d : ℕ) (hd : 2 ≤ d) (Λ₀ r₀ : ℝ) :

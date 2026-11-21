@@ -294,7 +294,7 @@ theorem whiteNoiseExistence (d : ℕ) : WhiteNoiseExistence d := by
   · push_cast
     ring_nf
 
-/-- Armstrong–Kuusi–Mourrat, Proposition 5.14, in the form stated by the literature input
+/-- Armstrong–Kuusi–Mourrat, Proposition 5.14, in the form of the statement of
 `EinsteinFull.External.akm_white_noise_exists`. -/
 theorem akmWhiteNoiseExistence : EinsteinFull.External.Draft.akmWhiteNoiseExistenceStmt :=
   fun d _ => whiteNoiseExistence d
