@@ -63,12 +63,7 @@ import EinsteinFullAudit.Vocabulary.EinsteinRelation.External.AKMCorrectorOscill
 import EinsteinFullAudit.Vocabulary.EinsteinRelation.External.AKMEnergyDensity
 import EinsteinFullAudit.Vocabulary.EinsteinRelation.External.AKMEnergyDensitySources
 
-/-! Vocabulary for `EinsteinFull.External.AKMSublinearCorrectors`: the declarations of that library module which the challenge statements use, copied verbatim in their context. -/
-
-namespace EinsteinFull.External
-
-/-- Exact source-reviewed AKM Lemma 3.17 / Proposition 6.2 input. All stationary,
-horizontal, smooth and complex-force applications remain internal. -/
-axiom akm_sublinear_correctors : EinsteinFull.External.Draft.akmSublinearCorrectorsStmtV2
-
-end EinsteinFull.External
+/-! Vocabulary for `EinsteinFull.External.AKMSublinearCorrectors`. That library module proves
+`EinsteinFull.External.akm_sublinear_correctors` as a theorem, so the challenge statements and the
+permitted axioms use none of its declarations; the file keeps the import structure of the
+challenges. -/

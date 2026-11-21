@@ -5,6 +5,5 @@ akm_block_clt
 akm_coarsened_coefficient_estimates
 akm_localized_energy
 akm_negative_sobolev
-akm_sublinear_correctors
 bass_continuous_elliptic_well_posed
 gmp_velocity
