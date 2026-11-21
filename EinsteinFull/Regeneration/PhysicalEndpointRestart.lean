@@ -1,6 +1,7 @@
 import EinsteinFull.PhysicalRegeneration.Vendor.Regeneration.AnnealedUniformEndpointRestart
 import EinsteinFull.Regeneration.EndpointJointUniform
 import EinsteinRelation.Regeneration.FirstRegenerationSliceFubini
+import EinsteinRelation.Regeneration.FiniteHistoryTrialEvent
 
 /-!
 # The annealed uniform endpoint with a factor of the endpoint displacement
@@ -180,5 +181,92 @@ theorem integral_annealed_endpointAverage_fubini_endpoint {d : ℕ}
     ring
   · simp only [J, X, Set.indicator_of_notMem hz, hz, ↓reduceIte]
     ring
+
+open Classical in
+/-- The spatial integral on a first regeneration slice with a factor of the last bridge
+displacement, for the split coupling of the physical kernel and nonnegative bounded tests: the
+displacement enters the past kernel through the endpoint, and the future enters through its
+kernel version at the endpoint. -/
+theorem firstRegeneration_slice_integral_endpoint_eq_phys {d : ℕ} (hd : 2 ≤ d)
+    {Λ₀ r₀ : ℝ} (Q : EnvironmentLaw d Λ₀ r₀)
+    (lam : ℝ) (h0 : 0 ≤ lam) (h1 : lam ≤ 1)
+    (P : QuenchedPathLaws d) (K : CoupledQuenchedLaws d)
+    (hK : HasProbabilityLaws Q.measure K) (hpath : HasPathMarginals Q.measure K P)
+    (hP : IsGMPPhysicalKernelReducedBound hd Q.ellipticity_parameter Q lam h0 h1 P)
+    (Δ : ℝ≥0) (hΔ : 0 < Δ) (δ R : ℝ) (hR : 0 < R) (i : Fin d) (hδ : 0 ≤ δ)
+    (hR0 : volume (endpointBall i R 0) ≠ ⊤) (hRpos : volume (endpointBall i R 0) ≠ 0)
+    (hRestart : HasDeterministicRestart Q.measure Δ K)
+    (hUniform : HasUniformSuccessfulEndpoint Q.measure Δ δ R i K)
+    (Φ : FutureState d i R → ℝ) (hΦ : Measurable Φ) (hb : BoundedRealTest Φ)
+    (hΦ0 : ∀ r, 0 ≤ Φ r)
+    (B : Vec d × FieldPair d → ℝ) (hB : Measurable B) (hbB : BoundedRealTest B)
+    (hB0 : ∀ p, 0 ≤ B p)
+    (hBp : ∀ᵐ xω ∂(volume : Measure (Vec d)).prod Q.measure,
+      B xω = ∫ z, killedFutureTest R i Φ (xω, z) ∂K xω)
+    (m : ℕ) (H : CoupledSample d → ℝ)
+    (hH : @Measurable (CoupledSample d) ℝ (finiteHistorySigma Δ m) inferInstance H)
+    (hbH : BoundedRealTest H) (hH0 : ∀ z, 0 ≤ H z)
+    (g : Vec d → ℝ) (hg : Measurable g) (hbg : BoundedRealTest g) (hg0 : ∀ y, 0 ≤ g y) :
+    (∫ p in {p : FieldPair d × CoupledSample d | firstRegenerationTime Δ lam R p.2 i =
+        ((((m + 1 : ℕ) : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞)},
+      H p.2 * g (p.2.1 (((m + 1 : ℕ) : ℝ≥0) * Δ) - p.2.1 ((m : ℝ≥0) * Δ)) *
+        Φ (iteratedRecord Δ lam R i 1 p) ∂annealedCoupledLaw Q.measure K) =
+      (δ / (volume (endpointBall i R (0 : Vec d))).toReal) *
+        ∫ y, ∫ ω, (∫ z, ((forcedBitTrialEvent Δ lam R i m).indicator H) z *
+          g (y - z.1 ((m : ℝ≥0) * Δ)) *
+          (if y ∈ endpointBall i R (z.1 ((m : ℝ≥0) * Δ)) then 1 else 0) ∂K (0, ω)) *
+          B (y, ω) ∂Q.measure := by
+  let G := (forcedBitTrialEvent Δ lam R i m).indicator H
+  have hG : @Measurable (CoupledSample d) ℝ (finiteHistorySigma Δ m) inferInstance G :=
+    hH.indicator (measurableSet_forcedBitTrialEvent_finiteHistory Δ hΔ lam R hR i m)
+  have hG0 : ∀ z, 0 ≤ G z := fun z => by
+    by_cases hz : z ∈ forcedBitTrialEvent Δ lam R i m
+    · simp only [G, Set.indicator_of_mem hz]; exact hH0 z
+    · simp only [G, Set.indicator_of_notMem hz, le_refl]
+  have hbG : BoundedRealTest G := by
+    obtain ⟨C, hC⟩ := hbH
+    refine ⟨max C 0, fun z => ?_⟩
+    by_cases hz : z ∈ forcedBitTrialEvent Δ lam R i m
+    · simpa only [G, Set.indicator_of_mem hz] using (hC z).trans (le_max_left C 0)
+    · simpa only [G, Set.indicator_of_notMem hz, abs_zero] using (le_max_right C 0)
+  have hsm : MeasurableSet {p : FieldPair d × CoupledSample d |
+      firstRegenerationTime Δ lam R p.2 i =
+        ((((m + 1 : ℕ) : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞)} :=
+    ((measurable_firstRegenerationTime Δ lam R i).comp measurable_snd)
+      (measurableSet_singleton _)
+  have hΨ0 : ∀ q, 0 ≤ killedFutureTest R i Φ q := fun q => by
+    unfold killedFutureTest
+    split_ifs
+    · exact hΦ0 _
+    · exact le_refl 0
+  rw [← integral_indicator hsm]
+  have hpt : ∀ p : FieldPair d × CoupledSample d,
+      {p : FieldPair d × CoupledSample d | firstRegenerationTime Δ lam R p.2 i =
+          ((((m + 1 : ℕ) : ℝ≥0) * Δ : ℝ≥0) : ℝ≥0∞)}.indicator
+        (fun p => H p.2 * g (p.2.1 (((m + 1 : ℕ) : ℝ≥0) * Δ) - p.2.1 ((m : ℝ≥0) * Δ)) *
+          Φ (iteratedRecord Δ lam R i 1 p)) p =
+      G p.2 * (if p.2.2 m = true then (1 : ℝ) else 0) *
+        g (p.2.1 (((m + 1 : ℕ) : ℝ≥0) * Δ) - p.2.1 ((m : ℝ≥0) * Δ)) *
+        killedFutureTest R i Φ ((p.2.1 (((m + 1 : ℕ) : ℝ≥0) * Δ), p.1),
+          sampleTimeShift Δ p.2 (((m + 1 : ℕ) : ℝ≥0) * Δ)) := by
+    intro p
+    have h := firstRegeneration_slice_integrand Δ hΔ lam R i m H Φ p
+    have e : (fun p : FieldPair d × CoupledSample d =>
+        H p.2 * g (p.2.1 (((m + 1 : ℕ) : ℝ≥0) * Δ) - p.2.1 ((m : ℝ≥0) * Δ)) *
+          Φ (iteratedRecord Δ lam R i 1 p)) =
+        fun p => g (p.2.1 (((m + 1 : ℕ) : ℝ≥0) * Δ) - p.2.1 ((m : ℝ≥0) * Δ)) *
+          (H p.2 * Φ (iteratedRecord Δ lam R i 1 p)) := by
+      funext p
+      ring
+    rw [e, Set.indicator_mul_right, h]
+    ring
+  simp_rw [hpt]
+  rw [integral_annealed_future_endpoint_eq_uniformEndpointAverage_phys hd Q lam h0 h1 P K hK
+    hpath hP Δ hΔ δ R i hδ hR0 hRpos hRestart hUniform m G hG hbG hG0 g hg hbg hg0
+    (killedFutureTest R i Φ) (measurable_killedFutureTest R i Φ hΦ)
+    (boundedRealTest_killedFutureTest R i Φ hb) B hB hbB hB0 hBp, integral_const_mul,
+    integral_annealed_endpointAverage_fubini_endpoint Q.measure K hK Δ m i R hR G
+      (hG.mono (Probability.finiteHistorySigma_le Δ m) le_rfl) hbG g hg hbg B hB hbB]
+  simp only [G, div_eq_mul_inv, mul_assoc]
 
 end EinsteinFull.Regeneration
