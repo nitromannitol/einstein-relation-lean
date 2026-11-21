@@ -8,7 +8,7 @@ A machine-checked **Lean 4** formalization of the paper
 
 The paper's source, bibliography, figure and compiled PDF are included under
 [`paper/`](paper/). Every numbered result of the paper, twenty-one in all, is proved **for every
-random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from ten results of the
+random environment that satisfies the paper's Assumptions 1.1 and 1.2**, from nine results of the
 literature. These literature inputs are stated in Lean as named axioms, each with its source; they
 are listed in [Assumed literature inputs](#assumed-literature-inputs). The axiom report of every numbered
 result lists `propext`, `Classical.choice`, `Quot.sound` and inputs from that list, and nothing else; the
@@ -17,6 +17,7 @@ library contains no `sorry`.
 The development is built on [mathlib](https://github.com/leanprover-community/mathlib4) and on the
 public libraries [MarkovProcess](https://github.com/scottnarmstrong/MarkovProcess),
 [CoarseGraining](https://github.com/scottnarmstrong/CoarseGraining),
+[HighContrastHomogenization](https://github.com/scottnarmstrong/HighContrastHomogenization),
 [EllipticRegularityLean](https://github.com/scottnarmstrong/EllipticRegularityLean),
 [SuperdiffusionCLT](https://github.com/scottnarmstrong/SuperdiffusionCLT),
 [subdiffusive-process](https://github.com/nitromannitol/subdiffusive-process) and
@@ -105,7 +106,7 @@ Each numbered result is stated, with its paper label and number, in its own file
    the paper, under both assumptions.
 2. **Axioms and incomplete proofs.** The library contains no `sorry`, no `admit` and no
    `native_decide`. Beyond `propext`, `Classical.choice` and `Quot.sound`, the axiom reports of the
-   numbered results contain only the ten literature inputs below. Each one states a result of the
+   numbered results contain only the nine literature inputs below. Each one states a result of the
    cited literature in Lean and was checked against its source in an independent model review; the
    axiom report of each numbered result lists exactly the inputs that its proof uses.
 3. **The formal diffusion.** The diffusion is specified by its martingale problem: a family of
@@ -135,7 +136,6 @@ Each numbered result is stated, with its paper label and number, in its own file
 | `akm_coarsened_coefficient_estimates` | coarsened coefficient estimates | AKM, Definition 5.23 and Lemma 5.24 | 7 |
 | `akm_localized_energy` | localized energy minimizers and their measurability | AKM, Section 4.4 and Theorem 4.6(iv) | 5 |
 | `akm_negative_sobolev` | negative Sobolev bound for the corrector gradient and flux | AKM, Theorem 4.24 | 7 |
-| `akm_sublinear_correctors` | sublinearity of the scalar and flux correctors above a minimal radius | AKM, Lemma 3.17, Lemma 6.1 and Proposition 6.2 | 13 |
 | `bass_continuous_elliptic_well_posed` | well-posedness of the martingale problem with continuous elliptic diffusion and bounded drift | Bass, Chapter VI, Theorem 4.3 | 18 |
 | `gmp_velocity` | the quenched law of large numbers with positive longitudinal velocity | GMP, Section 2.3 and Proposition 5.9 | 4 |
 
@@ -187,6 +187,33 @@ Ann. Inst. H. Poincaré Probab. Statist. 39 (2003), 839–876); here that argume
 constants uniform in the environment law and the force, using a uniform exponential moment of the
 maximal displacement over one regeneration interval of length `λ⁻²`.
 
+The sublinearity of the correctors, AKM Lemma 3.17 (the oscillation part of (3.85), and (3.86)) for
+source correctors, with the existence of the flux corrector (Lemma 6.1) and the oscillation bound
+(6.13) of Proposition 6.2, as stated in `EinsteinFull/External/Draft/AKMSublinearCorrectorsV2.lean`,
+is proved: `EinsteinFull.External.akm_sublinear_correctors` is a theorem, proved by
+`EinsteinFull.External.akmSublinearCorrectorsStmtV2_holds` in
+`EinsteinFull/Homogenization/SourceCorrectorSublinear.lean`, from the results in
+`EinsteinFull/Homogenization/`. The proof departs from the source in its quantitative input. In
+place of the theory of AKM, Chapters 2 and 3, it uses Theorem C of S. Armstrong, T. Kuusi and A.
+Loher, *Homogenization at a polynomial scale in high contrast* (arXiv:2609.27647), proved as
+`HCPoly.uniform_homogenization` in HighContrastHomogenization. The dilation `x ↦ 2x` turns the range
+of dependence of the source law into the unit range of that theorem; by its Liouville
+classification, the dilated source corrector is the corrector of the dilated coefficient up to a
+constant, and the oscillation and energy bounds of the corrector and the pairing bounds of the flux
+`a(e + ∇φ) − āe` at the scales above twice the homogenization scale are transferred by the dilation.
+The homogenized matrix is bounded by identifying `āu · w` with mean fluxes on large cubes. The flux
+corrector of Lemma 6.1 is the explicit `L²_loc` limit of the truncations of the heat formula (6.7),
+selected along the indices at which they are `2⁻ᵏ`-Cauchy, so that it depends measurably on the
+coefficient field; the truncations converge in `L²` on every ball, at small times by the identity
+`Σᵢⱼ ‖∂ᵢ∂ⱼu‖₂² = ‖Δu‖₂²`, without the Fourier transform, at large times by the decay of the heat
+Hessians of the flux, and for the potential by the Poincaré inequality. The bound (6.13) follows
+from the energy and pairing bounds of the flux, the latter with decay exponent `κ` at the scales
+above `R₀`, by splitting the heat formula at the times `λr²` and `r²`, with `λ = (r/R₀)^(−2ϑ)` and
+`ϑ = κ/(3 + d/2)`; it holds for every flux corrector, since the potential of each one differs from
+the selected potential by a constant in each entry. The random radius is `(B X₀)^(2d/(d+s))`, where
+`X₀` is the homogenization scale of Theorem C and `B` is a constant, and the exponent `β` of the
+statement is formed from the exponents of Theorem C, not from those of AKM, Chapters 2 and 3.
+
 ## Guarantees
 
 - **No `sorry`.** The library has none. The three comparator challenges under
@@ -196,7 +223,7 @@ maximal displacement over one regeneration interval of length `λ⁻²`.
   `Classical.choice`, `Quot.sound` and literature inputs from the table above, and nothing else.
   [`EinsteinFullAudit/Axioms.lean`](EinsteinFullAudit/Axioms.lean) prints the reports and
   `scripts/check_axioms.py` fails on any other axiom, on `sorryAx`, or on a missing report.
-- **Builds.** `lake build` of this tree compiled 14,963 jobs with no errors.
+- **Builds.** `lake build` of this tree compiled 16,795 jobs with no errors.
 - **Independent check of the statements.** Theorems 1.1 and 1.2 and Proposition 7.1 are restated in
   [`EinsteinFullAudit/`](EinsteinFullAudit/) using mathlib alone, one challenge per result. A shared
   vocabulary restates, under their library names, every definition that the statements use and the
@@ -212,7 +239,7 @@ maximal displacement over one regeneration interval of length `λ⁻²`.
 
 ## Size
 
-The library contains 2,874 Lean files with 731,638 physical lines, on top of mathlib and the
+The library contains 3,091 Lean files with 759,899 physical lines, on top of mathlib and the
 libraries above. The comparator sources are counted separately.
 
 ## Building
@@ -268,6 +295,8 @@ EinsteinFull/
                                 proof of GMP Lemma 5.8
   External/                     the literature inputs, and in DFGW/ the proof of the DFGW
                                 invariance principle
+  Homogenization/               the proof of AKM Lemma 3.17, Lemma 6.1 and Proposition 6.2, and
+                                further lemmas on the laws of AKM that this proof does not use
 vendor/EinsteinRelation/        the blueprint library: environments, diffusions, generators
 EinsteinFullAudit/              the axiom report and the mathlib-only comparator pairs, with their
                                 vocabulary
