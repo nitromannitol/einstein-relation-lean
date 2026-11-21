@@ -7,7 +7,11 @@ import Mathlib.Order.Hom.Basic
 
 /-!
 DRAFT ONLY: the statement of a literature input.
-It is not admitted, declares no axiom and is not imported by production.
+It is not admitted and declares no axiom. Production imports it:
+`EinsteinFull.External.dfgw_invariance` has the statement `dfgwInvarianceStmtV2` of this file
+and is proved through it by `EinsteinFull.External.DFGW.dfgw_invariance_holds`; the modules of
+`EinsteinFull/External/DFGW/`, `EinsteinFull.Calculus.CLSkorokhod` and
+`EinsteinFull.Calculus.CLDFGWTrajectoryTransport` import it.
 
 A. De Masi, P. A. Ferrari, S. Goldstein, W. D. Wick, *An invariance principle for reversible
 Markov processes. Applications to random motions in random environments*, J. Stat. Phys. 55
