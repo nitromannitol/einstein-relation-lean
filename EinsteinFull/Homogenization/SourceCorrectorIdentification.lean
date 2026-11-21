@@ -171,17 +171,19 @@ theorem ae_mem_Ωend {K : ℝ} {hK : 1 ≤ K} {P : Measure (Coefficient d K)} (h
   exact (ae_map_iff (measurable_toHighContrast hK).aemeasurable pk.measurableSet_Ωend).mp hae
 
 /-- **Identification of source correctors.** For almost every coefficient, the dilated
-gradient of a source corrector of slope `e` is the high-contrast corrector gradient of slope
-`e` of the dilated coefficient. -/
-theorem ae_dilatedGradient_eq_gradPhi {K : ℝ} {hK : 1 ≤ K} {P : Measure (Coefficient d K)}
+corrected affine function of a source corrector of slope `e` is the high-contrast corrected
+affine function of slope `e` of the dilated coefficient up to an additive constant, and the
+dilated gradient of the corrector is the high-contrast corrector gradient. -/
+theorem ae_dilated_eq_highContrast {K : ℝ} {hK : 1 ≤ K} {P : Measure (Coefficient d K)}
     (hP : LawHypotheses P) {κ C : ℝ} (hd : 2 ≤ d) (hκ : 0 < κ) (hC : 0 ≤ C)
     (pk : HighContrastCorrectorPackage hK P κ C) {e : Vec d} (φ : SourceCorrector P e) :
     ∀ᵐ a ∂P, toHighContrast hK a ∈ pk.Ωend ∧
+      (∃ c : ℝ, dilatedCorrectedAffine e (φ.potential a) =ᵐ[volume]
+        fun x => vecDot e x + pk.Phi e (toHighContrast hK a) x + c) ∧
       dilatedGradient (φ.grad a) =ᵐ[volume] pk.gradPhi e (toHighContrast hK a) := by
   have : NeZero d := ⟨by omega⟩
   filter_upwards [ae_mem_Ωend hP pk, φ.weak_gradient, φ.locally_square_integrable, φ.harmonic,
     φ.sublinear] with a hb hw hloc hharm hsub
-  refine ⟨hb, ?_⟩
   set b := toHighContrast hK a
   have hϑ : (1 / 2 : ℝ) ∈ Set.Ioo (0 : ℝ) 1 := ⟨by norm_num, by norm_num⟩
   have hv := memLiouvilleClass_dilatedCorrectedAffine hK a e hw hloc hharm hsub
@@ -207,8 +209,19 @@ theorem ae_dilatedGradient_eq_gradPhi {K : ℝ} {hK : 1 ≤ K} {P : Measure (Coe
       (locallyIntegrable_dilatedGradient hw) hloc'
       (tendsto_normalizedL2Norm_dilatedPotential hu2
         (EinsteinRelation.Correctors.sublinear_uncentered_of_centered _ hu2 hsub)) hgrad
-  rw [← hee] at hgrad
+  rw [← hee] at hgrad hvw
+  refine ⟨hb, ⟨c, hvw⟩, ?_⟩
   filter_upwards [hgrad] with x hx
   exact add_left_cancel hx
+
+/-- **Identification of source correctors.** For almost every coefficient, the dilated
+gradient of a source corrector of slope `e` is the high-contrast corrector gradient of slope
+`e` of the dilated coefficient. -/
+theorem ae_dilatedGradient_eq_gradPhi {K : ℝ} {hK : 1 ≤ K} {P : Measure (Coefficient d K)}
+    (hP : LawHypotheses P) {κ C : ℝ} (hd : 2 ≤ d) (hκ : 0 < κ) (hC : 0 ≤ C)
+    (pk : HighContrastCorrectorPackage hK P κ C) {e : Vec d} (φ : SourceCorrector P e) :
+    ∀ᵐ a ∂P, toHighContrast hK a ∈ pk.Ωend ∧
+      dilatedGradient (φ.grad a) =ᵐ[volume] pk.gradPhi e (toHighContrast hK a) :=
+  (ae_dilated_eq_highContrast hP hd hκ hC pk φ).mono fun _ h => ⟨h.1, h.2.2⟩
 
 end EinsteinFull.Homogenization
