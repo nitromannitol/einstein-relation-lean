@@ -18,8 +18,8 @@ expected = {
     'EinsteinFull.Frozen.sharp_example', 'EinsteinFull.Frozen.regeneration_factorization',
 }
 standard = {'propext', 'Classical.choice', 'Quot.sound'}
-# The literature inputs of the README, each stated in EinsteinFull/External/ or in
-# EinsteinFull/Frozen/GantertRegenerationTail.lean; the comparator runner reads the same list.
+# The literature inputs of the README, each stated in EinsteinFull/External/; the comparator
+# runner reads the same list.
 root = pathlib.Path(__file__).resolve().parents[1]
 literature = {'EinsteinFull.External.' + n for n in (root / 'scripts/literature_inputs.txt').read_text().split()}
 log = pathlib.Path(sys.argv[1]).read_text()

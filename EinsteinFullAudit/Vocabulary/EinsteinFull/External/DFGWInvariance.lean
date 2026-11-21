@@ -22,15 +22,6 @@ import EinsteinFullAudit.Vocabulary.EinsteinRelation.Diffusion.Basic
 import EinsteinFullAudit.Vocabulary.EinsteinRelation.Environment.Basic
 import EinsteinFullAudit.Vocabulary.EinsteinRelation.Environment.Reduction
 
-/-! Vocabulary for `EinsteinFull.External.DFGWInvariance`: the declarations of that library module which the challenge statements use, copied verbatim in their context. -/
-
-namespace EinsteinFull.External
-
-/-- Reviewed De Masi–Ferrari–Goldstein–Wick (1989), Theorem 2.2 with Remarks 1 and 3, on the
-continuous trajectory space, part (ii) in the Skorokhod space. Direct-PDF evidence:
-literature-dfgw-invariance-v3 (after v1 and v2). The application to the environment seen from
-the particle, the transport to the two-sided carrier and the continuous-path corollary stay
-internal. -/
-axiom dfgw_invariance : EinsteinFull.External.Draft.dfgwInvarianceStmtV2
-
-end EinsteinFull.External
+/-! Vocabulary for `EinsteinFull.External.DFGWInvariance`. That library module proves
+`EinsteinFull.External.dfgw_invariance` as a theorem, so the challenge statements and the permitted
+axioms use none of its declarations; the file keeps the import structure of the challenges. -/

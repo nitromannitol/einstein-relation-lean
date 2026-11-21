@@ -1,5 +1,5 @@
 import EinsteinFull.Work.W5.UniformLatticeRenewalProof
-import EinsteinFull.Frozen.GantertRegenerationTail
+import EinsteinFull.Regeneration.GantertRegenerationTailProof
 import EinsteinRelation.Regeneration.FirstRegenerationFiniteness
 import EinsteinRelation.Regeneration.RenewalRecordIteration
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
@@ -7,8 +7,8 @@ import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 /-!
 # First-cycle moments for the fixed GMP construction
 
-The only nonstandard input used here is the root-approved named GMP tail and
-no-return input. The construction scale and split probability are fixed before
+The moments are derived from the regeneration tail and no-return bounds of GMP
+Lemma 5.8, `External.gantert_regeneration_tail_holds`. The construction scale and split probability are fixed before
 the moment constants and the environment law. No change of coupling or scale,
 two-positive-mass claim, or many-cycle independence is implicit in these results.
 -/
@@ -31,7 +31,7 @@ theorem regenerationTime_one_ne_top_ae_of_tail {d : ℕ} (hd : 2 ≤ d)
       Regeneration.annealedCoupledLaw Q.measure K
         {ωz | ENNReal.ofReal t < regenerationTime hd lam l 1 ωz.2} ≤
           ENNReal.ofReal (C * Real.exp (-c * lam ^ 2 * t))) :
-    ∀ᵐ ωz ∂Regeneration.annealedCoupledLaw Q.measure K,
+    ∀ᵐ ωz ∂ Regeneration.annealedCoupledLaw Q.measure K,
       regenerationTime hd lam l 1 ωz.2 ≠ ⊤ := by
   have he (z : Regeneration.CoupledSample d) :
       regenerationTime hd lam l 1 z = Regeneration.firstRegenerationTime
@@ -55,7 +55,7 @@ private theorem regeneration_first_slice_le_of_tail {d : ℕ} (hd : 2 ≤ d)
       regenerationTime hd lam l 1 ωz.2 =
         (((n : ℝ≥0) * Regeneration.Renewal.regenDelta lam : ℝ≥0) : ℝ≥0∞)} ≤
       ENNReal.ofReal ((1 + C) * Real.exp (-(c / 2) * n)) := by
-  letI := Regeneration.annealedCoupledLaw_isProbabilityMeasure Q.measure K hK
+  have := Regeneration.annealedCoupledLaw_isProbabilityMeasure Q.measure K hK
   by_cases hn : n = 0
   · subst n
     simp only [Nat.cast_zero, mul_zero, Real.exp_zero, mul_one]
@@ -95,7 +95,7 @@ theorem regeneration_first_exponentialMoment_le_of_tail {d : ℕ} (hd : 2 ≤ d)
         {ωz | ENNReal.ofReal t < regenerationTime hd lam l 1 ωz.2} ≤
           ENNReal.ofReal (C * Real.exp (-c * lam ^ 2 * t))) :
     (∫⁻ ωz, regenerationExponentialWeight hd lam l (c / 4) 1 ωz.2
-      ∂Regeneration.annealedCoupledLaw Q.measure K) ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤
         ENNReal.ofReal ((1 + C) / (1 - Real.exp (-(c / 4)))) := by
   have hf := regenerationTime_one_ne_top_ae_of_tail hd Q lam l c C hlam hc K htail
   rw [regeneration_exponentialMoment_eq_tsum hd lam l (c / 4) hlam.ne' 1 _ hf]
@@ -136,18 +136,18 @@ theorem exists_structural_first_cycle_moments (d : ℕ) (hd : 2 ≤ d) (Λ₀ r�
       ENNReal.ofReal (1 / 2 : ℝ) ≤ Regeneration.annealedCoupledLaw Q.measure K
         (regenerationNoReturn hd (l / lam)) ∧
       (∫⁻ ωz, regenerationExponentialWeight hd lam l a 1 ωz.2
-        ∂Regeneration.annealedCoupledLaw Q.measure K) ≤ ENNReal.ofReal M ∧
+        ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤ ENNReal.ofReal M ∧
       (∫⁻ ωz, regenerationExponentialWeight hd lam l a 1 ωz.2
         ∂regenerationConditionedLaw hd Q lam l K hK.1 hD) ≤ ENNReal.ofReal M ∧
       (∫⁻ ωz, regenerationExponentialWeight hd lam l a 1 ωz.2
-        ∂Regeneration.annealedCoupledLaw Q.measure K) +
+        ∂ Regeneration.annealedCoupledLaw Q.measure K) +
       (∫⁻ ωz, regenerationExponentialWeight hd lam l a 1 ωz.2
         ∂regenerationConditionedLaw hd Q lam l K hK.1 hD) ≤ ENNReal.ofReal M ∧
       HasSum (regenerationLatticeMass hd Q lam l K hK.1 hD) 1 ∧
       Summable (fun n : ℕ =>
         regenerationLatticeMass hd Q lam l K hK.1 hD n * Real.exp (a * n)) ∧
       (∑' n : ℕ, regenerationLatticeMass hd Q lam l K hK.1 hD n * Real.exp (a * n)) ≤ M := by
-  obtain ⟨l₀, hl₀, hsep, htail⟩ := External.gantert_regeneration_tail d hd Λ₀ r₀
+  obtain ⟨l₀, hl₀, hsep, htail⟩ := External.gantert_regeneration_tail_holds d hd Λ₀ r₀
   refine ⟨l₀, hl₀, hsep, ?_⟩
   intro l hl δ hδ₀ hδ₁
   obtain ⟨c, C, hc, hC, ht⟩ := htail l hl δ hδ₀ hδ₁
@@ -166,7 +166,7 @@ theorem exists_structural_first_cycle_moments (d : ℕ) (hd : 2 ≤ d) (Λ₀ r�
   have he : B / (1 / 2) = 2 * B := by ring
   rw [he] at hmD
   have hm' : (∫⁻ ωz, regenerationExponentialWeight hd lam l (c / 4) 1 ωz.2
-      ∂Regeneration.annealedCoupledLaw Q.measure K) ≤ ENNReal.ofReal (3 * B) :=
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤ ENNReal.ofReal (3 * B) :=
     hm.trans (ENNReal.ofReal_le_ofReal (by linarith))
   have hmD' : (∫⁻ ωz, regenerationExponentialWeight hd lam l (c / 4) 1 ωz.2
       ∂regenerationConditionedLaw hd Q lam l K hK.1 hD) ≤ ENNReal.ofReal (3 * B) :=
@@ -208,7 +208,7 @@ theorem regeneration_exponentialMoment_mul_le {d : ℕ} (hd : 2 ≤ d)
     simp only [smul_eq_mul, mul_zero, zero_add, Real.exp_zero, mul_one] at hc
     have he : (b * θ) * lam ^ 2 * (regenerationTime hd lam l j ωz.2).toReal =
         θ * (b * lam ^ 2 * (regenerationTime hd lam l j ωz.2).toReal) := by ring
-    simp only [regenerationExponentialWeight, if_neg hωz, he]
+    simp only [regenerationExponentialWeight, ite_eq_right hωz, he]
     calc
       _ ≤ ENNReal.ofReal (1 + θ *
           Real.exp (b * lam ^ 2 * (regenerationTime hd lam l j ωz.2).toReal)) :=
@@ -241,7 +241,7 @@ theorem exists_structural_small_first_cycle_moments (d : ℕ) (hd : 2 ≤ d) (Λ
     ∃ hD : Regeneration.annealedCoupledLaw Q.measure K
         (regenerationNoReturn hd (l / lam)) ≠ 0,
       (∫⁻ ωz, regenerationExponentialWeight hd lam l a 1 ωz.2
-        ∂Regeneration.annealedCoupledLaw Q.measure K) ≤ ENNReal.ofReal (1 + η) ∧
+        ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤ ENNReal.ofReal (1 + η) ∧
       (∫⁻ ωz, regenerationExponentialWeight hd lam l a 1 ωz.2
         ∂regenerationConditionedLaw hd Q lam l K hK.1 hD) ≤ ENNReal.ofReal (1 + η) := by
   obtain ⟨l₀, hl₀, hsep, hmom⟩ := exists_structural_first_cycle_moments d hd Λ₀ r₀
@@ -259,8 +259,8 @@ theorem exists_structural_small_first_cycle_moments (d : ℕ) (hd : 2 ≤ d) (Λ
   refine ⟨b * θ, mul_pos hb hθ, ?_⟩
   intro Q lam h₀ h₁ P K hK
   obtain ⟨hD, _, hma, hmc, _⟩ := hm Q lam h₀ h₁ P K hK
-  letI := Regeneration.annealedCoupledLaw_isProbabilityMeasure Q.measure K hK.1
-  letI := regenerationConditionedLaw_probability hd Q lam l K hK.1 hD
+  have := Regeneration.annealedCoupledLaw_isProbabilityMeasure Q.measure K hK.1
+  have := regenerationConditionedLaw_probability hd Q lam l K hK.1 hD
   refine ⟨hD, ?_, ?_⟩
   · exact (regeneration_exponentialMoment_mul_le hd lam l b θ M hθ.le hθ₁ hM.le 1 _ hma).trans
       (ENNReal.ofReal_le_ofReal (by linarith only [hθη]))

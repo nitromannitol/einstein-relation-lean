@@ -12,9 +12,9 @@ import EinsteinFull.Blueprint.Foundation.node_corrector_u2D_construction
 
 The reduced diffusion has an annealed invariance principle whose covariance is the homogenized
 coefficient, for every law with Assumption 1.2 smoothness. Translation ergodicity and finite range
-leave two cases (`environmentLaw_period_dichotomy`). For aperiodic laws the admitted input
-`EinsteinFull.External.dfgw_invariance` (De Masi–Ferrari–Goldstein–Wick, Theorem 2.2) applies to
-the two-sided environment process on its trajectory space, and its diffusion matrix is the
+leave two cases (`environmentLaw_period_dichotomy`). For aperiodic laws the invariance
+principle `EinsteinFull.External.dfgw_invariance` (De Masi–Ferrari–Goldstein–Wick, Theorem 2.2)
+applies to the two-sided environment process on its trajectory space, and its diffusion matrix is the
 homogenized coefficient (`dfgw_matrix_eq_homogenizedCoefficient`). Otherwise the law is a point mass
 at a translation invariant field and the reduced diffusion is Brownian with that covariance
 (`hasDiffusivity_of_constant`). The pathwise time change is its closed proof.

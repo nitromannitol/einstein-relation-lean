@@ -7,8 +7,7 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
 Transport of a process on an abstract carrier with continuous trajectories to its
-trajectory space `C(ℝ, S)`, as the input `dfgwInvarianceStmtV2` requires. Not imported by
-production.
+trajectory space `C(ℝ, S)`, as the statement `dfgwInvarianceStmtV2` requires.
 
 The trajectory map `ω ↦ (t ↦ ξ t ω)` pulls the coordinate sigma-algebras back to those of the
 process, intertwines the time shifts and reflections, and carries the law of the process to a
@@ -119,7 +118,7 @@ trajectories. -/
 theorem comap_restrict_Iic (t : ℝ) :
     MeasurableSpace.comap (fun η : C(ℝ, S) => η.restrict (Set.Iic t)) (borel C(Set.Iic t, S)) =
       dfgwCoordSigma (S := S) (Set.Iic t) := by
-  haveI : LocallyCompactSpace (Set.Iic t) := isClosed_Iic.locallyCompactSpace
+  have : LocallyCompactSpace (Set.Iic t) := isClosed_Iic.locallyCompactSpace
   rw [ContinuousMap.borel_eq_iSup_comap_eval, MeasurableSpace.comap_iSup]
   simp only [MeasurableSpace.comap_comp, dfgwCoordSigma, ← BorelSpace.measurable_eq (α := S)]
   apply le_antisymm
@@ -134,7 +133,7 @@ theorem stronglyMeasurable_integral_past {E : Type*} [NormedAddCommGroup E] [Nor
     {φ : S → E} (hφ : Measurable φ) {t : ℝ} (ht : 0 ≤ t) :
     StronglyMeasurable[dfgwCoordSigma (S := S) (Set.Iic t)]
       fun η : C(ℝ, S) => ∫ τ in (0 : ℝ)..t, φ (η τ) := by
-  haveI : LocallyCompactSpace (Set.Iic t) := isClosed_Iic.locallyCompactSpace
+  have : LocallyCompactSpace (Set.Iic t) := isClosed_Iic.locallyCompactSpace
   borelize C(Set.Iic t, S)
   let e : ℝ → Set.Iic t := fun τ => ⟨min τ t, Set.mem_Iic.2 (min_le_right _ _)⟩
   have he : Continuous e := (continuous_id.min continuous_const).subtype_mk _

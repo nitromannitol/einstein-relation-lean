@@ -16,7 +16,7 @@ theorem node_app_u3A_regen_u2D_tails_of_deps
     (htransfer : node_rt_u3A_renewal_u23_coupling_u2D_parameter_u2D_transferStmt) :
     node_app_u3A_regen_u2D_tailsStmt := by
   intro d hd Λ₀ r₀
-  obtain ⟨lG, hlG, hrG, hG⟩ := External.gantert_regeneration_tail d hd Λ₀ r₀
+  obtain ⟨lG, hlG, hrG, hG⟩ := External.gantert_regeneration_tail_holds d hd Λ₀ r₀
   obtain ⟨lT, hlT, _, hT⟩ := htransfer d hd Λ₀ r₀
   refine ⟨max lG lT, hlG.trans_le (le_max_left _ _),
     hrG.trans_le (mul_le_mul_of_nonneg_left (le_max_left _ _) (by norm_num)), ?_⟩
