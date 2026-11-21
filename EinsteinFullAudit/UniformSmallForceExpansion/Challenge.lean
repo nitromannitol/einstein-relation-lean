@@ -78,7 +78,6 @@ checks that their statements agree with the library's.
 - `EinsteinFull.External.akm_localized_energy`
 - `EinsteinFull.External.akm_negative_sobolev`
 - `EinsteinFull.External.bass_continuous_elliptic_well_posed`
-- `EinsteinFull.External.gmp_velocity`
 -/
 
 open MeasureTheory

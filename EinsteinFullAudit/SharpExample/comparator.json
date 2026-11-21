@@ -15,8 +15,7 @@
     "EinsteinFull.External.akm_coarsened_coefficient_estimates",
     "EinsteinFull.External.akm_localized_energy",
     "EinsteinFull.External.akm_negative_sobolev",
-    "EinsteinFull.External.bass_continuous_elliptic_well_posed",
-    "EinsteinFull.External.gmp_velocity"
+    "EinsteinFull.External.bass_continuous_elliptic_well_posed"
   ],
   "enable_nanoda": true
 }

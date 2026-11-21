@@ -42,15 +42,6 @@ import EinsteinFullAudit.Vocabulary.EinsteinRelation.Environment.Reduction
 import EinsteinFullAudit.Vocabulary.EinsteinRelation.Environment.SourceReducedBoundSupport
 import EinsteinFullAudit.Vocabulary.EinsteinRelation.External.GantertSection7Support
 
-/-! Vocabulary for `EinsteinFull.External.GMPVelocity`: the declarations of that library module which the challenge statements use, copied verbatim in their context. -/
-
-namespace EinsteinFull.External
-
-/-- Reviewed GMP positive small-force quenched velocity law and strict positive
-force projection, for the source physical origin process. This exact source
-alias retains translation ergodicity and the source force range. The internal
-regeneration ratio and signed/reduced-process transfers are not inputs.
-Direct-PDF evidence: literature-gmp-velocity-v1. -/
-axiom gmp_velocity : EinsteinFull.External.Draft.gmpVelocityStmt
-
-end EinsteinFull.External
+/-! Vocabulary for `EinsteinFull.External.GMPVelocity`. That library module proves
+`EinsteinFull.External.gmp_velocity` as a theorem, so the challenge statements and the permitted
+axioms use none of its declarations; the file keeps the import structure of the challenges. -/

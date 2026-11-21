@@ -6,4 +6,3 @@ akm_coarsened_coefficient_estimates
 akm_localized_energy
 akm_negative_sobolev
 bass_continuous_elliptic_well_posed
-gmp_velocity
