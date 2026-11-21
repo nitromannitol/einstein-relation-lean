@@ -8,10 +8,19 @@ import Mathlib.Analysis.SpecialFunctions.Exp
 # The regeneration tail and no-return bounds
 
 Gantert–Mathieu–Piatnitski, Lemma 5.8, (5.22) and the no-return bound (5.20), for the
-Section 7 zero-potential diffusion with the split coupling, in the exact form of the
-literature input `gantert_regeneration_tail`. The positive slab-exit estimate (GMP Lemma
-4.3) holds for every realization of the reduced kernel, and the reduction of the tail and
-no-return bounds to that estimate applies.
+Section 7 zero-potential diffusion with the split coupling, with the statement of
+`gantert_regeneration_tail` in `EinsteinFull/Frozen/GantertRegenerationTail.lean`. The
+positive slab-exit estimate (GMP Lemma 4.3) holds for every realization of the reduced
+kernel, and the reduction of the tail and no-return bounds to that estimate applies.
+
+Departures from the source: the source's proof of Lemma 4.3 uses that the slab-exit
+probability solves the boundary-value problem (4.3)–(4.4); here this is proved, by Dynkin's
+formula at the exit time, the limit of the zero-boundary resolvents as the rate vanishes, and
+the continuity of the exit payoff inside the slab and at its boundary. The source obtains the
+exponential moment (5.26) of the first regeneration endpoint from the argument of Shen,
+Theorem 4.9; here that argument is carried out with constants uniform in the environment law
+and the force, using a uniform exponential moment of the maximal displacement over one
+regeneration interval of length `λ⁻²`.
 -/
 
 open MeasureTheory
