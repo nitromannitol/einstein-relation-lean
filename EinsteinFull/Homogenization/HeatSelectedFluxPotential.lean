@@ -247,4 +247,164 @@ theorem exists_eLpNorm_sub_unitBallAverage_le (hd : 2 ≤ d) {R : ℝ} (hR : 1 �
         gcongr
     _ = K * ∑ l, eLpNorm (fun x => W x l) 2 μ := by rw [hK]; ring
 
+/-- The truncated first-derivative heat formula: a potential of the truncation of (6.7). -/
+noncomputable def heatPotentialTruncation (g : Vec d → Vec d) (p : ℕ) (j k : Fin d)
+    (x : Vec d) : ℝ :=
+  heatGradWindow ((p + 1 : ℕ) : ℝ)⁻¹ ((p + 1 : ℕ) : ℝ) j (fun y => g y k) x -
+    heatGradWindow ((p + 1 : ℕ) : ℝ)⁻¹ ((p + 1 : ℕ) : ℝ) k (fun y => g y j) x
+
+/-- The truncated potential normalized by its average over the unit ball. -/
+noncomputable def centeredHeatPotential (g : Vec d → Vec d) (p : ℕ) (j k : Fin d)
+    (x : Vec d) : ℝ :=
+  heatPotentialTruncation g p j k x - ⨍ y in ball (0 : Vec d) 1, heatPotentialTruncation g p j k y
+
+/-- **The heat-selected flux potential**: the selected `L²_loc` limit of the normalized
+truncated potentials. -/
+noncomputable def heatSelectedPotential (g : Vec d → Vec d) (x : Vec d) : Mat d :=
+  Matrix.of fun j k => locL2Limit (fun p => centeredHeatPotential g p j k) x
+
+theorem heatSelectedPotential_apply (g : Vec d → Vec d) (x : Vec d) (j k : Fin d) :
+    heatSelectedPotential g x j k = locL2Limit (fun p => centeredHeatPotential g p j k) x :=
+  Matrix.of_apply _ _ _
+
+namespace HeatFormulaHypotheses
+
+variable {g : Vec d → Vec d} (hg : HeatFormulaHypotheses g)
+include hg
+
+theorem hasWeakGradient_heatPotentialTruncation (p : ℕ) (j k : Fin d) :
+    HasWeakGradient univ (heatPotentialTruncation g p j k)
+      (fun x l => iteratedAKMHeatGradientTruncation g p p j k l x) := by
+  intro l
+  have h1 := (hg.moments k).hasWeakPartialDerivative_heatGradWindow (hg.measurable k)
+    (natCast_succ_inv_pos p) (natCast_succ_inv_le_natCast_succ p p) j l
+  have h2 := (hg.moments j).hasWeakPartialDerivative_heatGradWindow (hg.measurable j)
+    (natCast_succ_inv_pos p) (natCast_succ_inv_le_natCast_succ p p) k l
+  have heq : (fun x => iteratedAKMHeatGradientTruncation g p p j k l x) =
+      fun x => heatHessianWindow ((p + 1 : ℕ) : ℝ)⁻¹ ((p + 1 : ℕ) : ℝ) j l (fun y => g y k) x -
+        heatHessianWindow ((p + 1 : ℕ) : ℝ)⁻¹ ((p + 1 : ℕ) : ℝ) k l (fun y => g y j) x :=
+    funext (hg.truncation_eq p p j k l)
+  show HasWeakPartialDerivative univ l _ (fun x => iteratedAKMHeatGradientTruncation g p p j k l x)
+  rw [heq]
+  exact hasWeakPartialDerivative_sub h1 h2
+
+theorem measurable_heatPotentialTruncation (p : ℕ) (j k : Fin d) :
+    Measurable (heatPotentialTruncation g p j k) :=
+  (stronglyMeasurable_heatGradWindow _ _ j (hg.measurable k)).measurable.sub
+    (stronglyMeasurable_heatGradWindow _ _ k (hg.measurable j)).measurable
+
+theorem memLp_heatPotentialTruncation (p : ℕ) (j k : Fin d) (ρ : ℝ) :
+    MemLp (heatPotentialTruncation g p j k) 2 (volume.restrict (ball 0 ρ)) :=
+  ((hg.moments k).memLp_heatGradWindow (natCast_succ_inv_pos p)
+    (natCast_succ_inv_le_natCast_succ p p) j (hg.measurable k) ρ).sub
+    ((hg.moments j).memLp_heatGradWindow (natCast_succ_inv_pos p)
+      (natCast_succ_inv_le_natCast_succ p p) k (hg.measurable j) ρ)
+
+theorem measurable_centeredHeatPotential (p : ℕ) (j k : Fin d) :
+    Measurable (centeredHeatPotential g p j k) :=
+  (hg.measurable_heatPotentialTruncation p j k).sub measurable_const
+
+theorem memLp_centeredHeatPotential (p : ℕ) (j k : Fin d) (ρ : ℝ) :
+    MemLp (centeredHeatPotential g p j k) 2 (volume.restrict (ball 0 ρ)) := by
+  have := isFiniteMeasure_restrict_ball (d := d) ρ
+  exact (hg.memLp_heatPotentialTruncation p j k ρ).sub (memLp_const _)
+
+theorem hasWeakGradient_centeredHeatPotential (p : ℕ) (j k : Fin d) :
+    HasWeakGradient univ (centeredHeatPotential g p j k)
+      (fun x l => iteratedAKMHeatGradientTruncation g p p j k l x) :=
+  hasWeakGradient_sub_const univ (hg.hasWeakGradient_heatPotentialTruncation p j k) _
+
+theorem centeredHeatPotential_sub (p q : ℕ) (j k : Fin d) :
+    (fun x => centeredHeatPotential g p j k x - centeredHeatPotential g q j k x) =
+      fun x => (heatPotentialTruncation g p j k x - heatPotentialTruncation g q j k x) -
+        ⨍ y in ball (0 : Vec d) 1,
+          (heatPotentialTruncation g p j k y - heatPotentialTruncation g q j k y) := by
+  have hfin := isFiniteMeasure_restrict_ball (d := d) 1
+  have hip := (hg.memLp_heatPotentialTruncation p j k 1).integrable (by norm_num)
+  have hiq := (hg.memLp_heatPotentialTruncation q j k 1).integrable (by norm_num)
+  funext x
+  unfold centeredHeatPotential
+  rw [setAverage_eq, setAverage_eq, setAverage_eq, integral_sub hip hiq, smul_eq_mul,
+    smul_eq_mul, smul_eq_mul]
+  ring
+
+/-- **The normalized potentials are Cauchy in `L²` on every ball.** -/
+theorem isLocL2Cauchy_centeredHeatPotential (hd : 2 ≤ d) (j k : Fin d) :
+    IsLocL2Cauchy (fun p => centeredHeatPotential g p j k) := by
+  intro ρ δ hδ
+  set R := max ρ 1 with hR
+  obtain ⟨K, hKfin, hK⟩ := exists_eLpNorm_sub_unitBallAverage_le hd (le_max_right ρ 1)
+  have hKd : K * (d : ℝ≥0∞) ≠ ⊤ := ENNReal.mul_ne_top hKfin (ENNReal.natCast_ne_top d)
+  obtain ⟨δ', hδ', hδ'le⟩ : ∃ δ' : ℝ≥0∞, 0 < δ' ∧ K * (d : ℝ≥0∞) * δ' ≤ δ := by
+    by_cases h0 : K * (d : ℝ≥0∞) = 0
+    · exact ⟨1, one_pos, by rw [h0, zero_mul]; exact zero_le⟩
+    · refine ⟨δ / (K * d), ENNReal.div_pos hδ.ne' hKd, ?_⟩
+      rw [ENNReal.mul_div_cancel h0 hKd]
+  choose N hN using fun l : Fin d => hg.exists_eLpNorm_truncation_sub_le j k l R hδ'
+  refine ⟨Finset.univ.sup N, fun p q hp hq => ?_⟩
+  have hNl : ∀ l, N l ≤ Finset.univ.sup N := fun l => Finset.le_sup (Finset.mem_univ l)
+  rw [hg.centeredHeatPotential_sub p q j k]
+  have hw : MemLp (fun x => heatPotentialTruncation g p j k x -
+      heatPotentialTruncation g q j k x) 2 (volume.restrict (ball 0 R)) :=
+    (hg.memLp_heatPotentialTruncation p j k R).sub (hg.memLp_heatPotentialTruncation q j k R)
+  have hW : ∀ l, MemLp (fun x => iteratedAKMHeatGradientTruncation g p p j k l x -
+      iteratedAKMHeatGradientTruncation g q q j k l x) 2 (volume.restrict (ball 0 R)) := fun l =>
+    (hg.memLp_truncation p p j k l R).sub (hg.memLp_truncation q q j k l R)
+  have hweak := hasWeakGradient_sub (hg.hasWeakGradient_heatPotentialTruncation p j k)
+    (hg.hasWeakGradient_heatPotentialTruncation q j k)
+  have hP := hK _ _ hw hW hweak
+  calc eLpNorm _ 2 (volume.restrict (ball 0 ρ))
+      ≤ eLpNorm (fun x => (heatPotentialTruncation g p j k x -
+          heatPotentialTruncation g q j k x) - ⨍ y in ball (0 : Vec d) 1,
+            (heatPotentialTruncation g p j k y - heatPotentialTruncation g q j k y)) 2
+          (volume.restrict (ball 0 R)) :=
+        eLpNorm_mono_measure _ (Measure.restrict_mono (ball_subset_ball_of_le
+          (le_max_left ρ 1)) le_rfl)
+    _ ≤ K * ∑ l, eLpNorm (fun x => iteratedAKMHeatGradientTruncation g p p j k l x -
+          iteratedAKMHeatGradientTruncation g q q j k l x) 2 (volume.restrict (ball 0 R)) := hP
+    _ ≤ K * ∑ _l : Fin d, δ' := by
+        gcongr with l
+        exact hN l p p q q ((hNl l).trans hp) ((hNl l).trans hp) ((hNl l).trans hq)
+          ((hNl l).trans hq)
+    _ = K * (d : ℝ≥0∞) * δ' := by
+        rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_assoc]
+    _ ≤ δ := hδ'le
+
+theorem tendsto_eLpNorm_centeredHeatPotential (hd : 2 ≤ d) (j k : Fin d) (ρ : ℝ) :
+    Tendsto (fun p => eLpNorm (fun x => centeredHeatPotential g p j k x -
+      heatSelectedPotential g x j k) 2 (volume.restrict (ball 0 ρ))) atTop (𝓝 0) := by
+  simp_rw [heatSelectedPotential_apply]
+  exact (hg.isLocL2Cauchy_centeredHeatPotential hd j k).tendsto_eLpNorm
+    (fun p => hg.measurable_centeredHeatPotential p j k) ρ
+
+theorem measurable_heatSelectedPotential (j k : Fin d) :
+    Measurable (fun x => heatSelectedPotential g x j k) := by
+  simp_rw [heatSelectedPotential_apply]
+  exact measurable_locL2Limit fun p => hg.measurable_centeredHeatPotential p j k
+
+theorem memLp_heatSelectedPotential (hd : 2 ≤ d) (j k : Fin d) (ρ : ℝ) :
+    MemLp (fun x => heatSelectedPotential g x j k) 2 (volume.restrict (ball 0 ρ)) := by
+  obtain ⟨p, hp⟩ := eventually_atTop.mp
+    ((ENNReal.tendsto_nhds_zero.mp (hg.tendsto_eLpNorm_centeredHeatPotential hd j k ρ)) 1
+      one_pos)
+  have hdiff : MemLp (fun x => centeredHeatPotential g p j k x -
+      heatSelectedPotential g x j k) 2 (volume.restrict (ball 0 ρ)) :=
+    lt_of_le_of_lt (hp p le_rfl) ENNReal.one_lt_top
+  refine ((hg.memLp_centeredHeatPotential p j k ρ).sub hdiff).congr_norm
+    (hg.measurable_heatSelectedPotential j k).aestronglyMeasurable
+    (Filter.Eventually.of_forall fun x => ?_)
+  simp only [Pi.sub_apply, sub_sub_cancel]
+
+/-- **The heat-selected flux potential has the heat-selected flux gradient as its weak
+gradient.** -/
+theorem hasWeakGradient_heatSelectedPotential (hd : 2 ≤ d) (j k : Fin d) :
+    HasWeakGradient univ (fun x => heatSelectedPotential g x j k) (heatSelectedGradient g j k) :=
+  fun l => hasWeakPartialDerivative_of_tendsto l
+    (fun p => hg.hasWeakGradient_centeredHeatPotential p j k l)
+    (hg.memLp_heatSelectedPotential hd j k) (hg.memLp_heatSelectedGradient j k l)
+    (hg.memLp_centeredHeatPotential · j k) (fun p => hg.memLp_truncation p p j k l)
+    (hg.tendsto_eLpNorm_centeredHeatPotential hd j k) (hg.tendsto_eLpNorm_diagonal j k l)
+
+end HeatFormulaHypotheses
+
 end EinsteinFull.Homogenization
