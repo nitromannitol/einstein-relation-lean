@@ -114,7 +114,7 @@ theorem sqrt_setAverage_sq_eq_oscBall_div {r : ℝ} (u : Vec d → ℝ) :
 
 /-- The normalized Frobenius oscillation is controlled by the normalized oscillations of the
 entries. -/
-theorem sqrt_setAverage_frobeniusNorm_sq_le {r B : ℝ} (hr : 0 < r) (hB : 0 ≤ B)
+theorem sqrt_setAverage_frobeniusNorm_sq_le {r B : ℝ} (hB : 0 ≤ B)
     {U : Vec d → Mat d}
     (hU : ∀ j k, MemLp (fun x => U x j k) 2 (volume.restrict (ball 0 r)))
     (hosc : ∀ j k, Real.sqrt (⨍ x in ball 0 r,
