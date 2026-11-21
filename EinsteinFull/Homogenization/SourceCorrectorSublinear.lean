@@ -363,3 +363,14 @@ theorem akmSublinearCorrectorsStmtV2_holds : Draft.akmSublinearCorrectorsStmtV2 
     exact hφab.2.trans (by linarith)
 
 end EinsteinFull.External
+
+/-! The high-contrast homogenization theorem raises the CoarseGraining instances
+`Homogenization.instMeasurableSpaceMat` (the product σ-algebra on `Mat d`) and
+`Homogenization.instBorelSpaceMat` to priority `10000`, and CoarseGraining declares further copies
+of `MeasurableSpace (Mat d)`. The modules that use `akm_sublinear_correctors` were elaborated with
+the Borel instance `EinsteinRelation.instMeasurableSpaceMat`; these priorities keep that instance
+for them. -/
+
+attribute [instance 100] Homogenization.instMeasurableSpaceMat
+attribute [instance 100] Homogenization.instBorelSpaceMat
+attribute [instance 20000] EinsteinRelation.instMeasurableSpaceMat
