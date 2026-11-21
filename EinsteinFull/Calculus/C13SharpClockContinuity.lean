@@ -707,8 +707,8 @@ private noncomputable def sharp_zeroPotentialEnvironmentLaw {d : ℕ} {L R : ℝ
     intro z
     rw [Measure.map_map (Probability.measurable_translate z)
       sharp_measurable_zeroPotentialReducedPair]
-    have he : translate z ∘ zeroPotentialReducedPair =
-        zeroPotentialReducedPair ∘ translate z := by
+    have he : EinsteinRelation.translate z ∘ zeroPotentialReducedPair =
+        zeroPotentialReducedPair ∘ EinsteinRelation.translate z := by
       funext ω
       apply Prod.ext <;> ext x <;> rfl
     rw [he, ← Measure.map_map sharp_measurable_zeroPotentialReducedPair

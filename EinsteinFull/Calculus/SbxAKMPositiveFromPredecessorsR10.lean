@@ -38,7 +38,7 @@ theorem a_uniform_regeneration_remainder_decay_of_predecessors
         (Regeneration.annealedCoupledLaw Q.measure K) ∧
       |∫ ωz in {ωz | (t : ℝ≥0∞) < regenerationTime hd lam l j ωz.2},
         F (reduce ωz.1) * G (translate (ωz.2.1 t) (reduce ωz.1))
-          ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+          ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
         C * Real.exp (C * j - c * lam ^ 2 * (t : ℝ)) *
           (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
           (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by

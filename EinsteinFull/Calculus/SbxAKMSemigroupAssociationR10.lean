@@ -33,7 +33,7 @@ theorem a_uniform_supplied_covariance_eq_semigroup_of_remainder
       (Regeneration.annealedCoupledLaw Q.measure K) ∧
     (∫ ω, F ω * S t G ω ∂reducedLaw Q) =
       ∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-        ∂Regeneration.annealedCoupledLaw Q.measure K := by
+        ∂ Regeneration.annealedCoupledLaw Q.measure K := by
   intro d hd Λ₀ r₀ hΛ hr
   obtain ⟨l₀, p, C, hl₀, hsep, hp, hC, hgrowth⟩ :=
     a_uniform_coupled_endpoint_memLp_two_of_remainder hrem d hd Λ₀ r₀ hΛ hr

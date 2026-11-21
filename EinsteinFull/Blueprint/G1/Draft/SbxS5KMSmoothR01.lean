@@ -336,11 +336,11 @@ theorem smooth_complex_path_product_growth_of_remainder
     Integrable (fun w => F (reduce w.1) * G (sbxS4CoupledEndpoint t w))
       (Regeneration.annealedCoupledLaw Q.measure K) ∧
     (∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-      ∂Regeneration.annealedCoupledLaw Q.measure K) =
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) =
       (∫ ω, F (reduce ω) *
         (∫ γ : Path d, G (translate (γ t) (reduce ω)) ∂P (0, ω)) ∂Q.measure) ∧
     (∫ w, ‖F (reduce w.1) * G (sbxS4CoupledEndpoint t w)‖
-      ∂Regeneration.annealedCoupledLaw Q.measure K) ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤
       C * Real.exp (C * lam ^ 2 * (t : ℝ)) *
         (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -367,7 +367,7 @@ theorem smooth_complex_path_product_growth_of_remainder
   refine ⟨hcomplex, sbxS4_coupled_product_integral_eq_supplied hd Q lam l δ h₀.le h₁
     P K hK t hG hcomplex, ?_⟩
   have hb : |∫ w, ‖F (reduce w.1) * G (sbxS4CoupledEndpoint t w)‖
-      ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
       C * Real.exp (C * lam ^ 2 * (t : ℝ) - c * lam ^ 2 * (t : ℝ)) *
         (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -399,7 +399,7 @@ theorem smooth_coupled_endpoint_memLp_two_of_remainder
     (∀ᵐ ω ∂Q.measure,
       MemLp (fun γ : Path d => F (translate (γ t) (reduce ω))) 2 (P (0, ω))) ∧
     (∫ w, ‖F (sbxS4CoupledEndpoint t w)‖ ^ 2
-      ∂Regeneration.annealedCoupledLaw Q.measure K) ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤
       C * Real.exp (C * lam ^ 2 * (t : ℝ)) *
         (eLpNorm F (2 * ENNReal.ofReal p) (reducedLaw Q)).toReal ^ 2 := by
   intro d hd D
@@ -1137,7 +1137,7 @@ theorem smooth_sbxS2_remainder_moment_variable_rate
         (Regeneration.annealedCoupledLaw Q.measure K) ∧
       |∫ ωz in E, F (reduce ωz.1) *
         G (translate (ωz.2.1 t) (reduce ωz.1))
-          ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+          ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
         C * Real.exp (C * J - c * lam ^ 2 * (t : ℝ)) *
           (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
           (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -1207,7 +1207,7 @@ theorem smooth_sbxS2_regeneration_remainder_decay_of_deps
         (Regeneration.annealedCoupledLaw Q.measure K) ∧
       |∫ ωz in {ωz | (t : ℝ≥0∞) < regenerationTime hd lam l j ωz.2},
         F (reduce ωz.1) * G (translate (ωz.2.1 t) (reduce ωz.1))
-          ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+          ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
         C * Real.exp (C * j - c * lam ^ 2 * (t : ℝ)) *
           (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
           (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -1607,7 +1607,7 @@ theorem smooth_sbxS4_positive_complex_path_covariance_of_deps
     MemLp (G : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q) →
     (∫ ω, F ω ∂reducedLaw Q) = 0 → ∀ t : ℝ≥0,
     ‖∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-      ∂Regeneration.annealedCoupledLaw Q.measure K‖ ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K‖ ≤
       C * Real.exp (C * A - c * lam ^ 2 * (t : ℝ)) *
         (eLpNorm (F : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm (G : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -1658,7 +1658,7 @@ theorem smooth_sbxS4_positive_complex_integrable_covariance_of_deps
     Integrable (fun w => F (reduce w.1) * G (sbxS4CoupledEndpoint t w))
       (Regeneration.annealedCoupledLaw Q.measure K) ∧
     ‖∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-      ∂Regeneration.annealedCoupledLaw Q.measure K‖ ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K‖ ≤
       C * Real.exp (C * A - c * lam ^ 2 * (t : ℝ)) *
         (eLpNorm (F : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm (G : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal := by

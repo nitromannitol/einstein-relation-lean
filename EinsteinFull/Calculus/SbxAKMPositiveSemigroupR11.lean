@@ -109,7 +109,7 @@ theorem a_uniform_positive_complex_path_covariance_of_exact_predecessors
     MemLp (G : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q) →
     (∫ ω, F ω ∂reducedLaw Q) = 0 → ∀ t : ℝ≥0,
     ‖∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-      ∂Regeneration.annealedCoupledLaw Q.measure K‖ ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K‖ ≤
       C * Real.exp (C * A - c * lam ^ 2 * (t : ℝ)) *
         (eLpNorm (F : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm (G : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal := by

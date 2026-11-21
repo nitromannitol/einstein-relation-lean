@@ -36,7 +36,7 @@ theorem uniform_centered_slices_of_manyCycleMoment
     (∫ ω, F ω ∂reducedLaw Q) = 0 → ∀ k : ℕ,
     let q := fun n : ℕ => ∫ ωz in {ωz | regenerationTime hd lam l k ωz.2 =
       (((n : ℝ≥0) * Regeneration.Renewal.regenDelta lam : ℝ≥0) : ℝ≥0∞)},
-      F (reduce ωz.1) ∂Regeneration.annealedCoupledLaw Q.measure K
+      F (reduce ωz.1) ∂ Regeneration.annealedCoupledLaw Q.measure K
     Summable q ∧ (∑' n, q n) = 0 := by
   obtain ⟨l₀, hl₀, hsep, hmom⟩ := hmany d hd Λ₀ r₀ hΛ hr
   refine ⟨l₀, hl₀, hsep, ?_⟩
@@ -47,7 +47,7 @@ theorem uniform_centered_slices_of_manyCycleMoment
   intro Q hQ lam h₀ h₁ P K hK hD p hp F hF hFp hzero k
   let := reducedLaw_probability Q
   have hmfin : (∫⁻ ωz, regenerationExponentialWeight hd lam l a k ωz.2
-      ∂Regeneration.annealedCoupledLaw Q.measure K) ≠ ⊤ :=
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) ≠ ⊤ :=
     ne_top_of_le_ne_top ENNReal.ofReal_ne_top ((hm β hβ Q hQ lam h₀ h₁ P K hK hD).2 k)
   have hq := sbxS2_centered_regenerationSlice_hasSum hd Q lam l a h₀.ne' K hK.1 k
     hmfin F hF (hFp.integrable (by simpa only [ENNReal.ofReal_one] using ENNReal.ofReal_le_ofReal hp)) hzero
@@ -73,7 +73,7 @@ theorem uniform_slice_decay_of_manyCycleMoment
     ∀ k : ℕ, 1 ≤ k → ∀ n : ℕ,
     |∫ ωz in {ωz | regenerationTime hd lam l k ωz.2 =
       (((n : ℝ≥0) * Regeneration.Renewal.regenDelta lam : ℝ≥0) : ℝ≥0∞)},
-      F (reduce ωz.1) ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+      F (reduce ωz.1) ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
       Real.exp ((C * k - a * n) / 2) *
         (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
   obtain ⟨l₀, hl₀, hsep, hmom⟩ := hmany d hd Λ₀ r₀ hΛ hr
@@ -424,7 +424,7 @@ theorem uniform_slice_decay_normalized
     ∀ k : ℕ, 1 ≤ k → ∀ n : ℕ,
     |∫ ωz in {ωz | regenerationTime hd lam l k ωz.2 =
       (((n : ℝ≥0) * Regeneration.Renewal.regenDelta lam : ℝ≥0) : ℝ≥0∞)},
-      F (reduce ωz.1) ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+      F (reduce ωz.1) ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
       C * Real.exp (C * k - c * n) *
         (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
   obtain ⟨l₀, hl₀, hsep, hdec⟩ := uniform_slice_decay_of_manyCycleMoment hmany d hd Λ₀ r₀ hΛ hr
@@ -549,7 +549,7 @@ theorem uniform_remainder_variable_rate_of_tails
         (Regeneration.annealedCoupledLaw Q.measure K) ∧
       |∫ ωz in E, F (reduce ωz.1) *
         G (translate (ωz.2.1 t) (reduce ωz.1))
-          ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+          ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
         C * Real.exp (C * J - c * lam ^ 2 * (t : ℝ)) *
           (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
           (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -622,7 +622,7 @@ theorem uniform_regeneration_remainder_decay_of_inputs
         (Regeneration.annealedCoupledLaw Q.measure K) ∧
       |∫ ωz in {ωz | (t : ℝ≥0∞) < regenerationTime hd lam l j ωz.2},
         F (reduce ωz.1) * G (translate (ωz.2.1 t) (reduce ωz.1))
-          ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+          ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
         C * Real.exp (C * j - c * lam ^ 2 * (t : ℝ)) *
           (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
           (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -1317,7 +1317,7 @@ theorem uniform_positive_complex_path_covariance_of_inputs
     MemLp (G : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q) →
     (∫ ω, F ω ∂reducedLaw Q) = 0 → ∀ t : ℝ≥0,
     ‖∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-      ∂Regeneration.annealedCoupledLaw Q.measure K‖ ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K‖ ≤
       C * Real.exp (C * A - c * lam ^ 2 * (t : ℝ)) *
         (eLpNorm (F : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm (G : FieldPair d → ℂ) (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -1367,11 +1367,11 @@ theorem uniform_complex_path_product_growth_of_tails
     Integrable (fun w => F (reduce w.1) * G (sbxS4CoupledEndpoint t w))
       (Regeneration.annealedCoupledLaw Q.measure K) ∧
     (∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-      ∂Regeneration.annealedCoupledLaw Q.measure K) =
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) =
       (∫ ω, F (reduce ω) *
         (∫ γ : Path d, G (translate (γ t) (reduce ω)) ∂P (0, ω)) ∂Q.measure) ∧
     (∫ w, ‖F (reduce w.1) * G (sbxS4CoupledEndpoint t w)‖
-      ∂Regeneration.annealedCoupledLaw Q.measure K) ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤
       C * Real.exp (C * lam ^ 2 * (t : ℝ)) *
         (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -1400,7 +1400,7 @@ theorem uniform_complex_path_product_growth_of_tails
   refine ⟨hcomplex, sbxS4_coupled_product_integral_eq_supplied hd Q lam l δ h₀.le h₁
     P K hK t hG hcomplex, ?_⟩
   have hb : |∫ w, ‖F (reduce w.1) * G (sbxS4CoupledEndpoint t w)‖
-      ∂Regeneration.annealedCoupledLaw Q.measure K| ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K| ≤
       C * Real.exp (C * lam ^ 2 * (t : ℝ) - c * lam ^ 2 * (t : ℝ)) *
         (eLpNorm F (ENNReal.ofReal p) (reducedLaw Q)).toReal *
         (eLpNorm G (ENNReal.ofReal p) (reducedLaw Q)).toReal := by
@@ -1434,7 +1434,7 @@ theorem uniform_coupled_endpoint_memLp_two_of_tails
     (∀ᵐ ω ∂Q.measure,
       MemLp (fun γ : Path d => F (translate (γ t) (reduce ω))) 2 (P (0, ω))) ∧
     (∫ w, ‖F (sbxS4CoupledEndpoint t w)‖ ^ 2
-      ∂Regeneration.annealedCoupledLaw Q.measure K) ≤
+      ∂ Regeneration.annealedCoupledLaw Q.measure K) ≤
       C * Real.exp (C * lam ^ 2 * (t : ℝ)) *
         (eLpNorm F (2 * ENNReal.ofReal p) (reducedLaw Q)).toReal ^ 2 := by
   intro d hd Λ₀ r₀ hΛ hr
@@ -1502,7 +1502,7 @@ theorem supplied_covariance_eq_forced_of_endpoint_memLp
     (∫ ω, F ω * forcedComplexEvolution Q (Regeneration.Renewal.forceCoord hd)
       (lam : ℂ) t G ω ∂reducedLaw Q) =
       ∫ w, F (reduce w.1) * G (sbxS4CoupledEndpoint t w)
-        ∂Regeneration.annealedCoupledLaw Q.measure K := by
+        ∂ Regeneration.annealedCoupledLaw Q.measure K := by
   have hpair := (sbxS4_L2_pairing_eq_supplied hd Q lam l δ h0 h1 P K hK t
     (Lp.memLp F) (Lp.stronglyMeasurable G).measurable hend).2
   have ha := EinsteinFull.s8_gmp_reduced_kernel_action_at hd Q lam h0 h1 P hK.2.2.1 t G
