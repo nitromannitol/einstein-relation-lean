@@ -438,4 +438,141 @@ end Weighted
 
 end EllipticWholeSpaceSolution
 
+theorem abs_vecDot_le_sqrt_mul_sqrt (u v : Vec d) :
+    |vecDot u v| ≤ Real.sqrt (vecNormSq u) * Real.sqrt (vecNormSq v) := by
+  rw [← Real.sqrt_mul (vecNormSq_nonneg u), ← Real.sqrt_sq_eq_abs]
+  exact Real.sqrt_le_sqrt (sq_vecDot_le_vecNormSq_mul_vecNormSq u v)
+
+namespace EllipticWholeSpaceSolution
+
+variable {K : ℝ} (s : EllipticWholeSpaceSolution d K)
+
+theorem memLp_normalized_normDv [NeZero d] (N : ℕ) :
+    MemLp (fun x => Real.sqrt (vecNormSq (s.Dv x))) 2
+      (normalizedCubeMeasure (originCube d (N : ℤ))) := by
+  have hmeasN := (s.integrable_normalized_vecNormSq_Dv N).aestronglyMeasurable
+  have hmeas : AEStronglyMeasurable (fun x => Real.sqrt (vecNormSq (s.Dv x)))
+      (normalizedCubeMeasure (originCube d (N : ℤ))) :=
+    Real.continuous_sqrt.comp_aestronglyMeasurable hmeasN
+  refine (memLp_two_iff_integrable_sq hmeas).2 ?_
+  refine (s.integrable_normalized_vecNormSq_Dv N).congr (Filter.Eventually.of_forall fun x => ?_)
+  simp only
+  rw [Real.sq_sqrt (vecNormSq_nonneg _)]
+
+/-- **The cross term of the div-curl argument.** The weighted pairing of the corrector gradient
+with the flux is bounded by the gradient bound of the cutoff, the oscillation of the corrector
+and the energy. -/
+theorem abs_cubeAverage_weighted_correctorGrad_le [NeZero d] (hK : 1 ≤ K) (e : Vec d) (N : ℕ)
+    {η : Vec d → ℝ} (hη : ContDiff ℝ (⊤ : ℕ∞) η) (hcs : HasCompactSupport η)
+    (hηQ : tsupport η ⊆ openCubeSet (originCube d (N : ℤ))) (hη0 : ∀ x, 0 ≤ η x)
+    (hη1 : ∀ x, η x ≤ 1) {M : ℝ} (hM : ∀ x, ‖fderiv ℝ η x‖ ≤ M) :
+    |cubeAverage (originCube d (N : ℤ))
+        (fun x => η x ^ 2 * vecDot (s.correctorGrad e x) (matVecMul (s.coeff x) (s.Dv x)))| ≤
+      2 * (Real.sqrt d * M * K) * cubeBesovOscillation (originCube d (N : ℤ)) 2 (s.corrector e) *
+        Real.sqrt (cubeAverage (originCube d (N : ℤ)) (fun x => vecNormSq (s.Dv x))) := by
+  set Q := originCube d (N : ℤ)
+  set k := cubeAverage Q (s.corrector e)
+  have hK0 : 0 ≤ K := by linarith
+  have hM0 : 0 ≤ M := le_trans (norm_nonneg _) (hM 0)
+  have hQB : tsupport η ⊆ euclideanBall d (Real.sqrt d * (3 : ℝ) ^ N) :=
+    hηQ.trans ((openCubeSet_subset_cubeSet _).trans (cubeSet_originCube_subset_euclideanBall N))
+  have horth := s.integral_cutoff_sq_correctorGrad e (sqrt_mul_three_pow_pos N) hη hcs hQB
+    hη0 hη1 hM k
+  set A : Vec d → ℝ := fun x => η x ^ 2 * vecDot (s.correctorGrad e x)
+    (matVecMul (s.coeff x) (s.Dv x))
+  set B : Vec d → ℝ := fun x => η x * (s.corrector e x - k) *
+    vecDot (smoothGrad η x) (matVecMul (s.coeff x) (s.Dv x))
+  have hout (f : Vec d → ℝ) (hf : ∀ x, η x = 0 → f x = 0) :
+      ∫ x in cubeSet Q, f x = ∫ x, f x := by
+    refine setIntegral_eq_integral_of_forall_compl_eq_zero fun x hx => hf x ?_
+    exact image_eq_zero_of_notMem_tsupport fun h => hx (openCubeSet_subset_cubeSet _ (hηQ h))
+  have hAB : cubeAverage Q A = -(2 * cubeAverage Q B) := by
+    unfold cubeAverage
+    rw [hout A (fun x hx => by simp [A, hx]), hout B (fun x hx => by simp [B, hx]), horth]
+    ring
+  set c := Real.sqrt d * M * K with hc
+  have hc0 : 0 ≤ c := by positivity
+  have hpt (x : Vec d) : |B x| ≤ c * (|s.corrector e x - k| * Real.sqrt (vecNormSq (s.Dv x))) := by
+    have h1 : |η x| ≤ 1 := abs_le.mpr ⟨by linarith [hη0 x], hη1 x⟩
+    have h2 := abs_vecDot_le_sqrt_mul_sqrt (smoothGrad η x) (matVecMul (s.coeff x) (s.Dv x))
+    have h3 : Real.sqrt (vecNormSq (smoothGrad η x)) ≤ Real.sqrt d * M := by
+      have := vecNormSq_smoothGrad_le η x
+      have h4 : ‖fderiv ℝ η x‖ ^ 2 ≤ M ^ 2 := pow_le_pow_left₀ (norm_nonneg _) (hM x) 2
+      rw [show Real.sqrt d * M = Real.sqrt (d * M ^ 2) by
+        rw [Real.sqrt_mul (Nat.cast_nonneg d), Real.sqrt_sq hM0]]
+      exact Real.sqrt_le_sqrt (this.trans (mul_le_mul_of_nonneg_left h4 (Nat.cast_nonneg d)))
+    have h5 : Real.sqrt (vecNormSq (matVecMul (s.coeff x) (s.Dv x))) ≤
+        K * Real.sqrt (vecNormSq (s.Dv x)) := by
+      have hfb := vecNormSq_matVecMul_le_of_isEllipticMatrix (s.elliptic x) (s.Dv x)
+      rw [show K * Real.sqrt (vecNormSq (s.Dv x)) = Real.sqrt (K ^ 2 * vecNormSq (s.Dv x)) by
+        rw [Real.sqrt_mul (by positivity), Real.sqrt_sq hK0]]
+      exact Real.sqrt_le_sqrt hfb
+    have h6 : |vecDot (smoothGrad η x) (matVecMul (s.coeff x) (s.Dv x))| ≤
+        Real.sqrt d * M * (K * Real.sqrt (vecNormSq (s.Dv x))) :=
+      h2.trans (mul_le_mul h3 h5 (Real.sqrt_nonneg _) (by positivity))
+    simp only [B, abs_mul]
+    calc |η x| * |s.corrector e x - k| * |vecDot (smoothGrad η x) (matVecMul (s.coeff x) (s.Dv x))|
+        ≤ 1 * |s.corrector e x - k| * (Real.sqrt d * M * (K * Real.sqrt (vecNormSq (s.Dv x)))) := by
+          gcongr
+      _ = c * (|s.corrector e x - k| * Real.sqrt (vecNormSq (s.Dv x))) := by rw [hc]; ring
+  have hΦ : MemLp (fun x => s.corrector e x - k) 2 (normalizedCubeMeasure Q) :=
+    ((s.memLp_cubeSet_corrector e N).sub (memLp_const k)).smul_measure ENNReal.ofReal_ne_top
+  have hΦabs : MemLp (fun x => |s.corrector e x - k|) 2 (normalizedCubeMeasure Q) := hΦ.abs
+  have hDvn := s.memLp_normalized_normDv N
+  have hprod : Integrable (fun x => |s.corrector e x - k| * Real.sqrt (vecNormSq (s.Dv x)))
+      (normalizedCubeMeasure Q) := hΦabs.integrable_mul hDvn
+  have hBmeas : AEStronglyMeasurable B (normalizedCubeMeasure Q) := by
+    have hmeasf (i j : Fin d) : Measurable (fun x => s.coeff x i j) :=
+      (measurable_pi_iff.mp (measurable_pi_iff.mp s.measurable_coeff i)) j
+    have hDv (i : Fin d) := (s.memLp_normalized_Dv N i).aestronglyMeasurable
+    have hηc : Continuous η := hη.continuous
+    have hdη (i : Fin d) : Continuous (fun x => smoothGrad η x i) :=
+      (hη.continuous_fderiv (by simp)).clm_apply continuous_const
+    refine (hηc.aestronglyMeasurable.mul hΦ.aestronglyMeasurable).mul ?_
+    simp only [vecDot, matVecMul]
+    refine Finset.aestronglyMeasurable_fun_sum _ fun i _ => (hdη i).aestronglyMeasurable.mul ?_
+    exact Finset.aestronglyMeasurable_fun_sum _ fun j _ =>
+      ((hmeasf i j).aestronglyMeasurable).mul (hDv j)
+  have hBint : Integrable B (normalizedCubeMeasure Q) :=
+    Integrable.mono' (hprod.const_mul c) hBmeas
+      (Filter.Eventually.of_forall fun x => by rw [Real.norm_eq_abs]; exact hpt x)
+  have habsB : |cubeAverage Q B| ≤
+      c * cubeAverage Q (fun x => |s.corrector e x - k| * Real.sqrt (vecNormSq (s.Dv x))) := by
+    simp only [cubeAverage_eq_integral_normalizedCubeMeasure]
+    rw [← integral_const_mul]
+    calc |∫ x, B x ∂normalizedCubeMeasure Q| ≤ ∫ x, |B x| ∂normalizedCubeMeasure Q :=
+          abs_integral_le_integral_abs
+      _ ≤ _ := integral_mono hBint.abs (hprod.const_mul c) hpt
+  have hcs := sq_cubeAverage_mul_le Q hΦabs hDvn
+  have hcs' : cubeAverage Q (fun x => |s.corrector e x - k| * Real.sqrt (vecNormSq (s.Dv x))) ≤
+      cubeBesovOscillation Q 2 (s.corrector e) *
+        Real.sqrt (cubeAverage Q (fun x => vecNormSq (s.Dv x))) := by
+    have hosc : cubeBesovOscillation Q 2 (s.corrector e) ^ 2 =
+        cubeAverage Q (fun x => |s.corrector e x - k| ^ 2) := by
+      have h := (integrable_and_cubeLpNorm_sq_eq_cubeAverage_sq Q
+        (cubeFluctuation Q (s.corrector e)) hΦ).2
+      rw [show cubeBesovOscillation Q 2 (s.corrector e) =
+        cubeLpNorm Q 2 (cubeFluctuation Q (s.corrector e)) from rfl, h]
+      congr 1
+      funext x
+      rw [sq_abs]
+      rfl
+    have hD : cubeAverage Q (fun x => Real.sqrt (vecNormSq (s.Dv x)) ^ 2) =
+        cubeAverage Q (fun x => vecNormSq (s.Dv x)) := by
+      congr 1
+      funext x
+      rw [Real.sq_sqrt (vecNormSq_nonneg _)]
+    rw [← hosc, hD] at hcs
+    have hoscnn : 0 ≤ cubeBesovOscillation Q 2 (s.corrector e) := cubeLpNorm_nonneg _ _ _
+    rw [← Real.sqrt_sq hoscnn, ← Real.sqrt_mul (sq_nonneg _)]
+    exact Real.le_sqrt_of_sq_le hcs
+  rw [hAB, abs_neg, abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 2)]
+  calc 2 * |cubeAverage Q B| ≤ 2 * (c * (cubeBesovOscillation Q 2 (s.corrector e) *
+        Real.sqrt (cubeAverage Q (fun x => vecNormSq (s.Dv x))))) := by
+        gcongr
+        exact habsB.trans (mul_le_mul_of_nonneg_left hcs' hc0)
+    _ = _ := by ring
+
+end EllipticWholeSpaceSolution
+
 end EinsteinFull.Homogenization
