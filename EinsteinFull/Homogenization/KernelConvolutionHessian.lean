@@ -176,10 +176,10 @@ theorem sum_integral_kconv_sq {ψ : Vec d → ℝ} (hψ : IsSmoothCompact ψ) :
       (EinsteinRelation.coordinateDerivative i ψ)) := fun i =>
     (hψ.coordinateDerivative i).coordinateDerivative i
   simp_rw [integral_kconv_mixed_sq hκm hκ1 hψ, sq, Finset.sum_mul, Finset.mul_sum]
-  rw [integral_finset_sum _ fun i _ => integrable_finset_sum _ fun j _ =>
+  rw [integral_finsetSum _ fun i _ => integrable_finsetSum _ fun j _ =>
     integrable_kconv_mul hκm hκ1 (hD i) (hD j)]
   refine Finset.sum_congr rfl fun i _ => ?_
-  rw [integral_finset_sum _ fun j _ => integrable_kconv_mul hκm hκ1 (hD i) (hD j)]
+  rw [integral_finsetSum _ fun j _ => integrable_kconv_mul hκm hκ1 (hD i) (hD j)]
 
 end IntegrationByParts
 
