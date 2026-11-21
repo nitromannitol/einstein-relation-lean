@@ -27,7 +27,7 @@ theorem energy_le_of_collar_recurrence (E : ℕ → ℝ) (C b q M : ℝ)
   have hK_eq : C + q * K * b = K := by
     dsimp [K]
     field_simp
-    <;> ring
+    ring
   have hq1 : q < 1 := by nlinarith [mul_nonneg hq (sub_nonneg.mpr hb)]
   have hiter : ∀ n k, E k ≤ K * b ^ k + q ^ n * M := by
     intro n
