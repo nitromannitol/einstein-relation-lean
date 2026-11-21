@@ -3,6 +3,7 @@ import EinsteinFull.Homogenization.HeatPotentialWeakGradient
 import EinsteinFull.Calculus.C2BallPoincareFromPDE
 import EinsteinRelation.Correctors.PairedParabolicEquation
 import EinsteinRelation.Correctors.WeakGradientCentering
+import EinsteinRelation.Correctors.SpatialWeakLocalization
 
 /-!
 # The potential of the heat-selected flux gradient
@@ -116,5 +117,134 @@ theorem hasWeakPartialDerivative_of_tendsto {u v : Vec d → ℝ} {un vn : ℕ �
   have h := (hn n).2.2 ψ hψt
   rw [Measure.restrict_univ] at h
   exact h.symm
+
+theorem volume_ball_zero_pos {ρ : ℝ} (hρ : 0 < ρ) : 0 < volume (ball (0 : Vec d) ρ) :=
+  (isOpen_ball_zero ρ).measure_pos volume ⟨0, by
+    change euclideanNorm ((0 : Vec d) - 0) < ρ
+    simp [euclideanNorm, euclideanSq, dot, hρ]⟩
+
+theorem setAverage_sub_const {s : Set (Vec d)} (hs0 : volume s ≠ 0) (hs : volume s ≠ ⊤)
+    {f : Vec d → ℝ} (hf : IntegrableOn f s volume) (c : ℝ) :
+    ⨍ x in s, (f x - c) = (⨍ x in s, f x) - c := by
+  have hpos : 0 < volume.real s := ENNReal.toReal_pos hs0 hs
+  rw [setAverage_eq, setAverage_eq, integral_sub hf (integrableOn_const hs), setIntegral_const,
+    smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_sub, ← mul_assoc, inv_mul_cancel₀ hpos.ne', one_mul]
+
+theorem sqrt_sum_sq_le_sum {ι : Type*} (s : Finset ι) {a : ι → ℝ} (ha : ∀ i, 0 ≤ a i) :
+    Real.sqrt (∑ i ∈ s, a i ^ 2) ≤ ∑ i ∈ s, a i := by
+  rw [Real.sqrt_le_left (Finset.sum_nonneg fun i _ => ha i)]
+  rw [sq, Finset.sum_mul_sum]
+  refine Finset.sum_le_sum fun i hi => ?_
+  rw [sq]
+  exact Finset.single_le_sum (f := fun j => a i * a j) (fun j _ => mul_nonneg (ha i) (ha j)) hi
+
+/-- **Poincaré inequality normalized on the unit ball**: on `B_R`, `R ≥ 1`, a weak potential
+minus its unit-ball average is bounded in `L²` by its gradient. -/
+theorem exists_eLpNorm_sub_unitBallAverage_le (hd : 2 ≤ d) {R : ℝ} (hR : 1 ≤ R) :
+    ∃ K : ℝ≥0∞, K ≠ ⊤ ∧ ∀ (w : Vec d → ℝ) (W : Vec d → Vec d),
+      MemLp w 2 (volume.restrict (ball 0 R)) →
+      (∀ l, MemLp (fun x => W x l) 2 (volume.restrict (ball 0 R))) →
+      HasWeakGradient univ w W →
+      eLpNorm (fun x => w x - ⨍ y in ball 0 1, w y) 2 (volume.restrict (ball 0 R)) ≤
+        K * ∑ l, eLpNorm (fun x => W x l) 2 (volume.restrict (ball 0 R)) := by
+  obtain ⟨C, hC, hP⟩ := EinsteinFull.ballPoincareEstimate_from_pde d hd
+  have hR0 : 0 < R := lt_of_lt_of_le one_pos hR
+  set μ := volume.restrict (ball (0 : Vec d) R) with hμ
+  set μ₁ := volume.restrict (ball (0 : Vec d) 1) with hμ₁
+  have hfin := isFiniteMeasure_restrict_ball (d := d) R
+  have hfin₁ := isFiniteMeasure_restrict_ball (d := d) 1
+  have hB₁0 : volume (ball (0 : Vec d) 1) ≠ 0 := (volume_ball_zero_pos one_pos).ne'
+  have hB₁ : volume (ball (0 : Vec d) 1) ≠ ⊤ := (volume_ball_zero_lt_top 1).ne
+  have hBR0 : volume (ball (0 : Vec d) R) ≠ 0 := (volume_ball_zero_pos hR0).ne'
+  have hBR : volume (ball (0 : Vec d) R) ≠ ⊤ := (volume_ball_zero_lt_top R).ne
+  have hsub : ball (0 : Vec d) 1 ⊆ ball 0 R := ball_subset_ball_of_le hR
+  have hμ₁μ : μ₁ ≤ μ := Measure.restrict_mono hsub le_rfl
+  set V₁ : ℝ≥0∞ := μ₁ univ ^ (1 / (1 : ℝ≥0∞).toReal - 1 / (2 : ℝ≥0∞).toReal) with hV₁
+  set VR : ℝ≥0∞ := μ univ ^ (1 / (2 : ℝ≥0∞).toReal) with hVR
+  set K : ℝ≥0∞ := (1 + VR * ENNReal.ofReal (volume.real (ball (0 : Vec d) 1))⁻¹ * V₁) *
+    ENNReal.ofReal (C * R) with hK
+  have hV₁fin : V₁ ≠ ⊤ := ENNReal.rpow_ne_top_of_nonneg (by norm_num) (measure_ne_top _ _)
+  have hVRfin : VR ≠ ⊤ := ENNReal.rpow_ne_top_of_nonneg (by norm_num) (measure_ne_top _ _)
+  refine ⟨K, ENNReal.mul_ne_top (ENNReal.add_ne_top.mpr ⟨ENNReal.one_ne_top,
+    ENNReal.mul_ne_top (ENNReal.mul_ne_top hVRfin ENNReal.ofReal_ne_top) hV₁fin⟩)
+      ENNReal.ofReal_ne_top, fun w W hw hW hweak => ?_⟩
+  set m := ⨍ y in ball (0 : Vec d) R, w y with hm
+  have hwm : MemLp (fun x => w x - m) 2 μ := hw.sub (memLp_const m)
+  have hW2 : MemLp W 2 μ := memLp_pi_iff.mpr hW
+  have hpoinc := hP 0 R hR0 w W hw hW2 (hasWeakGradient_mono (subset_univ _) hweak)
+  have hsqW : ∫ x in ball 0 R, euclideanSq (W x) =
+      ∑ l, (eLpNorm (fun x => W x l) 2 μ).toReal ^ 2 := by
+    simp_rw [euclideanSq, dot]
+    rw [integral_finsetSum _ fun l _ => ?_]
+    · refine Finset.sum_congr rfl fun l _ => ?_
+      rw [_root_.Homogenization.toReal_eLpNorm_two_sq_eq_integral_sq (hW l)]
+      simp_rw [sq]
+      rfl
+    · simpa only [sq] using (memLp_two_iff_integrable_sq (hW l).aestronglyMeasurable).1 (hW l)
+  have hwmL : eLpNorm (fun x => w x - m) 2 μ =
+      ENNReal.ofReal (Real.sqrt (∫ x in ball 0 R, |w x - m| ^ 2)) := by
+    rw [← ENNReal.ofReal_toReal hwm.eLpNorm_ne_top]
+    congr 1
+    rw [← Real.sqrt_sq ENNReal.toReal_nonneg,
+      _root_.Homogenization.toReal_eLpNorm_two_sq_eq_integral_sq hwm]
+    simp_rw [sq_abs]
+    rfl
+  have hstep1 : eLpNorm (fun x => w x - m) 2 μ ≤
+      ENNReal.ofReal (C * R) * ∑ l, eLpNorm (fun x => W x l) 2 μ := by
+    rw [hwmL]
+    calc ENNReal.ofReal (Real.sqrt (∫ x in ball 0 R, |w x - m| ^ 2))
+        ≤ ENNReal.ofReal (C * R * Real.sqrt (∫ x in ball 0 R, euclideanSq (W x))) :=
+          ENNReal.ofReal_le_ofReal hpoinc
+      _ ≤ ENNReal.ofReal (C * R * ∑ l, (eLpNorm (fun x => W x l) 2 μ).toReal) := by
+          refine ENNReal.ofReal_le_ofReal (mul_le_mul_of_nonneg_left ?_ (by positivity))
+          rw [hsqW]
+          exact sqrt_sum_sq_le_sum _ fun _ => ENNReal.toReal_nonneg
+      _ = ENNReal.ofReal (C * R) * ∑ l, eLpNorm (fun x => W x l) 2 μ := by
+          rw [ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_sum_of_nonneg
+            (fun _ _ => ENNReal.toReal_nonneg)]
+          congr 1
+          exact Finset.sum_congr rfl fun l _ => ENNReal.ofReal_toReal (hW l).eLpNorm_ne_top
+  have hwint₁ : IntegrableOn w (ball 0 1) volume :=
+    ((hw.mono_measure hμ₁μ).integrable (by norm_num))
+  have havg : (⨍ y in ball (0 : Vec d) 1, w y) - m = ⨍ y in ball (0 : Vec d) 1, (w y - m) :=
+    (setAverage_sub_const hB₁0 hB₁ hwint₁ m).symm
+  have hconst : ‖(⨍ y in ball (0 : Vec d) 1, w y) - m‖ₑ ≤
+      ENNReal.ofReal (volume.real (ball (0 : Vec d) 1))⁻¹ * V₁ *
+        eLpNorm (fun x => w x - m) 2 μ := by
+    have hF := (hwm.mono_measure hμ₁μ).aestronglyMeasurable
+    rw [havg, setAverage_eq, smul_eq_mul, enorm_mul, Real.enorm_eq_ofReal (inv_nonneg.mpr
+      measureReal_nonneg), mul_assoc]
+    refine mul_le_mul_of_nonneg_left ?_ zero_le
+    calc ‖∫ y in ball (0 : Vec d) 1, (w y - m)‖ₑ ≤ ∫⁻ y in ball (0 : Vec d) 1, ‖w y - m‖ₑ :=
+          enorm_integral_le_lintegral_enorm _
+      _ = eLpNorm (fun x => w x - m) 1 μ₁ := (eLpNorm_one_eq_lintegral_enorm hF).symm
+      _ ≤ eLpNorm (fun x => w x - m) 2 μ₁ * V₁ :=
+          eLpNorm_le_eLpNorm_mul_rpow_measure_univ (by norm_num) hF
+      _ ≤ eLpNorm (fun x => w x - m) 2 μ * V₁ := by
+          gcongr
+      _ = V₁ * eLpNorm (fun x => w x - m) 2 μ := mul_comm _ _
+  have hsplit : (fun x => w x - ⨍ y in ball (0 : Vec d) 1, w y) =
+      (fun x => w x - m) - (fun _ => (⨍ y in ball (0 : Vec d) 1, w y) - m) := by
+    funext x
+    simp only [Pi.sub_apply]
+    ring
+  rw [hsplit]
+  calc eLpNorm ((fun x => w x - m) - fun _ => (⨍ y in ball (0 : Vec d) 1, w y) - m) 2 μ
+      ≤ eLpNorm (fun x => w x - m) 2 μ +
+          eLpNorm (fun _ : Vec d => (⨍ y in ball (0 : Vec d) 1, w y) - m) 2 μ :=
+        eLpNorm_sub_le (by norm_num)
+    _ = eLpNorm (fun x => w x - m) 2 μ +
+          ‖(⨍ y in ball (0 : Vec d) 1, w y) - m‖ₑ * VR := by
+        rw [eLpNorm_const' _ two_ne_zero ENNReal.ofNat_ne_top]
+    _ ≤ eLpNorm (fun x => w x - m) 2 μ +
+          ENNReal.ofReal (volume.real (ball (0 : Vec d) 1))⁻¹ * V₁ *
+            eLpNorm (fun x => w x - m) 2 μ * VR := by
+        gcongr
+    _ = (1 + VR * ENNReal.ofReal (volume.real (ball (0 : Vec d) 1))⁻¹ * V₁) *
+          eLpNorm (fun x => w x - m) 2 μ := by ring
+    _ ≤ (1 + VR * ENNReal.ofReal (volume.real (ball (0 : Vec d) 1))⁻¹ * V₁) *
+          (ENNReal.ofReal (C * R) * ∑ l, eLpNorm (fun x => W x l) 2 μ) := by
+        gcongr
+    _ = K * ∑ l, eLpNorm (fun x => W x l) 2 μ := by rw [hK]; ring
 
 end EinsteinFull.Homogenization
