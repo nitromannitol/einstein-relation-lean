@@ -222,7 +222,7 @@ theorem joint_physical_kernel_exists {d : ℕ} (hd : 2 ≤ d) {Λ₀ r₀ : ℝ}
   change K (ω, x) = R.pathLaw x
   exact (hu _ htextK).trans (hu _ htextR).symm
 
-/-- The physical laws admit a globally Markov path kernel with all starts correct and
+/-- The physical laws are carried by a globally Markov path kernel with all starts correct and
 absolutely continuous positive-time endpoints, equal to the physical realizations from every
 start for almost every environment. -/
 theorem global_physical_kernel_exists {d : ℕ} (hd : 2 ≤ d) {Λ₀ r₀ : ℝ}
@@ -281,5 +281,25 @@ theorem global_physical_kernel_exists {d : ℕ} (hd : 2 ≤ d) {Λ₀ r₀ : ℝ
     obtain ⟨_, r, hr⟩ := hfGood a.2
     rw [heq, hr a.1, r.pathLaw_endpoint, r.transitionKernel_eq_heatKernel t ht a.1]
     exact withDensity_absolutelyContinuous _ _
+
+/-- The jointly measurable physical kernel, read at the reduced bound. -/
+theorem joint_physical_kernel_exists_reducedBound {d : ℕ} (hd : 2 ≤ d) {Λ₀ r₀ : ℝ}
+    (Q : EnvironmentLaw d Λ₀ r₀) (lam : ℝ) (h0 : 0 ≤ lam) (h1 : lam ≤ 1) :
+    ∃ P : QuenchedPathLaws d,
+      IsGMPPhysicalKernelReducedBound hd Q.ellipticity_parameter Q lam h0 h1 P := by
+  obtain ⟨P, hP⟩ := joint_physical_kernel_exists hd Q lam h0 h1
+  exact ⟨P, hP.reducedBound⟩
+
+/-- The globally Markov physical kernel, read at the reduced bound. -/
+theorem global_physical_kernel_exists_reducedBound {d : ℕ} (hd : 2 ≤ d) {Λ₀ r₀ : ℝ}
+    (Q : EnvironmentLaw d Λ₀ r₀) (lam : ℝ) (h0 : 0 ≤ lam) (h1 : lam ≤ 1) :
+    ∃ P : QuenchedPathLaws d,
+      IsGMPPhysicalKernelReducedBound hd Q.ellipticity_parameter Q lam h0 h1 P ∧
+      IsMarkovKernel P ∧
+      (∀ a, ∀ᵐ γ ∂P a, γ 0 = a.1) ∧
+      (∀ (a : Vec d × FieldPair d) (t : ℝ≥0), 0 < t →
+        (P a).map (pathPosition t) ≪ (volume : Measure (Vec d))) := by
+  obtain ⟨P, hP, h1, h2, h3⟩ := global_physical_kernel_exists hd Q lam h0 h1
+  exact ⟨P, hP.reducedBound, h1, h2, h3⟩
 
 end EinsteinFull.Regeneration
