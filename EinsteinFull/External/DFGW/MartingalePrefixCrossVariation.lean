@@ -49,7 +49,7 @@ theorem tendstoInMeasure_scaledProjectedIncrement_prefixCrossSum
   refine TendstoInMeasure.congr ?_ EventuallyEq.rfl h
   intro n
   filter_upwards [hstatall] with η hη
-  simp only [Nat.cast_add, Nat.cast_one, nsmul_eq_mul, mul_one, NNReal.coe_natCast]
+  simp only [nsmul_eq_mul, mul_one, NNReal.coe_natCast]
   rw [Finset.mul_sum]
   apply Finset.sum_congr rfl
   intro k hk
