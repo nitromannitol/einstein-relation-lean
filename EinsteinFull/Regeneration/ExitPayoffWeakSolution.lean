@@ -473,4 +473,83 @@ theorem exists_zeroBoundary_occupation_solution
         hα0 (hVv.inner tendsto_const_nhds)).congr fun n => (hform n).symm
     exact tendsto_nhds_unique hlim1 hlim2
 
+/-- The exit payoff of a smooth compactly supported payoff from an open set of finite
+physical measure with uniformly integrable exit time is the payoff plus a zero-boundary
+element, and it solves the homogeneous weak equation against every zero-boundary test. -/
+theorem exists_exitPayoff_weak_solution
+    (G : GantertFixedEnvironmentRealization hd L hL ω hω lam h₀ h₁)
+    (U : Set (Vec d)) (hU : IsOpen U) (hUm : physicalReversibleMeasure ω hd lam U ≠ ⊤)
+    (φ : Vec d → ℝ) (hφ : ContDiff ℝ (⊤ : ℕ∞) φ) (hφc : HasCompactSupport φ)
+    (hfin : ∀ x, ∀ᵐ γ ∂G.pathLaw x, MarkovProcess.ContinuousPath.exitTime U γ ≠ ⊤)
+    (hτ : ∀ x, Integrable (fun γ => (MarkovProcess.ContinuousPath.exitTime U γ).toReal)
+      (G.pathLaw x)) (M : ℝ)
+    (hM : ∀ x, ∫ γ, (MarkovProcess.ContinuousPath.exitTime U γ).toReal ∂G.pathLaw x ≤ M) :
+    ∃ u : EinsteinFull.Blueprint.GMPForceH1 hd lam,
+      u - EinsteinFull.C8GMP.compactTestDomain hd lam φ hφ hφc ∈
+        physicalH1ZeroBoundary U hd lam ∧
+      (EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω u : Vec d → ℝ)
+        =ᵐ[physicalReversibleMeasure ω hd lam] exitPayoff G U φ ∧
+      ∀ w : physicalH1ZeroBoundary U hd lam,
+        EinsteinFull.Blueprint.gmpPhysicalH1Energy hd ω lam L hω u w.1 = 0 := by
+  have hL0 : 0 < L := lt_of_lt_of_le zero_lt_one hL
+  let g := physicalGenerator (firstCoordinateIndex hd) ω lam φ
+  have hgm : Measurable g := measurable_physicalGenerator _ ω lam φ
+  obtain ⟨B, -, hB⟩ := EinsteinFull.sbxS4_physicalGenerator_bounded hd
+    (firstCoordinateIndex hd) hL0 hω lam hφ hφc
+  have hgL : MemLp g 2 (physicalReversibleMeasure ω hd lam) :=
+    EinsteinFull.sbxS4_memLp_physicalGenerator hd (firstCoordinateIndex hd) hL0 hω lam hφ hφc
+  obtain ⟨v, hv, hveq⟩ :=
+    exists_zeroBoundary_occupation_solution G U hU hUm g hgm B hB hgL hfin hτ M hM
+  let φ' := EinsteinFull.C8GMP.compactTestDomain hd lam φ hφ hφc
+  let v' : EinsteinFull.Blueprint.GMPForceH1 hd lam := v.1
+  refine ⟨φ' + v', ?_, ?_, ?_⟩
+  · rw [add_sub_cancel_left]
+    exact v.2
+  · have hsum : EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω (φ' + v') =
+        EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω φ' +
+          EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω v' :=
+      map_add (EinsteinFull.Blueprint.gmpPhysicalH1ValueContinuousLinear hd ω lam L hω) φ' v'
+    have hadd : (EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω (φ' + v') :
+        Vec d → ℝ) =ᵐ[physicalReversibleMeasure ω hd lam]
+        (EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω φ' : Vec d → ℝ) +
+          (EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω v' : Vec d → ℝ) := by
+      rw [hsum]
+      exact Lp.coeFn_add _ _
+    have hφv := EinsteinFull.Blueprint.gmpPhysicalCompactTest_value_ae hd ω lam L hω φ hφ hφc
+    filter_upwards [hadd, hφv, hv] with x h1 h2 h3
+    have h3' : (EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω v' : Vec d → ℝ) x =
+        occupationExpectation G U g 0 x := h3
+    rw [h1, Pi.add_apply, h2, h3']
+    have hD := exitPayoff_sub_eq_integral_generator G U hU φ hφ hφc x (hfin x) (hτ x)
+    have hO : occupationExpectation G U g 0 x =
+        ∫ γ, (∫ s in (0 : ℝ)..(MarkovProcess.ContinuousPath.exitTime U γ).toReal,
+          g (γ s.toNNReal)) ∂G.pathLaw x := by
+      unfold occupationExpectation
+      apply integral_congr_ae
+      filter_upwards [hfin x] with γ hγ
+      exact discountedOccupation_zero U g γ hγ
+    rw [hO]
+    change φ x + ∫ γ, (∫ s in (0 : ℝ)..(MarkovProcess.ContinuousPath.exitTime U γ).toReal,
+      physicalGenerator (firstCoordinateIndex hd) ω lam φ (γ s.toNNReal)) ∂G.pathLaw x = _
+    rw [← hD]
+    ring
+  · intro w
+    have hadd := EinsteinFull.Blueprint.gmpPhysicalH1Energy_add_left hd ω lam L hL hω φ' v' w.1
+    have h2 : EinsteinFull.Blueprint.gmpPhysicalH1Energy hd ω lam L hω v' w.1 =
+        ⟪hgL.toLp g, EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω w.1⟫_ℝ := hveq w
+    have h1 : EinsteinFull.Blueprint.gmpPhysicalH1Energy hd ω lam L hω φ' w.1 =
+        -⟪hgL.toLp g, EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω w.1⟫_ℝ := by
+      have hs := EinsteinFull.Blueprint.gmpPhysicalH1Energy_symm hd ω lam L hω φ' w.1
+      have he := EinsteinFull.Blueprint.gmpPhysicalH1Energy_eq_source hd ω lam L hω w.1 φ'
+      have hg := EinsteinFull.sbxS4_compactTest_fullDomain_generatorInner hd L ω hω lam hL0 w.1
+        φ hφ hφc
+      have hi : ⟪EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω w.1, hgL.toLp g⟫_ℝ =
+          ⟪hgL.toLp g, EinsteinFull.Blueprint.gmpPhysicalH1Value hd ω lam L hω w.1⟫_ℝ :=
+        real_inner_comm _ _
+      exact hs.trans (he.trans (hg.trans (congrArg Neg.neg hi)))
+    calc EinsteinFull.Blueprint.gmpPhysicalH1Energy hd ω lam L hω (φ' + v') w.1
+        = EinsteinFull.Blueprint.gmpPhysicalH1Energy hd ω lam L hω φ' w.1 +
+          EinsteinFull.Blueprint.gmpPhysicalH1Energy hd ω lam L hω v' w.1 := hadd
+      _ = 0 := by rw [h1, h2]; ring
+
 end EinsteinFull.Regeneration
